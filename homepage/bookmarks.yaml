@@ -1,0 +1,48 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/bookmarks
+
+- php-fpm:
+    - docs:
+        - abbr: docs
+          href: https://fpm.{{HOMEPAGE_VAR_SITE_ADDRESS}}/docs
+    - admin:
+        - abbr: admin
+          href: https://fpm.{{HOMEPAGE_VAR_SITE_ADDRESS}}/admin
+    - horizon:
+        - abbr: horizon
+          href: https://fpm.{{HOMEPAGE_VAR_SITE_ADDRESS}}/horizon
+    - logs:
+        - abbr: logs
+          href: https://fpm.{{HOMEPAGE_VAR_SITE_ADDRESS}}/logs
+
+- php-franken:
+    - docs:
+        - abbr: docs
+          href: https://octane.{{HOMEPAGE_VAR_SITE_ADDRESS}}/docs
+    - admin:
+        - abbr: admin
+          href: https://octane.{{HOMEPAGE_VAR_SITE_ADDRESS}}/admin
+    - horizon:
+        - abbr: horizon
+          href: https://octane.{{HOMEPAGE_VAR_SITE_ADDRESS}}/horizon
+    - logs:
+        - abbr: logs
+          href: https://octane.{{HOMEPAGE_VAR_SITE_ADDRESS}}/logs
+
+- Developer:
+    - Github:
+        - abbr: GH
+          href: https://github.com/
+    - Reddit:
+        - abbr: RE
+          href: https://reddit.com/
+    - YouTube:
+        - abbr: YT
+          href: https://youtube.com/
+
+# - Social:
+#
+#
+# - Entertainment:
+

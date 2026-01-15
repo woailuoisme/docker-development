@@ -1,0 +1,66 @@
+---
+
+- greeting:
+#     text_size: xl
+    text_size: 2x1
+    text: Greeting Text
+# Homepage Widgets 配置 - 基于项目 .env 文件
+# 系统监控和搜索功能
+# 系统资源监控
+- resources:
+    cpu: true
+    memory: true
+    disk: /
+    cputemp: true
+    uptime: true
+    units: metric
+    refresh: 3000
+    diskUnits: bytes
+
+- resources:
+    label: Storage
+    disk: /
+
+- resources:
+    label: Network
+    network: true
+
+# 搜索功能
+- search:
+    provider: duckduckgo
+    target: _blank
+    focus: true
+    showSearchSuggestions: true
+
+# 日期时间
+- datetime:
+    text_size: xl
+    format:
+      timeStyle: short
+      dateStyle: long
+      hourCycle: h24
+    locale: zh-CN
+
+# - stocks:
+#     provider: finnhub
+#     color: true # optional, defaults to true
+#     cache: 1 # optional, default caches results for 1 minute
+#     watchlist:
+#       - NVDA
+#       - GME
+#       - AMC
+#       - AMD
+#       - TSM
+#       - MSFT
+#       - AAPL
+#       - BRK.A
+
+- openmeteo:
+    label: Dongguan # optional
+    latitude: 23.018
+    longitude: 113.7487
+    timezone: Asia/Tokyo # optional
+    units: metric # or imperial
+    cache: 5 # Time in minutes to cache API responses, to stay within limits
+    format: # optional, Intl.NumberFormat options
+      maximumFractionDigits: 1

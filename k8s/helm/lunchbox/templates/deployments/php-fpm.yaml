@@ -1,0 +1,121 @@
+{{- if .Values.phpFpm.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-fpm
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: php-fpm
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: application
+spec:
+  replicas: {{ .Values.phpFpm.replicaCount }}
+  selector:
+    matchLabels:
+      app: php-fpm
+  template:
+    metadata:
+      labels:
+        app: php-fpm
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+      # PHP-FPM 容器
+      - name: php-fpm
+        image: "{{ .Values.phpFpm.image.repository }}:{{ .Values.phpFpm.image.tag }}"
+        imagePullPolicy: {{ .Values.phpFpm.image.pullPolicy }}
+        ports:
+        - name: fpm
+          containerPort: 9000
+          protocol: TCP
+        env:
+        - name: APP_ENV
+          value: "production"
+        - name: APP_DEBUG
+          value: "false"
+        - name: DB_CONNECTION
+          value: "pgsql"
+        - name: DB_HOST
+          value: "postgres"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_DATABASE
+          value: {{ .Values.postgresql.auth.database }}
+        - name: DB_USERNAME
+          value: {{ .Values.postgresql.auth.username }}
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: password
+        - name: MEILISEARCH_HOST
+          value: "http://meilisearch:7700"
+        - name: MEILISEARCH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: meilisearch-secret
+              key: master-key
+        - name: AWS_ENDPOINT
+          value: "http://minio-api:9000"
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: root-user
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: root-password
+        - name: TZ
+          value: {{ .Values.global.timezone }}
+        volumeMounts:
+        {{- if .Values.phpFpm.appCode.enabled }}
+        - name: app-code
+          mountPath: {{ .Values.phpFpm.appCode.mountPath }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.phpFpm.resources | nindent 10 }}
+      
+      # Nginx Sidecar 容器
+      - name: nginx
+        image: "{{ .Values.phpFpm.nginx.image.repository }}:{{ .Values.phpFpm.nginx.image.tag }}"
+        imagePullPolicy: {{ .Values.phpFpm.nginx.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.phpFpm.nginx.port }}
+          protocol: TCP
+        volumeMounts:
+        {{- if .Values.phpFpm.appCode.enabled }}
+        - name: app-code
+          mountPath: {{ .Values.phpFpm.appCode.mountPath }}
+          readOnly: true
+        {{- end }}
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+        livenessProbe:
+          {{- toYaml .Values.phpFpm.livenessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .Values.phpFpm.readinessProbe | nindent 10 }}
+      
+      volumes:
+      {{- if .Values.phpFpm.appCode.enabled }}
+      - name: app-code
+        persistentVolumeClaim:
+          claimName: app-code
+      {{- end }}
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+{{- end }}

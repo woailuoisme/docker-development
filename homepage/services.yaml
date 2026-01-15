@@ -1,0 +1,125 @@
+---
+# Homepage 服务配置
+# 使用环境变量格式: {{HOMEPAGE_VAR_SITE_ADDRESS}}
+
+- 系统管理:
+    - Dozzle:
+        icon: dozzle
+        href: https://dozzle.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        description: Docker 容器日志查看器
+        server: my-docker
+        container: dozzle
+
+    - Authelia:
+        icon: authelia
+        href: https://auth.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        description: 身份验证和授权服务
+        server: my-docker
+        container: authelia
+
+    - Gotify:
+        icon: gotify
+        href: https://msg.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        description: 消息推送服务
+        server: my-docker
+        container: gotify
+        widget:
+            type: gotify
+            url: http://gotify:80
+            key: {{HOMEPAGE_VAR_GOTIFY_KEY}}
+
+    - Homepage:
+        icon: homepage
+        href: https://home.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        description: 服务导航面板
+        server: my-docker
+        container: homepage
+
+    - Docker Proxy:
+        icon: docker
+        description: Docker Socket 代理
+        server: my-docker
+        container: docker-proxy
+
+- 核心服务:
+    - Caddy:
+        icon: caddy
+        href: https://{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        description: Web 服务器和反向代理
+        server: my-docker
+        container: caddy
+        widget:
+          type: caddy
+          url: http://caddy:2019
+
+    - PHP-FPM:
+        icon: php
+        href: https://rest.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        description: PHP FastCGI 处理器
+        server: my-docker
+        container: php-fpm
+
+    - PHP-RoadRunner:
+        icon: php
+        href: https://api.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        description: PHP Octane (RoadRunner)
+        server: my-docker
+        container: php-roadrunner
+
+    - PHP-Reverb:
+        icon: php
+        href: https://ws.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        description: Laravel Reverb WebSocket
+        server: my-docker
+        container: php-reverb
+
+    - PHP-Schedule:
+        icon: php
+        description: Laravel 任务调度
+        server: my-docker
+        container: php-schedule
+
+    - PHP-Horizon:
+        icon: php
+        description: Laravel 队列管理
+        server: my-docker
+        container: php-horizon
+
+- 数据存储:
+    - PostgreSQL:
+        icon: postgres
+        description: 关系型数据库 (v17.6)
+        server: my-docker
+        container: postgres
+
+    - Redis:
+        icon: redis
+        description: 内存数据库和缓存 (v8.4)
+        server: my-docker
+        container: redis
+
+#     - RabbitMQ:
+#         icon: rabbitmq
+#         href: https://mq.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+#         description: 消息队列服务
+#         server: my-docker
+#         container: rabbitmq
+#         widget:
+#             type: rabbitmq
+#             url: http://rabbitmq:15672
+#             username: {{HOMEPAGE_VAR_RABBITMQ_USER}}
+#             password: {{HOMEPAGE_VAR_RABBITMQ_PASS}}
+
+    - MinIO:
+        icon: minio
+        href: https://mo.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        description: 对象存储服务
+        server: my-docker
+        container: minio
+
+    - Meilisearch:
+        icon: meilisearch
+        href: https://search.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        description: 全文搜索引擎 (v1.30)
+        server: my-docker
+        container: meilisearch

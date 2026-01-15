@@ -1,0 +1,37 @@
+{{- if .Values.phpHorizon.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-horizon
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: php-horizon
+spec:
+  replicas: {{ .Values.phpHorizon.replicaCount }}
+  selector:
+    matchLabels:
+      app: php-horizon
+  template:
+    metadata:
+      labels:
+        app: php-horizon
+    spec:
+      containers:
+      - name: php-horizon
+        image: "{{ .Values.phpHorizon.image.repository }}:{{ .Values.phpHorizon.image.tag }}"
+        imagePullPolicy: {{ .Values.phpHorizon.image.pullPolicy }}
+        command: ["php", "artisan", "horizon"]
+        envFrom:
+        - secretRef:
+            name: app-secret
+        env:
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: password
+        resources:
+          {{- toYaml .Values.phpHorizon.resources | nindent 10 }}
+{{- end }}

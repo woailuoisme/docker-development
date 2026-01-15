@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  minio-init:
+    image: minio/mc:latest
+    container_name: minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      - MC_HOST_local=http://${MINIO_ROOT_USER:-minioadmin}:${MINIO_ROOT_PASSWORD:-minioadmin}@minio:9000
+    command: |
+      /bin/sh -c "
+      echo '等待 MinIO 服务就绪...' &&
+      until mc ready local; do sleep 2; done &&
+      echo '开始配置存储桶...' &&
+
+      # 创建备份存储桶（私有）
+      mc mb local/backup || echo 'backup 存储桶已存在' &&
+      mc anonymous set private local/backup &&
+
+      # 创建资源存储桶（公开）
+      mc mb local/asset || echo 'asset 存储桶已存在' &&
+      mc anonymous set public local/asset &&
+
+      # 创建午餐盒应用存储桶（公开）
+      mc mb local/lunchbox || echo 'lunchbox 存储桶已存在' &&
+      mc anonymous set public local/lunchbox &&
+
+      # 创建临时文件存储桶（公开）
+      mc mb local/temp || echo 'temp 存储桶已存在' &&
+      mc anonymous set public local/temp &&
+
+      # 创建日志存储桶（私有）
+      mc mb local/logs || echo 'logs 存储桶已存在' &&
+      mc anonymous set private local/logs &&
+
+      echo '存储桶配置完成!' &&
+      echo '存储桶列表:' &&
+      mc ls local
+      "
+    networks:
+      - lunchbox
+
+networks:
+  lunchbox:
+    external: true

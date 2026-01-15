@@ -1,0 +1,97 @@
+# Mosquitto MQTT Broker 配置文件
+# 版本: 2.0.22
+# 生产环境配置 - 仅 MQTT 协议
+# 此文件为模板，由 entrypoint.sh 动态生成实际配置
+
+# =================================================================
+# 监听器配置
+# =================================================================
+
+# 监听 1883 端口（MQTT 明文 - 仅内网/开发环境使用）
+listener 1883 0.0.0.0
+protocol mqtt
+
+# 监听 8883 端口（MQTTS - TLS 加密 - 生产环境推荐）
+listener 8883 0.0.0.0
+protocol mqtt
+# 使用 Caddy 自动管理的证书
+# 证书路径会根据 SITE_ADDRESS 环境变量动态生成
+cafile __CERT_PATH__
+certfile __CERT_PATH__
+keyfile __KEY_PATH__
+# 不要求客户端证书
+require_certificate false
+# TLS 版本（推荐 TLSv1.2 及以上）
+tls_version tlsv1.2
+
+# =================================================================
+# 认证配置
+# =================================================================
+
+# 密码文件认证
+password_file /mosquitto/config/passwd
+
+# 禁用匿名连接（需要认证）
+allow_anonymous false
+
+# =================================================================
+# 持久化配置
+# =================================================================
+
+# 启用持久化
+persistence true
+persistence_location /mosquitto/data/
+persistence_file mosquitto.db
+
+# 自动保存间隔（秒）
+autosave_interval 300
+
+# =================================================================
+# 日志配置
+# =================================================================
+
+# 日志输出目标
+log_dest stdout
+log_dest file /mosquitto/log/mosquitto.log
+
+# 日志类型
+log_type error
+log_type warning
+log_type notice
+log_type information
+
+# 连接日志
+connection_messages true
+
+# 日志时间戳
+log_timestamp true
+log_timestamp_format %Y-%m-%d %H:%M:%S
+
+# =================================================================
+# 性能和限制配置
+# =================================================================
+
+# 最大连接数（-1 表示无限制）
+max_connections -1
+
+# 消息队列大小
+max_queued_messages 1000
+
+# QoS 1/2 消息的最大并发数
+max_inflight_messages 20
+
+# 最大 keepalive 时间（秒）
+max_keepalive 300
+
+# =================================================================
+# 功能配置
+# =================================================================
+
+# 保留消息支持
+retain_available true
+
+# 允许零长度客户端 ID
+allow_zero_length_clientid true
+
+# 自动生成的客户端 ID 前缀
+auto_id_prefix auto-

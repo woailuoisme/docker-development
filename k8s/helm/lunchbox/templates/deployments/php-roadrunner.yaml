@@ -1,0 +1,59 @@
+{{- if .Values.phpRoadrunner.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-roadrunner
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: php-roadrunner
+spec:
+  replicas: {{ .Values.phpRoadrunner.replicaCount }}
+  selector:
+    matchLabels:
+      app: php-roadrunner
+  template:
+    metadata:
+      labels:
+        app: php-roadrunner
+    spec:
+      containers:
+      - name: php-roadrunner
+        image: "{{ .Values.phpRoadrunner.image.repository }}:{{ .Values.phpRoadrunner.image.tag }}"
+        imagePullPolicy: {{ .Values.phpRoadrunner.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8001
+        envFrom:
+        - secretRef:
+            name: app-secret
+        env:
+        - name: DB_HOST
+          value: "postgres"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: password
+        resources:
+          {{- toYaml .Values.phpRoadrunner.resources | nindent 10 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-roadrunner
+  namespace: {{ .Values.namespace }}
+spec:
+  type: {{ .Values.phpRoadrunner.service.type }}
+  ports:
+  - port: {{ .Values.phpRoadrunner.service.port }}
+    targetPort: http
+  selector:
+    app: php-roadrunner
+{{- end }}

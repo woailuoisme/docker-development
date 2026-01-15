@@ -1,0 +1,17 @@
+---
+# Homepage Docker 配置
+# 文档: https://gethomepage.dev/configs/docker/
+
+# 确保 Homepage 容器有权限访问 Docker socket
+# 在 docker-compose.yml 中已正确配置：
+# volumes:
+#   - /var/run/docker.sock:/var/run/docker.sock:ro
+# 本地 Docker 实例配置
+# my-docker:
+#   socket: /var/run/docker.sock
+# 如果需要使用 Docker Socket Proxy（生产环境推荐）：
+my-docker:
+  host: docker-proxy
+  port: 2375
+
+

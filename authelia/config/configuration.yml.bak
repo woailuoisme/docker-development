@@ -1,0 +1,208 @@
+## 版本: v4.39.0
+## 优化说明: 修复配置兼容性问题
+
+# ==========================================================================
+# 基础配置
+# ==========================================================================
+
+# 界面主题: light, dark, grey, auto
+theme: dark
+
+# 身份验证重置密码 JWT 密钥
+identity_validation:
+  reset_password:
+    jwt_secret: sUdz4hhhKPMhplagMREEsRtiRZ9yF1ldr3e5iJv8AQQqXUAe35gEmY8ycS4ffSwm
+
+# 默认重定向 URL 在 session.cookies 中配置
+
+# ==========================================================================
+# 服务器配置
+# ==========================================================================
+
+server:
+  # 地址格式: tcp://[hostname]:[port]
+  address: 'tcp://0.0.0.0:9091'
+  # 必需的NGINX集成端点配置
+  endpoints:
+    authz:
+      auth-request:
+        implementation: 'AuthRequest'
+
+# ==========================================================================
+# 日志配置
+# ==========================================================================
+
+log:
+  # 日志级别: trace, debug, info, warn, error, fatal
+  level: info
+  # 日志格式: json, text
+  format: json
+
+# ==========================================================================
+# TOTP 双因素认证配置
+# ==========================================================================
+
+totp:
+  # 发行者名称: 在 TOTP 应用中显示
+  issuer: 'll'
+  # 算法: sha1, sha256, sha512
+  algorithm: sha1
+  # 有效期
+  period: 30
+  # 位数
+  digits: 6
+
+# ==========================================================================
+# 认证后端配置
+# ==========================================================================
+
+authentication_backend:
+  # 文件认证后端
+  file:
+    # 用户数据库文件路径
+    path: /config/users_database.yml
+    # 是否监视文件变化
+    watch: false
+    # 搜索配置
+    search:
+      # 是否允许通过邮箱搜索用户
+      email: true
+      # 是否大小写不敏感
+      case_insensitive: true
+
+# ==========================================================================
+# 密码策略配置
+# ==========================================================================
+
+password_policy:
+  # 标准密码策略
+  standard:
+    # 启用标准密码策略
+    enabled: true
+    # 最小长度
+    min_length: 8
+    # 最大长度 (0 表示无限制)
+    max_length: 0
+    # 要求包含大写字母
+    require_uppercase: true
+    # 要求包含数字
+    require_number: true
+    # 要求包含特殊字符
+    require_special: true
+
+# ==========================================================================
+# 访问控制配置
+# ==========================================================================
+
+access_control:
+  # 默认策略: bypass, one_factor, two_factor 或 deny
+  default_policy: deny
+  
+  # 访问控制规则
+  rules:
+    # 允许主域名完全访问
+    - domain: 'll'
+      policy: bypass
+    
+    # 无需验证的服务
+    - domain: 'portainer.ll'
+      policy: bypass
+    
+    # 需要单次验证的服务
+    - domain: 'docs.ll'
+      policy: one_factor
+    
+      # 需要单次验证的服务
+    - domain: 'dozzle.ll'
+      policy: one_factor
+
+    # 需要双重验证的服务
+    - domain: 'admin.ll'
+      policy: two_factor
+    
+    # 需要双重验证的API和应用服务
+    - domain: 'app.ll'
+      policy: two_factor
+    
+
+
+# ==========================================================================
+# 会话配置
+# ==========================================================================
+
+session:
+  # 会话密钥
+  secret: 481F2EN0L2RQJHT882OSM
+  # 会话名称
+  name: 'authelia_session'
+  # 不活动超时时间
+  inactivity: '5m'
+  # 会话过期时间
+  expiration: '1h'
+  # 记住我功能
+  remember_me: '1M'
+  # Cookie 配置
+  cookies:
+    - domain: 'll'
+      authelia_url: 'https://auth.ll'
+      default_redirection_url: 'https://ll'
+  
+# Redis 会话存储配置
+#  redis:
+#    host: redis
+#    port: 6379
+#    database_index: 0
+#    password: redis_secret
+
+# ==========================================================================
+# 安全规则配置
+# ==========================================================================
+
+regulation:
+  # 最大尝试次数
+  max_retries: 3
+  # 检测时间窗口
+  find_time: '2m'
+  # 禁止时间
+  ban_time: '5m'
+
+# ==========================================================================
+# 存储配置
+# ==========================================================================
+
+storage:
+  # 加密密钥: 用于加密存储中的敏感数据
+  encryption_key: 481F2EN0L2RQJHT882OSM
+  
+  # 本地 SQLite 存储 (适合单实例部署)
+  local:
+    path: /config/db.sqlite3
+
+# ==========================================================================
+# 通知配置
+# ==========================================================================
+
+notifier:
+  # 禁用启动检查
+  disable_startup_check: false
+  
+  # 文件系统通知 (仅用于调试)
+  filesystem:
+    filename: /config/notification.txt
+
+# ==========================================================================
+# 高级配置
+# ==========================================================================
+
+# NTP 配置 - 用于时间同步验证
+ntp:
+  # NTP 服务器地址
+  address: 'udp://time.cloudflare.com:123'
+  # NTP 版本
+  version: 4
+  # 最大允许时间偏移
+  max_desync: '3 seconds'
+  # 禁用启动检查
+  disable_startup_check: false
+  # 禁用失败处理
+  disable_failure: false

@@ -1,0 +1,75 @@
+---
+# Homepage 设置配置
+# 文档: https://gethomepage.dev/configs/settings/
+
+# 页面基本信息
+title: "Docker服务面板"
+description: "本地开发环境服务管理面板"
+favicon: https://cdn.jsdelivr.net/gh/selfhst/icons/webp/homepage.webp
+
+# 主题和外观设置
+theme: dark
+color: zinc
+# color: zinc
+# color: slate
+language: zh-CN
+
+# cardBlur: xs
+# 图标和头部样式
+iconStyle: theme
+headerStyle: boxedWidgets
+hideVersion: true
+
+# 链接行为
+target: _blank
+
+# fullWidth: true
+
+# Docker 统计信息
+showStats: true
+statusStyle: "dot"
+hideErrors: true
+
+# 背景设置
+background:
+  image: https://i.imgur.com/5DJSIvq.png
+  blur: sm
+  opacity: 65
+  brightness: 50
+  saturate: 100
+
+# 相等高度卡片
+useEqualHeights: true
+
+# 最大组列数
+maxGroupColumns: 4
+
+# 布局配置 - 匹配实际服务
+layout:
+  系统管理:
+    style: row
+    columns: 4
+    useEqualHeights: true
+    icon: mdi-cog-outline
+
+  核心服务:
+    style: row
+    columns: 4
+    useEqualHeights: true
+    icon: mdi-server-outline
+
+  数据存储:
+    style: row
+    columns: 4
+    useEqualHeights: true
+    icon: mdi-database-outline
+
+# Homepage 访问配置
+# 确保在 docker-compose.yml 中设置了正确的 HOMEPAGE_ALLOWED_HOSTS
+# environment:
+#   HOMEPAGE_ALLOWED_HOSTS: homepage.dev
+
+# 如果通过反向代理访问，设置基础 URL
+# base: https://your-domain.com/homepage
+providers:
+  finnhub: d4o4291r01qtrbsin540d4o4291r01qtrbsin54g

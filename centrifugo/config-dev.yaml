@@ -1,0 +1,67 @@
+# Centrifugo v6 开发环境配置
+# 用于本地开发和测试
+
+# ============================================
+# 引擎配置 - 开发环境使用内存引擎
+# ============================================
+# 使用默认的 memory engine（单节点）
+# engine:
+#   type: memory
+
+# ============================================
+# 客户端连接配置
+# ============================================
+client:
+  # 开发环境：允许所有来源
+  allowed_origins:
+    - "*"
+  
+  # 允许匿名连接（不需要 JWT token）
+  allow_anonymous_connect_without_token: true
+
+# ============================================
+# 管理后台配置
+# ============================================
+admin:
+  enabled: true
+
+# ============================================
+# 健康检查
+# ============================================
+health:
+  enabled: true
+
+# ============================================
+# Prometheus 监控
+# ============================================
+prometheus:
+  enabled: true
+
+# ============================================
+# 日志配置
+# ============================================
+log:
+  level: "debug"  # 开发环境使用 debug 级别
+
+# ============================================
+# 通道命名空间配置
+# ============================================
+channel:
+  namespaces:
+    - name: public
+      presence: true
+      join_leave: true
+      history_size: 10
+      history_ttl: "300s"
+      force_recovery: true
+      allow_publish_for_subscriber: true
+      allow_subscribe_for_client: true
+    
+    - name: private
+      presence: true
+      join_leave: true
+      history_size: 10
+      history_ttl: "300s"
+      force_recovery: true
+      allow_publish_for_subscriber: false
+      allow_subscribe_for_client: false

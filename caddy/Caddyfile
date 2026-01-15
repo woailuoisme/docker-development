@@ -1,0 +1,75 @@
+{
+	import snippets/global-log.conf
+	#	import snippets/acme.conf
+	#	import snippets/mosquitto.conf
+	#	import snippets/postgres.conf
+	#	import snippets/redis.conf
+}
+
+import sites/*
+import templates/*
+
+#import fpm-app fpm.{$SITE_ADDRESS} /var/www/lunchbox
+#import proxy-octane-app-auth dev.{$SITE_ADDRESS} php-roadrunner:8001
+#import fpm-app-auth rest.{$SITE_ADDRESS} /var/www/lunchbox
+import fpm-app-auth dev.{$SITE_ADDRESS} /var/www/lunchbox fpm:9000
+import proxy-octane-app-auth rest.{$SITE_ADDRESS} roadrunner:8001
+#import proxy-octane-app-auth api.{$SITE_ADDRESS} franken:8001
+#import proxy-octane-app-auth prd.{$SITE_ADDRESS} roadrunner:8001
+
+#import proxy-app auth.{$SITE_ADDRESS} authelia:9091
+#import proxy-app ws.{$SITE_ADDRESS} php-reverb:8080
+
+#import proxy-app beszel.{$SITE_ADDRESS} beszel:8090
+
+import proxy-app mo.{$SITE_ADDRESS} minio:9001
+import proxy-app mos.{$SITE_ADDRESS} minio:9000
+#import proxy-app push.{$SITE_ADDRESS} centrifugo:8000
+#import proxy-app msg.{$SITE_ADDRESS} gotify:80
+
+#import proxy-app-subpath msg.{$SITE_ADDRESS} msg gotify:80
+#import proxy-app mq.{$SITE_ADDRESS} rabbitmq:15672
+
+#import proxy-app-auth home.{$SITE_ADDRESS} homepage:3000
+#import proxy-app-auth docs.{$SITE_ADDRESS} docs:80
+import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
+import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
+
+# 子路径服务聚合仅适用于支持baseURL的应用）
+#lot.{$SITE_ADDRESS} {
+#	encode zstd gzip
+#	import subpath mq rabbitmq:15672
+#}
+
+# import proxy-app ssh.{$SITE_ADDRESS}  ssh:8182
+# import proxy-app app.{$SITE_ADDRESS}  chatNext:3000
+
+:8888 {
+	respond /health 200 {
+		body "OK"
+	}
+	respond /ready 200 {
+		body "Ready"
+	}
+}
+
+#mqtt.{$SITE_ADDRESS} {
+#	respond "MQTT Management Endpoint" 200
+#	handle /health {
+#		respond "OK" 200
+#	}
+#}
+
+#https://pg.{$SITE_ADDRESS} {
+#	respond "Postgres Management Endpoint" 200
+#	handle /health {
+#		respond "OK" 200
+#	}
+#}
+
+#https://redis.{$SITE_ADDRESS} {
+#	respond "Redis Management Endpoint" 200
+#	handle /health {
+#		respond "OK" 200
+#	}
+#}

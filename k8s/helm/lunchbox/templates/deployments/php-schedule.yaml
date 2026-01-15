@@ -1,0 +1,43 @@
+{{- if .Values.phpSchedule.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-schedule
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: php-schedule
+spec:
+  replicas: {{ .Values.phpSchedule.replicaCount }}
+  selector:
+    matchLabels:
+      app: php-schedule
+  template:
+    metadata:
+      labels:
+        app: php-schedule
+    spec:
+      containers:
+      - name: php-schedule
+        image: "{{ .Values.phpSchedule.image.repository }}:{{ .Values.phpSchedule.image.tag }}"
+        imagePullPolicy: {{ .Values.phpSchedule.image.pullPolicy }}
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          while true; do
+            php artisan schedule:run --verbose --no-interaction
+            sleep 60
+          done
+        envFrom:
+        - secretRef:
+            name: app-secret
+        env:
+        - name: DB_HOST
+          value: "postgres"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+        resources:
+          {{- toYaml .Values.phpSchedule.resources | nindent 10 }}
+{{- end }}

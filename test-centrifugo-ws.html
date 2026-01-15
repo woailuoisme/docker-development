@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centrifugo v6 WebSocket 测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.disconnected {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+        }
+        .log-entry.error {
+            border-left-color: #dc3545;
+            color: #dc3545;
+        }
+        .log-entry.success {
+            border-left-color: #28a745;
+            color: #28a745;
+        }
+        .config {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Centrifugo v6 WebSocket 测试</h1>
+        
+        <div class="config">
+            <strong>WebSocket URL:</strong> wss://push.test.local/connection/websocket<br>
+            <strong>版本:</strong> Centrifugo v6
+        </div>
+
+        <div id="status" class="status connecting">准备连接...</div>
+
+        <div>
+            <button id="connectBtn" onclick="connect()">连接</button>
+            <button id="disconnectBtn" onclick="disconnect()" disabled>断开</button>
+            <button onclick="clearLog()">清空日志</button>
+        </div>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/centrifuge@5.2.2/dist/centrifuge.min.js"></script>
+    <script>
+        let centrifuge = null;
+        const statusDiv = document.getElementById('status');
+        const logDiv = document.getElementById('log');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateStatus(message, className) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${className}`;
+        }
+
+        function connect() {
+            try {
+                log('开始连接到 Centrifugo...', 'info');
+                
+                // 检查 Centrifuge 是否加载
+                if (typeof Centrifuge === 'undefined') {
+                    log('✗ Centrifuge 库未加载，请刷新页面重试', 'error');
+                    updateStatus('✗ 库加载失败', 'error');
+                    return;
+                }
+                
+                // 创建 Centrifuge 客户端 - v6 使用匿名连接
+                centrifuge = new Centrifuge('wss://push.test.local/connection/websocket', {
+                    debug: true
+                });
+
+                // 连接事件
+                centrifuge.on('connecting', function(ctx) {
+                    log(`正在连接... (code: ${ctx.code}, reason: ${ctx.reason})`, 'info');
+                    updateStatus('正在连接...', 'connecting');
+                    connectBtn.disabled = true;
+                });
+
+                centrifuge.on('connected', function(ctx) {
+                    log(`✓ 连接成功！Client ID: ${ctx.client}`, 'success');
+                    updateStatus('✓ 已连接', 'connected');
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    
+                    // 订阅一个测试频道
+                    subscribeToChannel();
+                });
+
+                centrifuge.on('disconnected', function(ctx) {
+                    log(`断开连接 (code: ${ctx.code}, reason: ${ctx.reason})`, 'info');
+                    updateStatus('已断开', 'disconnected');
+                    connectBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                });
+
+                centrifuge.on('error', function(ctx) {
+                    const errorMsg = ctx.error?.message || ctx.message || JSON.stringify(ctx);
+                    log(`✗ 错误: ${errorMsg}`, 'error');
+                    updateStatus('✗ 连接错误', 'error');
+                });
+
+                // 开始连接
+                centrifuge.connect();
+
+            } catch (error) {
+                log(`✗ 连接失败: ${error.message}`, 'error');
+                updateStatus('✗ 连接失败', 'error');
+                connectBtn.disabled = false;
+            }
+        }
+
+        function disconnect() {
+            if (centrifuge) {
+                log('断开连接...', 'info');
+                centrifuge.disconnect();
+                centrifuge = null;
+            }
+        }
+
+        function subscribeToChannel() {
+            try {
+                const channel = 'public:test';
+                log(`订阅频道: ${channel}`, 'info');
+                
+                const sub = centrifuge.newSubscription(channel);
+
+                sub.on('publication', function(ctx) {
+                    log(`收到消息: ${JSON.stringify(ctx.data)}`, 'success');
+                });
+
+                sub.on('subscribing', function(ctx) {
+                    log(`正在订阅频道... (code: ${ctx.code}, reason: ${ctx.reason})`, 'info');
+                });
+
+                sub.on('subscribed', function(ctx) {
+                    log(`✓ 订阅成功！`, 'success');
+                });
+
+                sub.on('unsubscribed', function(ctx) {
+                    log(`取消订阅 (code: ${ctx.code}, reason: ${ctx.reason})`, 'info');
+                });
+
+                sub.on('error', function(ctx) {
+                    const errorMsg = ctx.error?.message || ctx.message || JSON.stringify(ctx);
+                    log(`✗ 订阅错误: ${errorMsg}`, 'error');
+                });
+
+                sub.subscribe();
+
+            } catch (error) {
+                log(`✗ 订阅失败: ${error.message}`, 'error');
+            }
+        }
+
+        function clearLog() {
+            logDiv.innerHTML = '';
+        }
+
+        // 页面加载时的初始化
+        window.onload = function() {
+            log('页面加载完成，准备测试 Centrifugo v6 WebSocket 连接', 'info');
+            
+            // 检查 Centrifuge 是否加载
+            if (typeof Centrifuge === 'undefined') {
+                log('✗ Centrifuge 库未加载，请检查网络连接', 'error');
+                updateStatus('✗ 库加载失败', 'error');
+            } else {
+                log(`✓ Centrifuge 库已加载 (版本: ${Centrifuge.version || '未知'})`, 'success');
+                log('点击"连接"按钮开始测试', 'info');
+                updateStatus('准备就绪', 'disconnected');
+            }
+        };
+    </script>
+</body>
+</html>
