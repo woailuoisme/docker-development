@@ -1,6 +1,8 @@
 #FROM ccr.ccs.tencentyun.com/jiaoio/php-base-franken
 #FROM jiaoio/php-base-franken-xdebug
-FROM jiaoio/php-base-franken
+#FROM jiaoio/php-base-franken
+FROM jiaoio/php-base-franken:8.5-latest
+#FROM jiaoio/php-base-franken-trixie:8.5-latest
 ENV APP_PATH=/var/www/lunchbox \
     APP_PORT=8001 \
     APP_ENV=production \

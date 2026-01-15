@@ -1,0 +1,25 @@
+services:
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower
+    restart: unless-stopped
+    # 必须挂载 Docker Socket 才能监控其他容器
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9080:8080"
+    environment:
+      - TZ=${TIMEZONE} # 修改为 .env 中的变量名
+      - WATCHTOWER_CLEANUP=true # 卸载旧镜像
+      - "WATCHTOWER_SCHEDULE=0 0 18 * * *" # 每天下午六点检查更新
+      - WATCHTOWER_LABEL_ENABLE=true # 仅更新带有特定 label 的容器
+      - WATCHTOWER_HTTP_API_METRICS=true
+      - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_API_KEY}
+      - WATCHTOWER_NO_STARTUP_MESSAGE=true
+    networks:
+      - backend
+    # 给自己打上标签，让 Watchtower 也可以更新自己
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    security_opt:
+      - no-new-privileges:true

@@ -11,3 +11,4 @@ services:
       - NET_ADMIN
     networks:
       - backend
+      - frontend

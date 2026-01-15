@@ -1,8 +1,10 @@
 networks:
   frontend:
     name: frontend
+    external: ${NETWORK_EXTERNAL:-false}
   backend:
     name: backend
+    external: ${NETWORK_EXTERNAL:-false}
 
 volumes:
   app_code:
@@ -37,7 +39,7 @@ include:
   - php-roadrunner/docker-compose.yml # RoadRunner 引擎
   - php-horizon/docker-compose.yml    # 队列监控
   - php-schedule/docker-compose.yml   # 调度任务
-#  - php-franken/docker-compose.yml    # FrankenPHP 引擎
+  - php-franken/docker-compose.yml    # FrankenPHP 引擎
 #  - php-reverb/docker-compose.yml     # Laravel Reverb
 
   # --- TOOLS & MESSAGING ---

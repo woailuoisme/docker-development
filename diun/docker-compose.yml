@@ -1,0 +1,25 @@
+services:
+  diun:
+    container_name: diun
+    image: crazymax/diun:latest
+    command: serve
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # 必须挂载
+      - "${DATA_PATH}diun:/data"
+    environment:
+      - TZ=${TIMEZONE} # 修改为 .env 中的变量名
+      - LOG_LEVEL=info
+      - LOG_JSON=false
+      - DIUN_WATCH_WORKERS=20
+      - "DIUN_WATCH_SCHEDULE=0 18 * * *"
+      - DIUN_WATCH_JITTER=30s
+      - DIUN_PROVIDERS_DOCKER=true
+      - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=false
+    networks:
+      - backend
+    # 如果你也想让 Watchtower 自动更新 Diun，保留此标签
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    security_opt:
+      - no-new-privileges:true

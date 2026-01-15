@@ -20,6 +20,10 @@ services:
       - ${DATA_PATH}caddy:/data/caddy
       - ${LOG_PATH}caddy:/srv/logs
     restart: always
+    # 示例：让某个服务支持自动监控和更新
+    labels:
+      - "diun.enable=true"
+      - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - dozzle
       - authelia

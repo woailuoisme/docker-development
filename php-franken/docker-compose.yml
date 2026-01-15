@@ -1,5 +1,5 @@
 services:
-  php-franken:
+  franken:
     build:
       context: .
     container_name: php-franken
@@ -17,8 +17,8 @@ services:
       - ENABLE_SUPERVISOR=false
       - WATCH=fasle
       - OCTANE_POLL=false
-      - OCTANE_WORKERS=4
-      - OCTANE_MAX_REQUESTS=300
+      - OCTANE_WORKERS=${OCTANE_WORKERS:-4}
+      - OCTANE_MAX_REQUESTS=${OCTANE_MAX_REQUESTS:-1000}
     networks:
       - backend
       - frontend
