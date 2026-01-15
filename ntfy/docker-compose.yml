@@ -1,0 +1,17 @@
+services:
+  ntfy:
+    image: binwiederhier/ntfy
+    container_name: ntfy
+    command:
+      - serve
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - /var/cache/ntfy:/var/cache/ntfy
+      - ${CONFIG_PATH}ntfy:/etc/ntfy
+    ports:
+      - "11180:80"
+    restart: always
+    networks:
+      - backend
+      - frontend

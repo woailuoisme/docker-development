@@ -1,0 +1,13 @@
+services:
+  dnsmasq:
+    build:
+      context: .
+    container_name: dnsmasq
+    restart: always
+    ports:
+      - "5354:53/udp"
+      - "5354:53/tcp"
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - backend

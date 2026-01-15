@@ -1,0 +1,14 @@
+services:
+  influxdb:
+    image: influxdb:3.0-core
+    container_name: influxdb
+    ports:
+      - "8181:8181" # 默认 HTTP 绑定端口
+    volumes:
+      - ${DATA_PATH}influxdb3/data:/var/lib/influxdb3/data
+      - ${DATA_PATH}influxdb3/plugins:/var/lib/influxdb3/plugins
+    command: ["influxdb3", "serve","--node-id=node0", "--object-store=file", "--data-dir=/var/lib/influxdb3/data","--plugin-dir=/var/lib/influxdb3/plugins" ]
+    restart: always
+    networks:
+      - backend
+      - frontend

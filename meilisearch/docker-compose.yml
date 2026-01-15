@@ -1,0 +1,24 @@
+services:
+  meilisearch:
+    build:
+      context: .
+      args:
+        - TIMEZONE=${TIMEZONE:-Asia/Shanghai}
+        - MEILI_VERSION=${MEILI_VERSION:-v1.31}
+    container_name: meilisearch
+    restart: always
+    command: meilisearch --config-file-path /meili_config/config.toml
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+      - MEILI_NO_ANALYTICS=true
+      - MEILI_MAX_INDEXING_MEMORY=256Mb
+      - MEILI_HTTP_PAYLOAD_SIZE_LIMIT=100Mb
+    ports:
+      - "${SEARCH_PORT:-7700}:7700"
+    volumes:
+      - ${DATA_PATH}meili_data:/meili_data
+      - ${CONFIG_PATH}meilisearch/config.toml:/meili_config/config.toml:ro
+    networks:
+      - frontend
+      - backend

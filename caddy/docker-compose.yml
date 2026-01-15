@@ -1,0 +1,30 @@
+services:
+  caddy:
+    build:
+      context: .
+    container_name: caddy
+    environment:
+      - SITE_ADDRESS=${SITE_ADDRESS}
+      - AWS_ACCESS_KEY_ID=${ALIYUN_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${ALIYUN_ACCESS_KEY_SECRET}
+      - ALIYUN_ACCESS_KEY_ID=${ALIYUN_ACCESS_KEY_ID}
+      - ALIYUN_ACCESS_KEY_SECRET=${ALIYUN_ACCESS_KEY_SECRET}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+      - "8080:8080"
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${CONFIG_PATH}caddy:/etc/caddy
+      - ${DATA_PATH}caddy:/data/caddy
+      - ${LOG_PATH}caddy:/srv/logs
+    restart: always
+    depends_on:
+      - dozzle
+      - authelia
+      - roadrunner
+      - fpm
+    networks:
+      - frontend
+      - backend

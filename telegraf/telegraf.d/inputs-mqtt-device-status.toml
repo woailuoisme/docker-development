@@ -1,0 +1,52 @@
+# MQTT 消费者输入 - 设备状态数据
+[[inputs.mqtt_consumer]]
+  servers = ["tcp://${MQTT_HOST}:${MQTT_PORT}"]
+  topics = ["devices/+/status"]
+  data_format = "json_v2"
+  client_id = "telegraf_device_status_consumer"
+  qos = 1
+  
+  # MQTT 认证
+  username = "${MQTT_USERNAME}"
+  password = "${MQTT_PASSWORD}"
+  
+  # 连接配置
+  connection_timeout = "30s"
+  max_undelivered_messages = 1000
+  
+  # 持久会话配置
+  persistent_session = false
+  
+  # Keepalive 设置 - 保持连接活跃
+  # keepalive + ping_timeout 的总和决定了连接超时检测时间
+  keepalive = "30s"
+  ping_timeout = "10s"
+  
+  # JSON v2 配置
+  [[inputs.mqtt_consumer.json_v2]]
+    measurement_name = "device_status"
+    timestamp_path = "timestamp"
+    timestamp_format = "2006-01-02T15:04:05Z07:00"
+    
+    # 标签字段（用于索引和分组）
+    [[inputs.mqtt_consumer.json_v2.tag]]
+      path = "device_id"
+    
+    [[inputs.mqtt_consumer.json_v2.tag]]
+      path = "location"
+    
+    [[inputs.mqtt_consumer.json_v2.tag]]
+      path = "status"
+    
+    # 数据字段
+    [[inputs.mqtt_consumer.json_v2.field]]
+      path = "online"
+      type = "bool"
+    
+    [[inputs.mqtt_consumer.json_v2.field]]
+      path = "temperature"
+      type = "float"
+    
+    [[inputs.mqtt_consumer.json_v2.field]]
+      path = "network_strength"
+      type = "int"

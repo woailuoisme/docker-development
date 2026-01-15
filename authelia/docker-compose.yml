@@ -1,0 +1,19 @@
+services:
+  authelia:
+    build:
+      context: .
+    container_name: authelia
+    restart: always
+    ports:
+      - "9091:9091"
+    volumes:
+      - ${CONFIG_PATH}authelia/config:/config
+    environment:
+      - X_AUTHELIA_CONFIG_FILTERS=template
+      - TZ=${TIMEZONE}
+      - DOMAIN=${SITE_ADDRESS}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+    networks:
+      - frontend
+      - backend

@@ -1,0 +1,28 @@
+services:
+  centrifugo:
+    image: centrifugo/centrifugo:v6
+    container_name: centrifugo
+    command: centrifugo -c /centrifugo/config.yaml --log.level=info
+    ports:
+      - "8500:8000"
+    volumes:
+      - ${CONFIG_PATH}centrifugo:/centrifugo
+    environment:
+      - CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY=${CENTRIFUGO_TOKEN_HMAC_SECRET_KEY}
+      - CENTRIFUGO_HTTP_API_KEY=${CENTRIFUGO_API_KEY}
+      - CENTRIFUGO_ADMIN_PASSWORD=${CENTRIFUGO_ADMIN_PASSWORD}
+      - CENTRIFUGO_ADMIN_SECRET=${CENTRIFUGO_ADMIN_SECRET}
+      - CENTRIFUGO_ENGINE_REDIS_ADDRESS=redis://:${REDIS_PASSWORD}@redis:6379/2
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    restart: always
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      - redis
+#    depends_on:
+#      redis:
+#        condition: service_healthy

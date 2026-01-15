@@ -1,0 +1,24 @@
+services:
+  mosquitto:
+    build:
+      context: .
+    container_name: mosquitto
+    ports:
+      - "${MQTT_PORT:-1883}:1883"
+      - "${MQTT_TLS_PORT:-8883}:8883"
+    volumes:
+      - ${CONFIG_PATH}/mosquitto/config:/mosquitto/config
+      - ${DATA_PATH}mosquitto/data:/mosquitto/data
+      - ${LOG_PATH}mosquitto/log:/mosquitto/log
+      - ${DATA_PATH}caddy/certificates:/mosquitto/certs
+    environment:
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - MQTT_ALLOW_ANONYMOUS=${MQTT_ALLOW_ANONYMOUS:-false}
+      - SITE_ADDRESS=${SITE_ADDRESS}
+    networks:
+      - backend
+      - frontend
+#    depends_on:
+#      caddy:
+#        condition: service_started

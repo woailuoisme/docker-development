@@ -1,0 +1,41 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: iot-monitoring-alerts
+    folder: IoT Alerts
+    interval: 1m
+    rules:
+      - uid: high-temperature-alert
+        title: 设备温度过高告警
+        condition: A
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: timescaledb
+            model:
+              intervalMs: 1000
+              maxDataPoints: 43200
+              rawSql: |
+                SELECT 
+                  time AS "time",
+                  machine_id,
+                  temperature
+                FROM machine_status
+                WHERE 
+                  $__timeFilter(time)
+                  AND temperature > 35
+                ORDER BY time
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          description: "设备 {{ $labels.machine_id }} 温度达到 {{ $values.A }}°C，超过阈值 35°C"
+          summary: "设备温度异常"
+        labels:
+          severity: warning
+          device_type: vending_machine
+        isPaused: false

@@ -1,0 +1,20 @@
+services:
+  pgbouncer:
+    build:
+      context: .
+      args:
+        CHANGE_SOURCE: ${CHANGE_SOURCE:-false}
+    container_name: pgbouncer
+    restart: always
+    ports:
+      - "${PGBOUNCER_PORT:-15432}:15432"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - backend
+    depends_on:
+      - postgres

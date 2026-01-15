@@ -1,0 +1,26 @@
+# telegraf/telegraf.toml
+# Telegraf 主配置文件 - 只包含 agent 和全局设置
+
+[agent]
+  interval = "10s"
+  round_interval = true
+  metric_batch_size = 1000
+  metric_buffer_limit = 10000
+  collection_jitter = "0s"
+  flush_interval = "10s"
+  flush_jitter = "0s"
+  precision = ""
+  debug = false
+  quiet = false
+
+  log_with_timezone = "Asia/Shanghai"
+#  logformat = "structured"
+
+# 全局标签
+[global_tags]
+  environment = "production"
+  region = "china"
+
+## PostgreSQL/TimescaleDB 输出（临时添加以确保容器启动）
+#[[outputs.postgresql]]
+#  connection = "host=${TIMESCALEDB_HOST} port=5432 user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable"

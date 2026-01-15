@@ -1,0 +1,15 @@
+services:
+  go-access:
+    build:
+      context: .
+    container_name: go-access
+    restart: always
+    volumes:
+      - ${LOG_PATH}caddy:/srv/logs
+    environment:
+      - GOACCESS_WS_URL=wss://clogs.${SITE_ADDRESS}:443
+      - GOACCESS_OUTPUT=/srv/logs/report.html
+    depends_on:
+      - caddy
+    networks:
+      - backend

@@ -1,0 +1,14 @@
+services:
+  wud:
+    image: getwud/wud:8.1.1
+    container_name: wud
+    env_file: ../.env.wud
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3200:3000"
+    restart: always
+    networks:
+      - backend
+      - frontend

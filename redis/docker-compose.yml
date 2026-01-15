@@ -1,0 +1,16 @@
+services:
+  redis:
+    container_name: redis
+    build:
+      context: .
+      args:
+        - REDIS_VERSION=${REDIS_VERSION}
+    volumes:
+      - ${DATA_PATH}redis:/data
+    restart: always
+    command: --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "46379:6379"
+    networks:
+      - backend
+      - frontend

@@ -1,0 +1,15 @@
+services:
+  influxdb-ui:
+    image: influxdata/influxdb3-ui:latest
+    container_name: influxdb-ui
+    restart: always
+    ports:
+      - "8888:80"
+    command: --mode=admin
+    volumes:
+      - ${DATA_PATH}influxdb-ui:/db:rw
+    depends_on:
+      - influxdb
+    networks:
+      - backend
+      - frontend

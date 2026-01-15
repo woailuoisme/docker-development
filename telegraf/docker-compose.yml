@@ -1,0 +1,23 @@
+services:
+  telegraf:
+    build:
+      context: .
+    container_name: telegraf
+    environment:
+      - MQTT_HOST=${MQTT_HOST:-mosquitto}
+      - MQTT_PORT=${MQTT_PORT:-1883}
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - TIMESCALEDB_HOST=${TIMESCALEDB_HOST:-postgres}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - TELEGRAF_BUFFER_LIMIT=${TELEGRAF_BUFFER_LIMIT:-10000}
+      - TELEGRAF_FLUSH_INTERVAL=${TELEGRAF_FLUSH_INTERVAL:-10}
+    ports:
+      - "${TELEGRAF_PORT:-8080}:8080" # 监控和指标端点
+    depends_on:
+      - mosquitto
+      - postgres
+    networks:
+      - backend

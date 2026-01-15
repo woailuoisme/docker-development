@@ -1,0 +1,9 @@
+# 监控 Telegraf 自身
+[[inputs.internal]]
+  collect_memstats = true
+
+# HTTP API 用于监控
+[[inputs.http_listener_v2]]
+  service_address = ":8080"
+  paths = ["/telegraf"]
+  data_format = "json"
