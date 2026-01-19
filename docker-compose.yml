@@ -31,17 +31,26 @@ include:
 #  - mysql8/docker-compose.yml       # MySQL 8.4
 #  - mongodb/docker-compose.yml      # MongoDB
   - minio/docker-compose.yml        # 对象存储
+#  - rustfs/docker-compose.yml        # 对象存储
   - meilisearch/docker-compose.yml  # 全文检索
 #  - pgbouncer/docker-compose.yml    # PG 连接池
 
-  # --- PHP RUNTIME (Laravel/Octane) ---
-  - php-fpm/docker-compose.yml      # 标准 FPM
-  - php-roadrunner/docker-compose.yml # RoadRunner 引擎
-  - php-horizon/docker-compose.yml    # 队列监控
-  - php-schedule/docker-compose.yml   # 调度任务
-  - php-franken/docker-compose.yml    # FrankenPHP 引擎
+  # --- PHP RUNTIME (Laravel/Octane) alpine ---
+#  - php-fpm/docker-compose.yml      # 标准 FPM
+#  - php-roadrunner/docker-compose.yml # RoadRunner 引擎
+#  - php-horizon/docker-compose.yml    # 队列监控
+#  - php-schedule/docker-compose.yml   # 调度任务
+#  - php-franken/docker-compose.yml    # FrankenPHP 引擎
 #  - php-reverb/docker-compose.yml     # Laravel Reverb
 
+  # --- PHP RUNTIME (Laravel/Octane) trixie ---
+  - php-fpm-tirxie/docker-compose.yml      # 标准 FPM
+  - php-roadrunner-trixie/docker-compose.yml # RoadRunner 引擎
+  - php-horizon-trixie/docker-compose.yml    # 队列监控
+  - php-schedule-trixie/docker-compose.yml   # 调度任务
+  - php-franken-trixie/docker-compose.yml    # FrankenPHP 引擎
+  - php-reverb-trixie/docker-compose.yml     # Laravel Reverb
+  -
   # --- TOOLS & MESSAGING ---
   - dozzle/docker-compose.yml       # 日志查看器
 #  - homepage/docker-compose.yml      # 仪表盘

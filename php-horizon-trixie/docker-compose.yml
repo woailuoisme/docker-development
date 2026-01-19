@@ -1,17 +1,15 @@
 services:
-  reverb:
+  horizon:
     build:
       context: .
-    container_name: php-reverb
+    container_name: horizon
     restart: always
     environment:
       - APP_PATH=${APP_PATH}
       - APP_ENV=${APP_ENV}
-      - ENABLE_SUPERVISOR=false
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
     networks:
       - backend
     depends_on:
       - redis
-      - horizon

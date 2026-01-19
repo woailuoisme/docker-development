@@ -1,0 +1,28 @@
+services:
+  fpm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - CHANGE_SOURCE=${CHANGE_SOURCE}
+        - WWWUSER=${WWWUSER:-33}
+        - WWWGROUP=${WWWGROUP:-33}
+    container_name: fpm
+    restart: always
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
+    environment:
+      - APP_PATH=${APP_PATH}
+      - APP_ENV=${APP_ENV}
+      - APP_DEBUG=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      - redis
+      - postgres
+      - meilisearch
+      - minio

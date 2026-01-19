@@ -1,0 +1,17 @@
+services:
+  rustfs:
+    image: rustfs/rustfs:latest  # 请根据实际镜像仓库名调整，部分分支可能使用 rustfs-s3
+    container_name: rustfs_server
+    ports:
+      - "9300:9000"  # S3 API 端口 (仿 MinIO 默认)
+      - "9301:9001"  # 控制台/管理界面 (如果版本支持)
+    environment:
+      - RUSTFS_ACCESS_KEY=admin
+      - RUSTFS_SECRET_KEY=password123
+      - RUST_LOG=info
+    volumes:
+      - ${DATA_PATH}rustfs:/data
+    restart: always
+    networks:
+      - backend
+      - frontend

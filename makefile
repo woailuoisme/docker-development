@@ -398,3 +398,10 @@ pg-data-17-to18:
       -v ./data/postgres18:/var/lib/postgresql/18/data \
       -e POSTGRES_INITDB_ARGS="--no-data-checksums" \
       tianon/postgres-upgrade:17-to-18 --check
+
+
+redis_test:
+	redis-benchmark -h 127.0.0.1 -p 46379 -a redis_secret -n 100000 -q
+
+postgres_test:
+

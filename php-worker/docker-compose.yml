@@ -1,0 +1,21 @@
+services:
+  queue-worker:
+    build:
+      context: .
+    container_name: queue-worker
+    restart: always
+    environment:
+      - APP_PATH=${APP_PATH}
+      - APP_ENV=${APP_ENV}
+      - ENABLE_SUPERVISOR=${PHP_WORKER_ENABLE_SUPERVISOR:-false}
+      - QUEUE_CONNECTION=${QUEUE_CONNECTION:-redis}
+      - QUEUE_NAME=${QUEUE_NAME:-default}
+      - QUEUE_TRIES=${QUEUE_TRIES:-3}
+      - QUEUE_TIMEOUT=${QUEUE_TIMEOUT:-60}
+      - WORKER_NUMPROCS=${WORKER_NUMPROCS:-1}
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    networks:
+      - backend
+    depends_on:
+      - redis

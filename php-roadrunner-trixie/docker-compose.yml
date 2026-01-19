@@ -1,0 +1,31 @@
+services:
+  roadrunner:
+    build:
+      context: .
+    container_name: roadrunner
+    restart: always
+    environment:
+      - APP_PATH=${APP_PATH}
+#      - APP_ENV=${APP_ENV}
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - OCTANE_WORKERS=${OCTANE_WORKERS:-4}
+      - OCTANE_MAX_REQUESTS=${OCTANE_MAX_REQUESTS:-1000}
+      - WATCH=false
+    ports:
+      - "8201:8001"
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      - redis
+      - postgres
+      - minio
+      - meilisearch
+      - horizon
+      - schedule
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

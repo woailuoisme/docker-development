@@ -1,0 +1,30 @@
+services:
+  franken:
+    build:
+      context: .
+    container_name: php-franken
+    restart: always
+    ports:
+      - "8801:8001"
+      - "12019:2019"
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
+    environment:
+      - APP_PATH=${APP_PATH}
+      - APP_ENV=${APP_ENV}
+      - APP_DEBUG=false
+      - WATCH=fasle
+      - OCTANE_POLL=false
+      - OCTANE_WORKERS=${OCTANE_WORKERS:-4}
+      - OCTANE_MAX_REQUESTS=${OCTANE_MAX_REQUESTS:-1000}
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      - redis
+      - postgres
+      - minio
+      - meilisearch
+#      - php-horizon
+#      - php-schedule
