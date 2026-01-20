@@ -1,8 +1,8 @@
 services:
-  roadrunner:
+  php-roadrunner:
     build:
       context: .
-    container_name: roadrunner
+    container_name: php-roadrunner
     restart: always
     environment:
       - APP_PATH=${APP_PATH}
@@ -25,7 +25,7 @@ services:
       - postgres
       - minio
       - meilisearch
-      - horizon
-      - schedule
+      - php-horizon
+      - php-schedule
     extra_hosts:
       - "host.docker.internal:host-gateway"

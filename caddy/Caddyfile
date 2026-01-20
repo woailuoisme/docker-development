@@ -12,9 +12,9 @@ import templates/*
 #import fpm-app fpm.{$SITE_ADDRESS} /var/www/lunchbox
 #import proxy-octane-app-auth dev.{$SITE_ADDRESS} php-roadrunner:8001
 #import fpm-app-auth rest.{$SITE_ADDRESS} /var/www/lunchbox
-import fpm-app-auth dev.{$SITE_ADDRESS} /var/www/lunchbox fpm:9000
-import proxy-octane-app-auth rest.{$SITE_ADDRESS} roadrunner:8001
-#import proxy-octane-app-auth api.{$SITE_ADDRESS} franken:8001
+import fpm-app-auth dev.{$SITE_ADDRESS} /var/www/lunchbox php-fpm:9000
+import proxy-octane-app-auth rest.{$SITE_ADDRESS} php-roadrunner:8001
+#import proxy-octane-app-auth api.{$SITE_ADDRESS} php-franken:8001
 #import proxy-octane-app-auth prd.{$SITE_ADDRESS} roadrunner:8001
 
 #import proxy-app auth.{$SITE_ADDRESS} authelia:9091

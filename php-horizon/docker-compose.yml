@@ -1,8 +1,8 @@
 services:
-  horizon:
+  php-horizon:
     build:
       context: .
-    container_name: horizon
+    container_name: php-horizon
     restart: always
     environment:
       - APP_PATH=${APP_PATH}

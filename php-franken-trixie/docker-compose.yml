@@ -1,5 +1,5 @@
 services:
-  franken:
+  php-franken:
     build:
       context: .
     container_name: php-franken

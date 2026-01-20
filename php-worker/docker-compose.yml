@@ -1,8 +1,8 @@
 services:
-  queue-worker:
+  php-worker:
     build:
       context: .
-    container_name: queue-worker
+    container_name: php-worker
     restart: always
     environment:
       - APP_PATH=${APP_PATH}

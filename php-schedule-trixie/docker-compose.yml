@@ -1,8 +1,8 @@
 services:
-  schedule:
+  php-schedule:
     build:
       context: .
-    container_name: schedule
+    container_name: php-schedule
     restart: always
     environment:
       - APP_PATH=${APP_PATH}
@@ -12,5 +12,4 @@ services:
     networks:
       - backend
     depends_on:
-      horizon:
-        condition: service_started
+      - php-horizon

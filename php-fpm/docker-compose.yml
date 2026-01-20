@@ -1,5 +1,5 @@
 services:
-  fpm:
+  php-fpm:
     build:
       context: .
       dockerfile: Dockerfile
@@ -7,7 +7,7 @@ services:
         - CHANGE_SOURCE=${CHANGE_SOURCE}
         - WWWUSER=${WWWUSER:-33}
         - WWWGROUP=${WWWGROUP:-33}
-    container_name: fpm
+    container_name: php-fpm
     restart: always
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}

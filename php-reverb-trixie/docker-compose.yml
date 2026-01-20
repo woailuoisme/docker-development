@@ -1,5 +1,5 @@
 services:
-  reverb:
+  php-reverb:
     build:
       context: .
     container_name: php-reverb
@@ -13,4 +13,4 @@ services:
       - backend
     depends_on:
       - redis
-      - horizon
+      - php-horizon

@@ -27,8 +27,8 @@ services:
     depends_on:
       - dozzle
       - authelia
-      - roadrunner
-      - fpm
+      - php-roadrunner
+      - php-fpm
     networks:
       - frontend
       - backend
