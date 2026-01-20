@@ -1,4 +1,4 @@
-FROM jiaoio/php8.5-base-roadrunner-trixie:2025.1.6-php8.5
+FROM jiaoio/php-base-roadrunner-trixie:2025.1.6-php8.5
 
 ARG CHANGE_SOURCE=true
 
