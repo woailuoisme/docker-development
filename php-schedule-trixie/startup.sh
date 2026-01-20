@@ -56,4 +56,6 @@ log_info "启动 Laravel Schedule 服务..."
 generate_cron_file
 check_app_directory
 log_info "启动 supercronic..."
+log_info "使用配置:\n$(cat /usr/local/etc/laravel-cron)"
 exec /usr/local/bin/supercronic -overlapping /usr/local/etc/laravel-cron
+

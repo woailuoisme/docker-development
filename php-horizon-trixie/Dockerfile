@@ -9,6 +9,7 @@ ARG CHANGE_SOURCE=true
 ENV APP_PATH=/var/www/lunchbox \
     APP_PORT=8001 \
     APP_ENV=production \
+    TZ=Asia/Shanghai \
     CHANGE_SOURCE=${CHANGE_SOURCE} \
     ENABLE_SUPERVISOR=true \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
@@ -18,11 +19,17 @@ RUN if [ "${CHANGE_SOURCE}" = "true" ]; then \
     sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources; \
     fi
 
+# 设置系统时区
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+
 COPY config/*.ini /usr/local/etc/php/conf.d/
 
 # 安装 supervisor (Debian Trixie)
-RUN apt-get update && apt-get install -y --no-install-recommends supervisor && \
-    rm -rf /var/lib/apt/lists/*
+#RUN apt-get update && apt-get install -y --no-install-recommends \
+#    procps iproute2 iputils-ping lsof psmisc vim-tiny supervisor && \
+
+RUN rm -rf /var/lib/apt/lists/*
 
 # 创建必要的 supervisor 目录
 RUN mkdir -p /var/log/supervisor /var/run /usr/local/etc/supervisord.d && \

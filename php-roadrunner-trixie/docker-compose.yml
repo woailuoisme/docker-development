@@ -6,8 +6,7 @@ services:
     restart: always
     environment:
       - APP_PATH=${APP_PATH}
-#      - APP_ENV=${APP_ENV}
-      - APP_ENV=production
+      - APP_ENV=${APP_ENV}
       - APP_DEBUG=false
       - OCTANE_WORKERS=${OCTANE_WORKERS:-4}
       - OCTANE_MAX_REQUESTS=${OCTANE_MAX_REQUESTS:-1000}

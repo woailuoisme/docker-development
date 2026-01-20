@@ -4,6 +4,7 @@ FROM jiaoio/php-base-simple-cli-trixie:8.5-cli-latest
 ENV APP_PATH=/var/www/lunchbox \
     APP_PORT=8001 \
     APP_ENV=production \
+    TZ=Asia/Shanghai \
     SENTRY_DSN='' \
     SENTRY_ENVIRONMENT='' \
     SENTRY_RELEASE='' \
@@ -16,7 +17,8 @@ COPY config/*.ini /usr/local/etc/php/conf.d/
 COPY startup.sh /usr/local/bin/startup.sh
 
 # 设置权限（在切换用户之前）
-RUN chmod +x /usr/local/bin/startup.sh && \
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    chmod +x /usr/local/bin/startup.sh && \
     chown -R www-data:www-data /usr/local/bin/supercronic /usr/local/bin/startup.sh && \
     touch /usr/local/etc/laravel-cron && \
     chown www-data:www-data /usr/local/etc/laravel-cron && \

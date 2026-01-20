@@ -25,8 +25,10 @@ check_app_directory() {
 start_horizon() {
     log_info "正在直接运行 Laravel Horizon..."
     cd "${APP_PATH}"
+    log_info "执行命令: php artisan horizon --environment=\"${APP_ENV}\" --env=\"${APP_ENV}\""
     exec php artisan horizon --environment="${APP_ENV}" --env="${APP_ENV}"
 }
+
 
 # 捕获退出信号
 trap 'log_warning "接收到终止信号，正在停止 Horizon..."; exit 0' SIGTERM SIGINT
