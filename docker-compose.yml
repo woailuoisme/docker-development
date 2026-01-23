@@ -34,7 +34,7 @@ include:
 #  - rustfs/docker-compose.yml        # 对象存储
   - meilisearch/docker-compose.yml  # 全文检索
   - rabbitmq/docker-compose.yml     # 消息队列
-  - clickhouse/docker-compose.yml   # OLAP 数据库
+#  - clickhouse/docker-compose.yml   # OLAP 数据库
 #  - pgbouncer/docker-compose.yml    # PG 连接池
 
   # --- PHP RUNTIME (Laravel/Octane) alpine ---

@@ -1,5 +1,5 @@
 ARG PHP_VERSION=8.5
-FROM jiaoio/php-base-simple-cli-trixie:${PHP_VERSION}-cli-latest
+FROM jiaoio/php-base-simple-cli-trixie:${PHP_VERSION}-latest
 
 ENV APP_PATH=/var/www/lunchbox \
     APP_PORT=8001 \

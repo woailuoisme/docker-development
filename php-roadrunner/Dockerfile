@@ -1,6 +1,6 @@
 #FROM jiaoio/php-base-roadrunner-trixie
 #FROM jiaoio/php-base-roadrunner
-FROM jiaoio/php-base-roadrunner:8.5-2025.1.6-latest
+FROM jiaoio/php-base-roadrunner:8.5-latest
 #FROM jiaoio/php-base-cli
 ## 安装 RoadRunner - 使用自定义脚本下载、解压并安装到 /usr/local/bin
 #COPY download_roadrunner.sh /tmp/download_roadrunner.sh

@@ -1,6 +1,6 @@
 #FROM ccr.ccs.tencentyun.com/jiaoio/php-base-simple-cli
 #FROM jiaoio/php-base-simple-cli
-FROM jiaoio/php-base-simple-cli:8.5-cli-latest
+FROM jiaoio/php-base-simple-cli:8.5-latest
 
 ENV APP_PATH=/var/www/lunchbox \
     APP_PORT=8001 \
