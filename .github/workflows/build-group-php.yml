@@ -39,7 +39,7 @@ on:
         default: false
       
       # === 通用参数 ===
-      image_tag:
+      tag:
         description: '镜像标签 (e.g., latest)'
         required: true
         default: 'latest'
@@ -48,59 +48,78 @@ on:
         required: false
         default: '8.5'
 
+env:
+  REGISTRY_DOCKERHUB: docker.io/jiaoio
+  REGISTRY_REDHAT: quay.io/jiaoio
+
 jobs:
-  build-php-fpm-trixie:
-    if: ${{ inputs.build_all == true || inputs.build_php_fpm_trixie == true }}
-    uses: ./.github/workflows/build-php-fpm-trixie.yml
-    secrets: inherit
-    with:
-      php_version: ${{ inputs.php_version }}
-      tag: ${{ inputs.image_tag }}
+  matrix-builder:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          MATRIX_JSON='[]'
+          
+          add_task() {
+            local name=$1
+            local context=$2
+            local image=$3
+            local type=$4
+            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$name\", \"context\": \"$context\", \"image\": \"$image\", \"type\": \"$type\"}]")
+          }
+          
+          BUILD_ALL=${{ inputs.build_all }}
+          
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_fpm_trixie }}" == "true" ]] && add_task "php-fpm-trixie" "./php-fpm-tirxie" "php-fpm-trixie" "fpm"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_franken_trixie }}" == "true" ]] && add_task "php-franken-trixie" "./php-franken-trixie" "php-franken-trixie" "franken"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_horizon_trixie }}" == "true" ]] && add_task "php-horizon-trixie" "./php-horizon-trixie" "php-horizon-trixie" "horizon"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_roadrunner_trixie }}" == "true" ]] && add_task "php-roadrunner-trixie" "./php-roadrunner-trixie" "php-roadrunner-trixie" "roadrunner"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_reverb_trixie }}" == "true" ]] && add_task "php-reverb-trixie" "./php-reverb-trixie" "php-reverb-trixie" "reverb"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_schedule_trixie }}" == "true" ]] && add_task "php-schedule-trixie" "./php-schedule-trixie" "php-schedule-trixie" "schedule"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_worker_trixie }}" == "true" ]] && add_task "php-worker-trixie" "./php-worker-trixie" "php-worker-trixie" "worker"
+          
+          echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
-  build-php-franken-trixie:
-    if: ${{ inputs.build_all == true || inputs.build_php_franken_trixie == true }}
-    uses: ./.github/workflows/build-php-franken-trixie.yml
-    secrets: inherit
-    with:
-      php_version: ${{ inputs.php_version }}
-      tag: ${{ inputs.image_tag }}
+  build-php:
+    needs: matrix-builder
+    if: ${{ fromJson(needs.matrix-builder.outputs.matrix).include[0] != null }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
+    
+    name: Build ${{ matrix.name }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  build-php-horizon-trixie:
-    if: ${{ inputs.build_all == true || inputs.build_php_horizon_trixie == true }}
-    uses: ./.github/workflows/build-php-horizon-trixie.yml
-    secrets: inherit
-    with:
-      php_version: ${{ inputs.php_version }}
-      tag: ${{ inputs.image_tag }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-  build-php-roadrunner-trixie:
-    if: ${{ inputs.build_all == true || inputs.build_php_roadrunner_trixie == true }}
-    uses: ./.github/workflows/build-php-roadrunner-trixie.yml
-    secrets: inherit
-    with:
-      php_version: ${{ inputs.php_version }}
-      tag: ${{ inputs.image_tag }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-  build-php-reverb-trixie:
-    if: ${{ inputs.build_all == true || inputs.build_php_reverb_trixie == true }}
-    uses: ./.github/workflows/build-php-reverb-trixie.yml
-    secrets: inherit
-    with:
-      php_version: ${{ inputs.php_version }}
-      tag: ${{ inputs.image_tag }}
+      - name: Login to Registries
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          echo "${{ secrets.REDHAT_REGISTRY_TOKEN }}" | docker login quay.io -u "${{ secrets.REDHAT_REGISTRY_USERNAME }}" --password-stdin
 
-  build-php-schedule-trixie:
-    if: ${{ inputs.build_all == true || inputs.build_php_schedule_trixie == true }}
-    uses: ./.github/workflows/build-php-schedule-trixie.yml
-    secrets: inherit
-    with:
-      php_version: ${{ inputs.php_version }}
-      tag: ${{ inputs.image_tag }}
-
-  build-php-worker-trixie:
-    if: ${{ inputs.build_all == true || inputs.build_php_worker_trixie == true }}
-    uses: ./.github/workflows/build-php-worker-trixie.yml
-    secrets: inherit
-    with:
-      php_version: ${{ inputs.php_version }}
-      tag: ${{ inputs.image_tag }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            PHP_VERSION=${{ inputs.php_version }}
+            CHANGE_SOURCE=false
+          tags: |
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ inputs.php_version }}-${{ inputs.tag }}
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ inputs.php_version }}-${{ matrix.type }}-${{ inputs.tag }}
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ inputs.php_version }}-latest
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ inputs.php_version }}-${{ inputs.tag }}
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ inputs.php_version }}-${{ matrix.type }}-${{ inputs.tag }}
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ inputs.php_version }}-latest
