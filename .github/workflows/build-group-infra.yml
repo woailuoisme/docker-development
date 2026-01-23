@@ -1,0 +1,96 @@
+name: Build Group - Infrastructure Services
+
+on:
+  workflow_dispatch:
+    inputs:
+      # === 控制开关 ===
+      build_all:
+        description: '🚀 构建所有基础服务'
+        type: boolean
+        default: false
+      
+      build_goaccess:
+        description: '构建 GoAccess'
+        type: boolean
+        default: false
+      build_authelia:
+        description: '构建 Authelia'
+        type: boolean
+        default: false
+      build_caddy:
+        description: '构建 Caddy'
+        type: boolean
+        default: false
+      build_telegraf:
+        description: '构建 Telegraf'
+        type: boolean
+        default: false
+      build_meilisearch:
+        description: '构建 Meilisearch'
+        type: boolean
+        default: false
+      build_minio:
+        description: '构建 MinIO'
+        type: boolean
+        default: false
+      
+      # === 通用参数 ===
+      image_tag:
+        description: '镜像标签 (e.g., latest)'
+        required: true
+        default: 'latest'
+
+      # === 版本参数 ===
+      authelia_version:
+        description: 'Authelia 版本 (默认: 4.39)'
+        required: false
+        default: '4.39'
+      meili_version:
+        description: 'Meilisearch Version (默认: v1.33)'
+        required: false
+        default: 'v1.33'
+
+jobs:
+  build-goaccess:
+    if: ${{ inputs.build_all == true || inputs.build_goaccess == true }}
+    uses: ./.github/workflows/build-goaccess.yml
+    secrets: inherit
+    with:
+      tag: ${{ inputs.image_tag }}
+
+  build-authelia:
+    if: ${{ inputs.build_all == true || inputs.build_authelia == true }}
+    uses: ./.github/workflows/build-authelia.yml
+    secrets: inherit
+    with:
+      authelia_version: ${{ inputs.authelia_version }}
+      tag: ${{ inputs.image_tag }}
+
+  build-caddy:
+    if: ${{ inputs.build_all == true || inputs.build_caddy == true }}
+    uses: ./.github/workflows/build-caddy.yml
+    secrets: inherit
+    with:
+      tag: ${{ inputs.image_tag }}
+
+  build-telegraf:
+    if: ${{ inputs.build_all == true || inputs.build_telegraf == true }}
+    uses: ./.github/workflows/build-telegraf.yml
+    secrets: inherit
+    with:
+      tag: ${{ inputs.image_tag }}
+
+  build-meilisearch:
+    if: ${{ inputs.build_all == true || inputs.build_meilisearch == true }}
+    uses: ./.github/workflows/build-meilisearch.yml
+    secrets: inherit
+    with:
+      meili_version: ${{ inputs.meili_version }}
+      tag: ${{ inputs.image_tag }}
+
+  build-minio:
+    if: ${{ inputs.build_all == true || inputs.build_minio == true }}
+    uses: ./.github/workflows/build-minio.yml
+    secrets: inherit
+    with:
+      tag: ${{ inputs.image_tag }}

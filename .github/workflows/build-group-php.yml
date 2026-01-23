@@ -1,0 +1,95 @@
+name: Build Group - PHP Services
+
+on:
+  workflow_dispatch:
+    inputs:
+      # === 控制开关 ===
+      build_all:
+        description: '🚀 构建所有 PHP 服务'
+        type: boolean
+        default: false
+      
+      build_php_fpm_trixie:
+        description: '构建 PHP-FPM-Trixie'
+        type: boolean
+        default: false
+      build_php_franken_trixie:
+        description: '构建 PHP-Franken-Trixie'
+        type: boolean
+        default: false
+      build_php_horizon_trixie:
+        description: '构建 PHP-Horizon-Trixie'
+        type: boolean
+        default: false
+      build_php_roadrunner_trixie:
+        description: '构建 PHP-RoadRunner-Trixie'
+        type: boolean
+        default: false
+      build_php_reverb_trixie:
+        description: '构建 PHP-Reverb-Trixie'
+        type: boolean
+        default: false
+      build_php_schedule_trixie:
+        description: '构建 PHP-Schedule-Trixie'
+        type: boolean
+        default: false
+      build_php_worker_trixie:
+        description: '构建 PHP-Worker-Trixie'
+        type: boolean
+        default: false
+      
+      # === 通用参数 ===
+      image_tag:
+        description: '镜像标签 (e.g., latest)'
+        required: true
+        default: 'latest'
+
+jobs:
+  build-php-fpm-trixie:
+    if: ${{ inputs.build_all == true || inputs.build_php_fpm_trixie == true }}
+    uses: ./.github/workflows/build-php-fpm-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ inputs.image_tag }}
+
+  build-php-franken-trixie:
+    if: ${{ inputs.build_all == true || inputs.build_php_franken_trixie == true }}
+    uses: ./.github/workflows/build-php-franken-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ inputs.image_tag }}
+
+  build-php-horizon-trixie:
+    if: ${{ inputs.build_all == true || inputs.build_php_horizon_trixie == true }}
+    uses: ./.github/workflows/build-php-horizon-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ inputs.image_tag }}
+
+  build-php-roadrunner-trixie:
+    if: ${{ inputs.build_all == true || inputs.build_php_roadrunner_trixie == true }}
+    uses: ./.github/workflows/build-php-roadrunner-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ inputs.image_tag }}
+
+  build-php-reverb-trixie:
+    if: ${{ inputs.build_all == true || inputs.build_php_reverb_trixie == true }}
+    uses: ./.github/workflows/build-php-reverb-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ inputs.image_tag }}
+
+  build-php-schedule-trixie:
+    if: ${{ inputs.build_all == true || inputs.build_php_schedule_trixie == true }}
+    uses: ./.github/workflows/build-php-schedule-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ inputs.image_tag }}
+
+  build-php-worker-trixie:
+    if: ${{ inputs.build_all == true || inputs.build_php_worker_trixie == true }}
+    uses: ./.github/workflows/build-php-worker-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ inputs.image_tag }}

@@ -1,0 +1,96 @@
+name: Build Group - Database Services
+
+on:
+  workflow_dispatch:
+    inputs:
+      # === 控制开关 ===
+      build_all:
+        description: '🚀 构建所有数据库服务'
+        type: boolean
+        default: false
+      
+      build_mysql8:
+        description: '构建 MySQL8'
+        type: boolean
+        default: false
+      build_mongodb:
+        description: '构建 MongoDB'
+        type: boolean
+        default: false
+      build_redis:
+        description: '构建 Redis'
+        type: boolean
+        default: false
+      build_pgsql_17:
+        description: '构建 PostgreSQL 17'
+        type: boolean
+        default: false
+      build_pgsql_18:
+        description: '构建 PostgreSQL 18'
+        type: boolean
+        default: false
+      
+      # === 通用参数 ===
+      image_tag:
+        description: '镜像标签 (e.g., latest)'
+        required: true
+        default: 'latest'
+
+      # === 版本参数 ===
+      mysql_version:
+        description: 'MySQL 版本 (默认: 8.4)'
+        required: false
+        default: '8.4'
+      mongo_version:
+        description: 'MongoDB 版本 (默认: 8.0)'
+        required: false
+        default: '8.0'
+      redis_version:
+        description: 'Redis 版本 (默认: 8.4-alpine)'
+        required: false
+        default: '8.4-alpine'
+      pgsql_version:
+        description: 'PostgreSQL Version (默认: 18.2)'
+        required: false
+        default: '18.2'
+
+jobs:
+  build-mysql8:
+    if: ${{ inputs.build_all == true || inputs.build_mysql8 == true }}
+    uses: ./.github/workflows/build-mysql8.yml
+    secrets: inherit
+    with:
+      mysql_version: ${{ inputs.mysql_version }}
+      tag: ${{ inputs.image_tag }}
+
+  build-mongodb:
+    if: ${{ inputs.build_all == true || inputs.build_mongodb == true }}
+    uses: ./.github/workflows/build-mongodb.yml
+    secrets: inherit
+    with:
+      mongo_version: ${{ inputs.mongo_version }}
+      tag: ${{ inputs.image_tag }}
+
+  build-redis:
+    if: ${{ inputs.build_all == true || inputs.build_redis == true }}
+    uses: ./.github/workflows/build-redis.yml
+    secrets: inherit
+    with:
+      redis_version: ${{ inputs.redis_version }}
+      tag: ${{ inputs.image_tag }}
+
+  build-pgsql-17:
+    if: ${{ inputs.build_all == true || inputs.build_pgsql_17 == true }}
+    uses: ./.github/workflows/build-pgsql-17.yml
+    secrets: inherit
+    with:
+      postgres_version: ${{ inputs.pgsql_version }}
+      tag: ${{ inputs.image_tag }}
+
+  build-pgsql-18:
+    if: ${{ inputs.build_all == true || inputs.build_pgsql_18 == true }}
+    uses: ./.github/workflows/build-pgsql-18.yml
+    secrets: inherit
+    with:
+      postgres_version: ${{ inputs.pgsql_version }}
+      tag: ${{ inputs.image_tag }}
