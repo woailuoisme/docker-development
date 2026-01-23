@@ -22,6 +22,7 @@ on:
         description: "Image Tag"
         required: true
         type: string
+        default: "latest"
 
 jobs:
   build-mysql8-multiarch:

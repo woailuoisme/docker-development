@@ -32,6 +32,7 @@ on:
         description: "Image Tag"
         required: true
         type: string
+        default: "latest"
 
 jobs:
   # 构建 postgres 17 多平台镜像并推送
