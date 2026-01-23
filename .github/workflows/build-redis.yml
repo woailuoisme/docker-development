@@ -27,8 +27,8 @@ jobs:
   build-redis-multiarch:
     runs-on: ubuntu-latest
     env:
-      REDIS_VERSION: ${{ github.event.inputs.redis_version }}
-      TAG: ${{ github.event.inputs.tag }}
+      REDIS_VERSION: ${{ inputs.redis_version }}
+      TAG: ${{ inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
       REGISTRY_TENCENT: ccr.ccs.tencentyun.com/jiaoio

@@ -27,8 +27,8 @@ jobs:
   build-mongodb-multiarch:
     runs-on: ubuntu-latest
     env:
-      MONGO_VERSION: ${{ github.event.inputs.mongo_version }}
-      TAG: ${{ github.event.inputs.tag }}
+      MONGO_VERSION: ${{ inputs.mongo_version }}
+      TAG: ${{ inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
       REGISTRY_TENCENT: ccr.ccs.tencentyun.com/jiaoio

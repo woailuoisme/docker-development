@@ -18,11 +18,16 @@ on:
         default: "latest"
   workflow_call:
     inputs:
-      pgsql_version:
-        description: "PostgreSQL Version"
+      postgres_version:
+        description: "PostgresSQL Version"
         required: false
         type: string
         default: "18.1"
+      alpine_version:
+        description: "Alpine Version"
+        required: false
+        type: string
+        default: "alpine3.23"
       tag:
         description: "Image Tag"
         required: true
@@ -33,9 +38,9 @@ jobs:
   build-postgres18-multiarch:
     runs-on: ubuntu-latest
     env:
-      POSTGRES_VERSION: ${{ github.event.inputs.postgres_version }}
-      ALPINE_VERSION: ${{ github.event.inputs.alpine_version }}
-      TAG: ${{ github.event.inputs.tag }}
+      POSTGRES_VERSION: ${{ inputs.postgres_version }}
+      ALPINE_VERSION: ${{ inputs.alpine_version }}
+      TAG: ${{ inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
       REGISTRY_TENCENT: ccr.ccs.tencentyun.com/jiaoio

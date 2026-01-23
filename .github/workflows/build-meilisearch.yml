@@ -13,6 +13,11 @@ on:
         default: "latest"
   workflow_call:
     inputs:
+      meili_version:
+        description: "Meilisearch Version"
+        required: false
+        type: string
+        default: "v1.33"
       tag:
         description: "Image Tag"
         required: true
@@ -22,8 +27,8 @@ jobs:
   build-meilisearch-multiarch:
     runs-on: ubuntu-latest
     env:
-      MEILI_VERSION: ${{ github.event.inputs.meili_version }}
-      TAG: ${{ github.event.inputs.tag }}
+      MEILI_VERSION: ${{ inputs.meili_version }}
+      TAG: ${{ inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
       REGISTRY_TENCENT: ccr.ccs.tencentyun.com/jiaoio

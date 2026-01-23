@@ -18,7 +18,7 @@ jobs:
   build-goaccess-multiarch:
     runs-on: ubuntu-latest
     env:
-      TAG: ${{ github.event.inputs.tag }}
+      TAG: ${{ inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
       REGISTRY_TENCENT: ccr.ccs.tencentyun.com/jiaoio

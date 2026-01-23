@@ -27,8 +27,8 @@ jobs:
   build-mysql8-multiarch:
     runs-on: ubuntu-latest
     env:
-      MYSQL_VERSION: ${{ github.event.inputs.mysql_version }}
-      TAG: ${{ github.event.inputs.tag }}
+      MYSQL_VERSION: ${{ inputs.mysql_version }}
+      TAG: ${{ inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
       REGISTRY_TENCENT: ccr.ccs.tencentyun.com/jiaoio
