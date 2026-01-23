@@ -16,82 +16,13 @@ on:
         description: '🔧 构建所有基础设施'
         type: boolean
         default: false
-
-      # === PHP Trixie 服务 ===
-      build_php_fpm_trixie:
-        description: '构建 PHP-FPM-Trixie'
-        type: boolean
-        default: false
-      build_php_franken_trixie:
-        description: '构建 PHP-Franken-Trixie'
-        type: boolean
-        default: false
-      build_php_horizon_trixie:
-        description: '构建 PHP-Horizon-Trixie'
-        type: boolean
-        default: false
-      build_php_roadrunner_trixie:
-        description: '构建 PHP-RoadRunner-Trixie'
-        type: boolean
-        default: false
-      build_php_reverb_trixie:
-        description: '构建 PHP-Reverb-Trixie'
-        type: boolean
-        default: false
-      build_php_schedule_trixie:
-        description: '构建 PHP-Schedule-Trixie'
-        type: boolean
-        default: false
-      build_php_worker_trixie:
-        description: '构建 PHP-Worker-Trixie'
-        type: boolean
-        default: false
       
-      # === 基础设施服务 ===
-      build_goaccess:
-        description: '构建 GoAccess'
-        type: boolean
-        default: false
-      build_authelia:
-        description: '构建 Authelia'
-        type: boolean
-        default: false
-      build_caddy:
-        description: '构建 Caddy'
-        type: boolean
-        default: false
-      build_mysql8:
-        description: '构建 MySQL8'
-        type: boolean
-        default: false
-      build_mongodb:
-        description: '构建 MongoDB'
-        type: boolean
-        default: false
-      build_telegraf:
-        description: '构建 Telegraf'
-        type: boolean
-        default: false
-      build_redis:
-        description: '构建 Redis'
-        type: boolean
-        default: false
-      build_meilisearch:
-        description: '构建 Meilisearch'
-        type: boolean
-        default: false
-      build_minio:
-        description: '构建 MinIO'
-        type: boolean
-        default: false
-      build_pgsql_17:
-        description: '构建 PostgreSQL 17'
-        type: boolean
-        default: false
-      build_pgsql_18:
-        description: '构建 PostgreSQL 18'
-        type: boolean
-        default: false
+      # === 自定义构建 ===
+      custom_services:
+        description: '🔍 指定服务 (逗号分隔，如: redis, mysql, php-fpm)'
+        required: false
+        type: string
+        default: ''
       
       # === 通用参数 ===
       image_tag:
