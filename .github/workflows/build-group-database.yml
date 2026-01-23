@@ -85,8 +85,8 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mysql8 }}" == "true" ]] && add_task "mysql8" "./mysql8" "mysql8" "${{ inputs.mysql_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mongodb }}" == "true" ]] && add_task "mongodb" "./mongodb" "mongodb" "${{ inputs.mongo_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_redis }}" == "true" ]] && add_task "redis" "./redis" "redis" "${{ inputs.redis_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgsql_17 }}" == "true" ]] && add_task "pgsql-17" "./pgsql-17" "pgsql-17" "${{ inputs.pgsql17_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgsql_18 }}" == "true" ]] && add_task "pgsql-18" "./pgsql-18" "pgsql-18" "${{ inputs.pgsql18_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgsql_17 }}" == "true" ]] && add_task "pgsql-17" "./postgres17" "pgsql-17" "${{ inputs.pgsql17_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgsql_18 }}" == "true" ]] && add_task "pgsql-18" "./postgres18" "pgsql-18" "${{ inputs.pgsql18_version }}"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
