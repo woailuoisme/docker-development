@@ -49,10 +49,14 @@ on:
         description: 'Redis 版本 (默认: 8.4-alpine)'
         required: false
         default: '8.4-alpine'
-      pgsql_version:
-        description: 'PostgreSQL Version (默认: 18.2)'
+      pgsql17_version:
+        description: 'PostgreSQL 17 版本 (默认: 17.6-alpine)'
         required: false
-        default: '18.2'
+        default: '17.6-alpine'
+      pgsql18_version:
+        description: 'PostgreSQL 18 版本 (默认: 18.1-alpine3.23)'
+        required: false
+        default: '18.1-alpine3.23'
 
 jobs:
   build-mysql8:
@@ -84,7 +88,7 @@ jobs:
     uses: ./.github/workflows/build-pgsql-17.yml
     secrets: inherit
     with:
-      postgres_version: ${{ inputs.pgsql_version }}
+      postgres_version: ${{ inputs.pgsql17_version }}
       tag: ${{ inputs.image_tag }}
 
   build-pgsql-18:
@@ -92,5 +96,5 @@ jobs:
     uses: ./.github/workflows/build-pgsql-18.yml
     secrets: inherit
     with:
-      postgres_version: ${{ inputs.pgsql_version }}
+      postgres_version: ${{ inputs.pgsql18_version }}
       tag: ${{ inputs.image_tag }}

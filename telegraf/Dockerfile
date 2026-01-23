@@ -1,4 +1,5 @@
-FROM telegraf:1.37-alpine
+ARG TELEGRAF_VERSION=1.37-alpine
+FROM telegraf:${TELEGRAF_VERSION}
 
 ARG CHANGE_SOURCE=false
 ARG TIMEZONE=Asia/Shanghai
@@ -19,7 +20,7 @@ COPY telegraf.d/ /etc/telegraf/telegraf.d/
 # 为所有 .toml 文件创建 .conf 软链接（--config-directory 只识别 .conf 文件）
 RUN cd /etc/telegraf/telegraf.d && \
     for f in *.toml; do \
-        ln -s "$f" "${f%.toml}.conf"; \
+    ln -s "$f" "${f%.toml}.conf"; \
     done
 
 # 设置工作目录
@@ -27,7 +28,7 @@ WORKDIR /etc/telegraf
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=10s \
-  CMD telegraf --test --config /etc/telegraf/telegraf.toml --config-directory /etc/telegraf/telegraf.d || exit 1
+    CMD telegraf --test --config /etc/telegraf/telegraf.toml --config-directory /etc/telegraf/telegraf.d || exit 1
 
 # 启动 Telegraf 并指定配置文件和配置目录
 CMD ["telegraf", "--config", "/etc/telegraf/telegraf.toml", "--config-directory", "/etc/telegraf/telegraf.d"]

@@ -3,12 +3,21 @@ name: Build PHP-FPM-Trixie Multi-arch Images
 on:
   workflow_dispatch:
     inputs:
+      php_version:
+        description: "PHP Version (e.g., 8.5)"
+        required: true
+        default: "8.5"
       tag:
         description: "Image Tag (e.g., latest, 8.5-fpm-latest)"
         required: true
         default: "latest"
   workflow_call:
     inputs:
+      php_version:
+        description: "PHP Version (e.g., 8.5)"
+        required: true
+        default: "8.5"
+        type: string
       tag:
         description: "Image Tag"
         required: true
@@ -19,6 +28,7 @@ jobs:
   build-php-fpm-trixie-multiarch:
     runs-on: ubuntu-latest
     env:
+      PHP_VERSION: ${{ inputs.php_version }}
       TAG: ${{ inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
@@ -61,6 +71,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
+            PHP_VERSION=${{ env.PHP_VERSION }}
             CHANGE_SOURCE=false
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/php-fpm-trixie:${{ env.TAG }}

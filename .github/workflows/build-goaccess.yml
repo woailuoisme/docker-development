@@ -3,12 +3,21 @@ name: Build GoAccess Multi-arch Images
 on:
   workflow_dispatch:
     inputs:
+      goaccess_version:
+        description: "GoAccess Version (e.g., latest)"
+        required: true
+        default: "latest"
       tag:
         description: "Image Tag (e.g., latest)"
         required: true
         default: "latest"
   workflow_call:
     inputs:
+      goaccess_version:
+        description: "GoAccess Version"
+        required: false
+        type: string
+        default: "latest"
       tag:
         description: "Image Tag"
         required: true
@@ -19,6 +28,7 @@ jobs:
   build-goaccess-multiarch:
     runs-on: ubuntu-latest
     env:
+      GOACCESS_VERSION: ${{ inputs.goaccess_version }}
       TAG: ${{ inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
@@ -60,6 +70,8 @@ jobs:
           context: ./go-access
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |
+             GOACCESS_VERSION=${{ env.GOACCESS_VERSION }}
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/goaccess:${{ env.TAG }}
             ${{ env.REGISTRY_REDHAT }}/goaccess:${{ env.TAG }}

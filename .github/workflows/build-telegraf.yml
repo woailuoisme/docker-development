@@ -3,12 +3,21 @@ name: Build Telegraf Multi-arch Images
 on:
   workflow_dispatch:
     inputs:
+      telegraf_version:
+        description: "Telegraf Version (e.g., 1.37-alpine)"
+        required: true
+        default: "1.37-alpine"
       tag:
         description: "Image Tag (e.g., latest)"
         required: true
         default: "latest"
   workflow_call:
     inputs:
+      telegraf_version:
+        description: "Telegraf Version"
+        required: false
+        type: string
+        default: "1.37-alpine"
       tag:
         description: "Image Tag"
         required: true
@@ -19,6 +28,7 @@ jobs:
   build-telegraf-multiarch:
     runs-on: ubuntu-latest
     env:
+      TELEGRAF_VERSION: ${{ inputs.telegraf_version }}
       TAG: ${{ inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
@@ -63,6 +73,7 @@ jobs:
           build-args: |
             CHANGE_SOURCE=false
             TIMEZONE=Asia/Shanghai
+            TELEGRAF_VERSION=${{ env.TELEGRAF_VERSION }}
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/telegraf:${{ env.TAG }}
             ${{ env.REGISTRY_REDHAT }}/telegraf:${{ env.TAG }}

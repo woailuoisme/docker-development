@@ -5,13 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       postgres_version:
-        description: "PostgresSQL 基础版本 (例如: 17.6)"
+        description: "PostgresSQL 基础版本 (例如: 17.6-alpine)"
         required: true
-        default: "17.6"
-      alpine_version:
-        description: "Alpine 版本 (例如: alpine)"
-        required: true
-        default: "alpine"
+        default: "17.6-alpine"
       tag:
         description: "镜像标签 (例如: latest)"
         required: true
@@ -22,12 +18,7 @@ on:
         description: "PostgresSQL Version"
         required: false
         type: string
-        default: "17.6"
-      alpine_version:
-        description: "Alpine Version"
-        required: false
-        type: string
-        default: "alpine"
+        default: "17.6-alpine"
       tag:
         description: "Image Tag"
         required: true
@@ -40,7 +31,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       POSTGRES_VERSION: ${{ inputs.postgres_version }}
-      ALPINE_VERSION: ${{ inputs.alpine_version }}
       TAG: ${{ inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
@@ -84,7 +74,7 @@ jobs:
           push: true
           build-args: |
             CHANGE_SOURCE=false
-            POSTGRES_VERSION=${{ env.POSTGRES_VERSION }}-${{ env.ALPINE_VERSION }}
+            POSTGRES_VERSION=${{ env.POSTGRES_VERSION }}
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/postgres:17
             ${{ env.REGISTRY_DOCKERHUB }}/postgres:17-${{ env.TAG }}

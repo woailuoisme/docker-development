@@ -1,4 +1,5 @@
-FROM allinurl/goaccess:latest
+ARG GOACCESS_VERSION=latest
+FROM allinurl/goaccess:${GOACCESS_VERSION}
 
 ENV TZ=Asia/Shanghai \
     LANG=zh_CN.UTF-8 \

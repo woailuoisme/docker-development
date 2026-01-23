@@ -1,4 +1,5 @@
-FROM jiaoio/php-base-roadrunner-trixie:2025.1.6-php8.5
+ARG PHP_VERSION=8.5
+FROM jiaoio/php-base-roadrunner-trixie:2025.1.6-php${PHP_VERSION}
 
 ARG CHANGE_SOURCE=true
 

@@ -3,12 +3,21 @@ name: Build MinIO Multi-arch Images
 on:
   workflow_dispatch:
     inputs:
+      minio_version:
+        description: "MinIO Version (e.g., latest)"
+        required: true
+        default: "latest"
       tag:
         description: "Image Tag (e.g., latest)"
         required: true
         default: "latest"
   workflow_call:
     inputs:
+      minio_version:
+        description: "MinIO Version"
+        required: false
+        type: string
+        default: "latest"
       tag:
         description: "Image Tag"
         required: true
@@ -19,6 +28,7 @@ jobs:
   build-minio-multiarch:
     runs-on: ubuntu-latest
     env:
+      MINIO_VERSION: ${{ inputs.minio_version }}
       TAG: ${{ inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
@@ -60,6 +70,8 @@ jobs:
           context: ./minio
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |
+             MINIO_VERSION=${{ env.MINIO_VERSION }}
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/minio:${{ env.TAG }}
             ${{ env.REGISTRY_REDHAT }}/minio:${{ env.TAG }}

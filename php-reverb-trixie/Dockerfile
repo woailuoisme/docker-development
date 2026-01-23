@@ -1,7 +1,8 @@
 #FROM ccr.ccs.tencentyun.com/jiaoio/php-base-simple-cli
 #FROM jiaoio/php-base-simple-cli
 #FROM jiaoio/php-base-simple-cli:8.5-cli-latest
-FROM jiaoio/php-base-simple-cli-trixie:8.5-cli-latest
+ARG PHP_VERSION=8.5
+FROM jiaoio/php-base-simple-cli-trixie:${PHP_VERSION}-cli-latest
 
 
 ARG CHANGE_SOURCE=true

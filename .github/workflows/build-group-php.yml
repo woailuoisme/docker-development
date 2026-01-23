@@ -43,6 +43,10 @@ on:
         description: '镜像标签 (e.g., latest)'
         required: true
         default: 'latest'
+      php_version:
+        description: 'PHP 基础版本 (默认: 8.5)'
+        required: false
+        default: '8.5'
 
 jobs:
   build-php-fpm-trixie:
@@ -50,6 +54,7 @@ jobs:
     uses: ./.github/workflows/build-php-fpm-trixie.yml
     secrets: inherit
     with:
+      php_version: ${{ inputs.php_version }}
       tag: ${{ inputs.image_tag }}
 
   build-php-franken-trixie:
@@ -57,6 +62,7 @@ jobs:
     uses: ./.github/workflows/build-php-franken-trixie.yml
     secrets: inherit
     with:
+      php_version: ${{ inputs.php_version }}
       tag: ${{ inputs.image_tag }}
 
   build-php-horizon-trixie:
@@ -64,6 +70,7 @@ jobs:
     uses: ./.github/workflows/build-php-horizon-trixie.yml
     secrets: inherit
     with:
+      php_version: ${{ inputs.php_version }}
       tag: ${{ inputs.image_tag }}
 
   build-php-roadrunner-trixie:
@@ -71,6 +78,7 @@ jobs:
     uses: ./.github/workflows/build-php-roadrunner-trixie.yml
     secrets: inherit
     with:
+      php_version: ${{ inputs.php_version }}
       tag: ${{ inputs.image_tag }}
 
   build-php-reverb-trixie:
@@ -78,6 +86,7 @@ jobs:
     uses: ./.github/workflows/build-php-reverb-trixie.yml
     secrets: inherit
     with:
+      php_version: ${{ inputs.php_version }}
       tag: ${{ inputs.image_tag }}
 
   build-php-schedule-trixie:
@@ -85,6 +94,7 @@ jobs:
     uses: ./.github/workflows/build-php-schedule-trixie.yml
     secrets: inherit
     with:
+      php_version: ${{ inputs.php_version }}
       tag: ${{ inputs.image_tag }}
 
   build-php-worker-trixie:
@@ -92,4 +102,5 @@ jobs:
     uses: ./.github/workflows/build-php-worker-trixie.yml
     secrets: inherit
     with:
+      php_version: ${{ inputs.php_version }}
       tag: ${{ inputs.image_tag }}

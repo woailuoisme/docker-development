@@ -3,12 +3,21 @@ name: Build Caddy Multi-arch Images
 on:
   workflow_dispatch:
     inputs:
+      caddy_base_version:
+        description: "Caddy Base Version (e.g., latest)"
+        required: true
+        default: "latest"
       tag:
         description: "Image Tag (e.g., latest)"
         required: true
         default: "latest"
   workflow_call:
     inputs:
+      caddy_base_version:
+        description: "Caddy Base Version"
+        required: false
+        type: string
+        default: "latest"
       tag:
         description: "Image Tag"
         required: true
@@ -19,6 +28,7 @@ jobs:
   build-caddy-multiarch:
     runs-on: ubuntu-latest
     env:
+      CADDY_BASE_VERSION: ${{ inputs.caddy_base_version }}
       TAG: ${{ inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
@@ -60,6 +70,8 @@ jobs:
           context: ./caddy
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |
+             CADDY_BASE_VERSION=${{ env.CADDY_BASE_VERSION }}
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/caddy:${{ env.TAG }}
             ${{ env.REGISTRY_REDHAT }}/caddy:${{ env.TAG }}

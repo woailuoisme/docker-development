@@ -49,6 +49,22 @@ on:
         description: 'Meilisearch Version (默认: v1.33)'
         required: false
         default: 'v1.33'
+      goaccess_version:
+        description: 'GoAccess 版本 (默认: latest)'
+        required: false
+        default: 'latest'
+      caddy_base_version:
+        description: 'Caddy 基础版本 (默认: latest)'
+        required: false
+        default: 'latest'
+      telegraf_version:
+        description: 'Telegraf 版本 (默认: 1.37-alpine)'
+        required: false
+        default: '1.37-alpine'
+      minio_version:
+        description: 'MinIO 版本 (默认: latest)'
+        required: false
+        default: 'latest'
 
 jobs:
   build-goaccess:
@@ -56,6 +72,7 @@ jobs:
     uses: ./.github/workflows/build-goaccess.yml
     secrets: inherit
     with:
+      goaccess_version: ${{ inputs.goaccess_version }}
       tag: ${{ inputs.image_tag }}
 
   build-authelia:
@@ -71,6 +88,7 @@ jobs:
     uses: ./.github/workflows/build-caddy.yml
     secrets: inherit
     with:
+      caddy_base_version: ${{ inputs.caddy_base_version }}
       tag: ${{ inputs.image_tag }}
 
   build-telegraf:
@@ -78,6 +96,7 @@ jobs:
     uses: ./.github/workflows/build-telegraf.yml
     secrets: inherit
     with:
+      telegraf_version: ${{ inputs.telegraf_version }}
       tag: ${{ inputs.image_tag }}
 
   build-meilisearch:
@@ -93,4 +112,5 @@ jobs:
     uses: ./.github/workflows/build-minio.yml
     secrets: inherit
     with:
+      minio_version: ${{ inputs.minio_version }}
       tag: ${{ inputs.image_tag }}

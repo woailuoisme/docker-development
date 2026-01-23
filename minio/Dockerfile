@@ -1,4 +1,5 @@
-FROM quay.io/minio/minio
+ARG MINIO_VERSION=latest
+FROM quay.io/minio/minio:${MINIO_VERSION}
 LABEL maintainer="seaside <seaside@qq.com>"
 
 # 设置 startup.sh 使用的环境变量默认值

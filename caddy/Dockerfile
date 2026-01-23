@@ -1,4 +1,5 @@
-FROM jiaoio/caddy-base:latest
+ARG CADDY_BASE_VERSION=latest
+FROM jiaoio/caddy-base:${CADDY_BASE_VERSION}
 #FROM ccr.ccs.tencentyun.com/jiaoio/caddy-base:latest
 
 COPY sites /etc/caddy/sites

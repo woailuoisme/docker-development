@@ -4,7 +4,8 @@ ARG CHANGE_SOURCE=true
 #FROM jiaoio/php-base-fpm:8.5-fpm-latest
 #FROM quay.io/jiaoio/php-base-fpm
 #FROM ccr.ccs.tencentyun.com/jiaoio/php-base-fpm
-FROM jiaoio/php-base-fpm-trixie:8.5-fpm-latest
+ARG PHP_VERSION=8.5
+FROM jiaoio/php-base-fpm-trixie:${PHP_VERSION}-fpm-latest
 LABEL maintainer="seaside <531773730@qq.com>"
 
 # 动态用户ID支持
