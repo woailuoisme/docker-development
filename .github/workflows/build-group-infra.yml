@@ -35,82 +35,110 @@ on:
         default: false
       
       # === 通用参数 ===
-      image_tag:
+      tag:
         description: '镜像标签 (e.g., latest)'
         required: true
         default: 'latest'
 
       # === 版本参数 ===
       authelia_version:
-        description: 'Authelia 版本 (默认: 4.39)'
+        description: 'Authelia 版本'
         required: false
         default: '4.39'
       meili_version:
-        description: 'Meilisearch Version (默认: v1.33)'
+        description: 'Meilisearch Version'
         required: false
         default: 'v1.33'
       goaccess_version:
-        description: 'GoAccess 版本 (默认: latest)'
+        description: 'GoAccess 版本'
         required: false
         default: 'latest'
       caddy_base_version:
-        description: 'Caddy 基础版本 (默认: latest)'
+        description: 'Caddy 基础版本'
         required: false
         default: 'latest'
       telegraf_version:
-        description: 'Telegraf 版本 (默认: 1.37-alpine)'
+        description: 'Telegraf 版本'
         required: false
         default: '1.37-alpine'
       minio_version:
-        description: 'MinIO 版本 (默认: latest)'
+        description: 'MinIO 版本'
         required: false
         default: 'latest'
 
+env:
+  REGISTRY_DOCKERHUB: docker.io/jiaoio
+  REGISTRY_REDHAT: quay.io/jiaoio
+
 jobs:
-  build-goaccess:
-    if: ${{ inputs.build_all == true || inputs.build_goaccess == true }}
-    uses: ./.github/workflows/build-goaccess.yml
-    secrets: inherit
-    with:
-      goaccess_version: ${{ inputs.goaccess_version }}
-      tag: ${{ inputs.image_tag }}
+  matrix-builder:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          MATRIX_JSON='[]'
+          
+          add_task() {
+            local name=$1
+            local context=$2
+            local image=$3
+            local version=$4
+            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$name\", \"context\": \"$context\", \"image\": \"$image\", \"version\": \"$version\"}]")
+          }
+          
+          BUILD_ALL=${{ inputs.build_all }}
+          
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_goaccess }}" == "true" ]] && add_task "goaccess" "./go-access" "goaccess" "${{ inputs.goaccess_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_authelia }}" == "true" ]] && add_task "authelia" "./authelia" "authelia" "${{ inputs.authelia_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_caddy }}" == "true" ]] && add_task "caddy" "./caddy" "caddy" "${{ inputs.caddy_base_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_telegraf }}" == "true" ]] && add_task "telegraf" "./telegraf" "telegraf" "${{ inputs.telegraf_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_meilisearch }}" == "true" ]] && add_task "meilisearch" "./meilisearch" "meilisearch" "${{ inputs.meili_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_minio }}" == "true" ]] && add_task "minio" "./minio" "minio" "${{ inputs.minio_version }}"
+          
+          echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
-  build-authelia:
-    if: ${{ inputs.build_all == true || inputs.build_authelia == true }}
-    uses: ./.github/workflows/build-authelia.yml
-    secrets: inherit
-    with:
-      authelia_version: ${{ inputs.authelia_version }}
-      tag: ${{ inputs.image_tag }}
+  build-infra:
+    needs: matrix-builder
+    if: ${{ fromJson(needs.matrix-builder.outputs.matrix).include[0] != null }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
+    
+    name: Build ${{ matrix.name }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  build-caddy:
-    if: ${{ inputs.build_all == true || inputs.build_caddy == true }}
-    uses: ./.github/workflows/build-caddy.yml
-    secrets: inherit
-    with:
-      caddy_base_version: ${{ inputs.caddy_base_version }}
-      tag: ${{ inputs.image_tag }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-  build-telegraf:
-    if: ${{ inputs.build_all == true || inputs.build_telegraf == true }}
-    uses: ./.github/workflows/build-telegraf.yml
-    secrets: inherit
-    with:
-      telegraf_version: ${{ inputs.telegraf_version }}
-      tag: ${{ inputs.image_tag }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-  build-meilisearch:
-    if: ${{ inputs.build_all == true || inputs.build_meilisearch == true }}
-    uses: ./.github/workflows/build-meilisearch.yml
-    secrets: inherit
-    with:
-      meili_version: ${{ inputs.meili_version }}
-      tag: ${{ inputs.image_tag }}
+      - name: Login to Registries
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          echo "${{ secrets.REDHAT_REGISTRY_TOKEN }}" | docker login quay.io -u "${{ secrets.REDHAT_REGISTRY_USERNAME }}" --password-stdin
 
-  build-minio:
-    if: ${{ inputs.build_all == true || inputs.build_minio == true }}
-    uses: ./.github/workflows/build-minio.yml
-    secrets: inherit
-    with:
-      minio_version: ${{ inputs.minio_version }}
-      tag: ${{ inputs.image_tag }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+             GOACCESS_VERSION=${{ matrix.version }}
+             AUTHELIA_VERSION=${{ matrix.version }}
+             CADDY_BASE_VERSION=${{ matrix.version }}
+             TELEGRAF_VERSION=${{ matrix.version }}
+             MEILI_VERSION=${{ matrix.version }}
+             MINIO_VERSION=${{ matrix.version }}
+          tags: |
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-latest
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}-latest
