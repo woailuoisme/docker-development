@@ -114,49 +114,49 @@ on:
 jobs:
   # PHP Trixie 服务构建
   build-php-fpm-trixie:
-    if: ${{ inputs.build_php_fpm_trixie == 'true' }}
+    if: ${{ inputs.build_php_fpm_trixie == true }}
     uses: ./.github/workflows/build-php-fpm-trixie.yml
     secrets: inherit
     with:
       tag: ${{ inputs.image_tag }}
 
   build-php-franken-trixie:
-    if: ${{ inputs.build_php_franken_trixie == 'true' }}
+    if: ${{ inputs.build_php_franken_trixie == true }}
     uses: ./.github/workflows/build-php-franken-trixie.yml
     secrets: inherit
     with:
       tag: ${{ inputs.image_tag }}
 
   build-php-horizon-trixie:
-    if: ${{ inputs.build_php_horizon_trixie == 'true' }}
+    if: ${{ inputs.build_php_horizon_trixie == true }}
     uses: ./.github/workflows/build-php-horizon-trixie.yml
     secrets: inherit
     with:
       tag: ${{ inputs.image_tag }}
 
   build-php-roadrunner-trixie:
-    if: ${{ inputs.build_php_roadrunner_trixie == 'true' }}
+    if: ${{ inputs.build_php_roadrunner_trixie == true }}
     uses: ./.github/workflows/build-php-roadrunner-trixie.yml
     secrets: inherit
     with:
       tag: ${{ inputs.image_tag }}
 
   build-php-reverb-trixie:
-    if: ${{ inputs.build_php_reverb_trixie == 'true' }}
+    if: ${{ inputs.build_php_reverb_trixie == true }}
     uses: ./.github/workflows/build-php-reverb-trixie.yml
     secrets: inherit
     with:
       tag: ${{ inputs.image_tag }}
 
   build-php-schedule-trixie:
-    if: ${{ inputs.build_php_schedule_trixie == 'true' }}
+    if: ${{ inputs.build_php_schedule_trixie == true }}
     uses: ./.github/workflows/build-php-schedule-trixie.yml
     secrets: inherit
     with:
       tag: ${{ inputs.image_tag }}
 
   build-php-worker-trixie:
-    if: ${{ inputs.build_php_worker_trixie == 'true' }}
+    if: ${{ inputs.build_php_worker_trixie == true }}
     uses: ./.github/workflows/build-php-worker-trixie.yml
     secrets: inherit
     with:
@@ -164,14 +164,14 @@ jobs:
 
   # 基础设施服务构建
   build-goaccess:
-    if: ${{ inputs.build_goaccess == 'true' }}
+    if: ${{ inputs.build_goaccess == true }}
     uses: ./.github/workflows/build-goaccess.yml
     secrets: inherit
     with:
       tag: ${{ inputs.image_tag }}
 
   build-authelia:
-    if: ${{ inputs.build_authelia == 'true' }}
+    if: ${{ inputs.build_authelia == true }}
     uses: ./.github/workflows/build-authelia.yml
     secrets: inherit
     with:
@@ -179,14 +179,14 @@ jobs:
       tag: ${{ inputs.image_tag }}
 
   build-caddy:
-    if: ${{ inputs.build_caddy == 'true' }}
+    if: ${{ inputs.build_caddy == true }}
     uses: ./.github/workflows/build-caddy.yml
     secrets: inherit
     with:
       tag: ${{ inputs.image_tag }}
 
   build-mysql8:
-    if: ${{ inputs.build_mysql8 == 'true' }}
+    if: ${{ inputs.build_mysql8 == true }}
     uses: ./.github/workflows/build-mysql8.yml
     secrets: inherit
     with:
@@ -194,7 +194,7 @@ jobs:
       tag: ${{ inputs.image_tag }}
 
   build-mongodb:
-    if: ${{ inputs.build_mongodb == 'true' }}
+    if: ${{ inputs.build_mongodb == true }}
     uses: ./.github/workflows/build-mongodb.yml
     secrets: inherit
     with:
@@ -202,14 +202,14 @@ jobs:
       tag: ${{ inputs.image_tag }}
 
   build-telegraf:
-    if: ${{ inputs.build_telegraf == 'true' }}
+    if: ${{ inputs.build_telegraf == true }}
     uses: ./.github/workflows/build-telegraf.yml
     secrets: inherit
     with:
       tag: ${{ inputs.image_tag }}
 
   build-redis:
-    if: ${{ inputs.build_redis == 'true' }}
+    if: ${{ inputs.build_redis == true }}
     uses: ./.github/workflows/build-redis.yml
     secrets: inherit
     with:
@@ -217,7 +217,7 @@ jobs:
       tag: ${{ inputs.image_tag }}
 
   build-meilisearch:
-    if: ${{ inputs.build_meilisearch == 'true' }}
+    if: ${{ inputs.build_meilisearch == true }}
     uses: ./.github/workflows/build-meilisearch.yml
     secrets: inherit
     with:
@@ -225,14 +225,14 @@ jobs:
       tag: ${{ inputs.image_tag }}
 
   build-minio:
-    if: ${{ inputs.build_minio == 'true' }}
+    if: ${{ inputs.build_minio == true }}
     uses: ./.github/workflows/build-minio.yml
     secrets: inherit
     with:
       tag: ${{ inputs.image_tag }}
 
   build-pgsql-17:
-    if: ${{ inputs.build_pgsql_17 == 'true' }}
+    if: ${{ inputs.build_pgsql_17 == true }}
     uses: ./.github/workflows/build-pgsql-17.yml
     secrets: inherit
     with:
@@ -240,7 +240,7 @@ jobs:
       tag: ${{ inputs.image_tag }}
 
   build-pgsql-18:
-    if: ${{ inputs.build_pgsql_18 == 'true' }}
+    if: ${{ inputs.build_pgsql_18 == true }}
     uses: ./.github/workflows/build-pgsql-18.yml
     secrets: inherit
     with:
