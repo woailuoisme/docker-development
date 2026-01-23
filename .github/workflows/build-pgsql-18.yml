@@ -16,6 +16,17 @@ on:
         description: "镜像标签 (例如: latest)"
         required: true
         default: "latest"
+  workflow_call:
+    inputs:
+      pgsql_version:
+        description: "PostgreSQL Version"
+        required: false
+        type: string
+        default: "18.1"
+      tag:
+        description: "Image Tag"
+        required: true
+        type: string
 
 jobs:
   # 构建 postgres 18 多平台镜像并推送

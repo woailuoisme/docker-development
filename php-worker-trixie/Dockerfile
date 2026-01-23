@@ -1,20 +1,25 @@
 #FROM ccr.ccs.tencentyun.com/jiaoio/php-base-simple-cli
 #FROM quay.io/jiaoio/php-base-simple-cli
 #FROM jiaoio/php-base-simple-cli
-FROM jiaoio/php-base-simple-cli:8.5-cli-latest
+#FROM jiaoio/php-base-simple-cli:8.5-cli-latest
+FROM jiaoio/php-base-simple-cli-trixie:8.5-cli-latest
 
 ARG CHANGE_SOURCE=true
 
 ENV APP_PATH=/var/www/lunchbox \
     APP_PORT=8001 \
     APP_ENV=production \
+    TZ=Asia/Shanghai \
     CHANGE_SOURCE=${CHANGE_SOURCE} \
-    MAGICK_THREAD_LIMIT=2 \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 
+# 切换镜像源 (Debian Trixie)
 RUN if [ "${CHANGE_SOURCE}" = "true" ]; then \
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/' /etc/apk/repositories; \
+    sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources; \
     fi
+
+# 设置系统时区
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 COPY config/*.ini /usr/local/etc/php/conf.d/
 

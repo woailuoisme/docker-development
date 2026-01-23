@@ -1,0 +1,243 @@
+name: Build All Images (Multi-Select)
+
+on:
+  workflow_dispatch:
+    inputs:
+      # PHP Trixie 服务
+      build_php_fpm_trixie:
+        description: '构建 PHP-FPM-Trixie'
+        type: boolean
+        default: false
+      build_php_franken_trixie:
+        description: '构建 PHP-Franken-Trixie'
+        type: boolean
+        default: false
+      build_php_horizon_trixie:
+        description: '构建 PHP-Horizon-Trixie'
+        type: boolean
+        default: false
+      build_php_roadrunner_trixie:
+        description: '构建 PHP-RoadRunner-Trixie'
+        type: boolean
+        default: false
+      build_php_reverb_trixie:
+        description: '构建 PHP-Reverb-Trixie'
+        type: boolean
+        default: false
+      build_php_schedule_trixie:
+        description: '构建 PHP-Schedule-Trixie'
+        type: boolean
+        default: false
+      build_php_worker_trixie:
+        description: '构建 PHP-Worker-Trixie'
+        type: boolean
+        default: false
+      
+      # 基础设施服务
+      build_goaccess:
+        description: '构建 GoAccess'
+        type: boolean
+        default: false
+      build_authelia:
+        description: '构建 Authelia'
+        type: boolean
+        default: false
+      build_caddy:
+        description: '构建 Caddy'
+        type: boolean
+        default: false
+      build_mysql8:
+        description: '构建 MySQL8'
+        type: boolean
+        default: false
+      build_mongodb:
+        description: '构建 MongoDB'
+        type: boolean
+        default: false
+      build_telegraf:
+        description: '构建 Telegraf'
+        type: boolean
+        default: false
+      build_redis:
+        description: '构建 Redis'
+        type: boolean
+        default: false
+      build_meilisearch:
+        description: '构建 Meilisearch'
+        type: boolean
+        default: false
+      build_minio:
+        description: '构建 MinIO'
+        type: boolean
+        default: false
+      build_pgsql_17:
+        description: '构建 PostgreSQL 17'
+        type: boolean
+        default: false
+      build_pgsql_18:
+        description: '构建 PostgreSQL 18'
+        type: boolean
+        default: false
+      
+      # 通用参数
+      image_tag:
+        description: '镜像标签 (e.g., latest)'
+        required: true
+        default: 'latest'
+      
+      # 版本参数 (可选)
+      authelia_version:
+        description: 'Authelia 版本 (默认: 4.39)'
+        required: false
+        default: '4.39'
+      mysql_version:
+        description: 'MySQL 版本 (默认: 8.4)'
+        required: false
+        default: '8.4'
+      mongo_version:
+        description: 'MongoDB 版本 (默认: 8.0)'
+        required: false
+        default: '8.0'
+      redis_version:
+        description: 'Redis 版本 (默认: 8.4-alpine)'
+        required: false
+        default: '8.4-alpine'
+      pgsql_version:
+        description: 'PostgreSQL 版本 (默认: 18.2)'
+        required: false
+        default: '18.2'
+
+jobs:
+  # PHP Trixie 服务构建
+  build-php-fpm-trixie:
+    if: ${{ github.event.inputs.build_php_fpm_trixie == 'true' }}
+    uses: ./.github/workflows/build-php-fpm-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-php-franken-trixie:
+    if: ${{ github.event.inputs.build_php_franken_trixie == 'true' }}
+    uses: ./.github/workflows/build-php-franken-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-php-horizon-trixie:
+    if: ${{ github.event.inputs.build_php_horizon_trixie == 'true' }}
+    uses: ./.github/workflows/build-php-horizon-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-php-roadrunner-trixie:
+    if: ${{ github.event.inputs.build_php_roadrunner_trixie == 'true' }}
+    uses: ./.github/workflows/build-php-roadrunner-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-php-reverb-trixie:
+    if: ${{ github.event.inputs.build_php_reverb_trixie == 'true' }}
+    uses: ./.github/workflows/build-php-reverb-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-php-schedule-trixie:
+    if: ${{ github.event.inputs.build_php_schedule_trixie == 'true' }}
+    uses: ./.github/workflows/build-php-schedule-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-php-worker-trixie:
+    if: ${{ github.event.inputs.build_php_worker_trixie == 'true' }}
+    uses: ./.github/workflows/build-php-worker-trixie.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.inputs.image_tag }}
+
+  # 基础设施服务构建
+  build-goaccess:
+    if: ${{ github.event.inputs.build_goaccess == 'true' }}
+    uses: ./.github/workflows/build-goaccess.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-authelia:
+    if: ${{ github.event.inputs.build_authelia == 'true' }}
+    uses: ./.github/workflows/build-authelia.yml
+    secrets: inherit
+    with:
+      authelia_version: ${{ github.event.inputs.authelia_version }}
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-caddy:
+    if: ${{ github.event.inputs.build_caddy == 'true' }}
+    uses: ./.github/workflows/build-caddy.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-mysql8:
+    if: ${{ github.event.inputs.build_mysql8 == 'true' }}
+    uses: ./.github/workflows/build-mysql8.yml
+    secrets: inherit
+    with:
+      mysql_version: ${{ github.event.inputs.mysql_version }}
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-mongodb:
+    if: ${{ github.event.inputs.build_mongodb == 'true' }}
+    uses: ./.github/workflows/build-mongodb.yml
+    secrets: inherit
+    with:
+      mongo_version: ${{ github.event.inputs.mongo_version }}
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-telegraf:
+    if: ${{ github.event.inputs.build_telegraf == 'true' }}
+    uses: ./.github/workflows/build-telegraf.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-redis:
+    if: ${{ github.event.inputs.build_redis == 'true' }}
+    uses: ./.github/workflows/build-redis.yml
+    secrets: inherit
+    with:
+      redis_version: ${{ github.event.inputs.redis_version }}
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-meilisearch:
+    if: ${{ github.event.inputs.build_meilisearch == 'true' }}
+    uses: ./.github/workflows/build-meilisearch.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-minio:
+    if: ${{ github.event.inputs.build_minio == 'true' }}
+    uses: ./.github/workflows/build-minio.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-pgsql-17:
+    if: ${{ github.event.inputs.build_pgsql_17 == 'true' }}
+    uses: ./.github/workflows/build-pgsql-17.yml
+    secrets: inherit
+    with:
+      pgsql_version: ${{ github.event.inputs.pgsql_version }}
+      tag: ${{ github.event.inputs.image_tag }}
+
+  build-pgsql-18:
+    if: ${{ github.event.inputs.build_pgsql_18 == 'true' }}
+    uses: ./.github/workflows/build-pgsql-18.yml
+    secrets: inherit
+    with:
+      pgsql_version: ${{ github.event.inputs.pgsql_version }}
+      tag: ${{ github.event.inputs.image_tag }}

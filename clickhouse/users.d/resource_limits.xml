@@ -1,0 +1,26 @@
+<clickhouse>
+    <!-- ======================================================= -->
+    <!-- ClickHouse 用户资源限制配置 (2核 1GB 环境) -->
+    <!-- ======================================================= -->
+    <profiles>
+        <default>
+            <!-- 1. 内存熔断：限制单次查询的最大内存占用，防止单个查询拖垮整个系统 -->
+            <max_memory_usage>512M</max_memory_usage>
+            
+            <!-- 2. 溢出策略：当查询内存超过此值时，允许将中间数据溢出到磁盘继续计算 -->
+            <!-- 这对于执行 Group By 或 Sort 的大查询至关重要，能避免内存溢出报错 -->
+            <max_bytes_before_external_group_by>256M</max_bytes_before_external_group_by>
+            <max_bytes_before_external_sort>256M</max_bytes_before_external_sort>
+            
+            <!-- 3. 并发控制：配合双核 CPU，限制执行查询的线程数 -->
+            <!-- 减少线程上下文切换的开销，即使物理核心较少也能保持平稳 -->
+            <max_threads>2</max_threads>
+            
+            <!-- 4. 插入优化：开启异步写入模式 -->
+            <!-- 即使在用户级别也推荐开启，减少客户端等待时间 -->
+            <async_insert>1</async_insert>
+            <!-- 不等待异步写入完成即向客户端返回，最大化吞吐量 -->
+            <wait_for_async_insert>0</wait_for_async_insert>
+        </default>
+    </profiles>
+</clickhouse>

@@ -1,0 +1,22 @@
+services:
+  rabbitmq:
+    container_name: rabbitmq
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"          # AMQP 协议端口
+      - "${RABBITMQ_DASHBOARD_PORT:-15672}:15672"  # 管理界面端口
+    environment:
+      - TZ=Asia/Shanghai  # 时区配置
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER:-admin}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS:-secret}
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST:-app-host}
+    volumes:
+      - ${DATA_PATH}rabbitmq:/var/lib/rabbitmq
+      # - ${CONFIG_PATH}rabbitmq/config:/etc/rabbitmq
+      - ${LOG_PATH}rabbitmq:/var/log/rabbitmq
+    networks:
+      - backend
+

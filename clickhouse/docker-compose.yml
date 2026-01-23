@@ -1,0 +1,35 @@
+services:
+  clickhouse:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clickhouse
+    hostname: clickhouse
+    restart: always
+    ports:
+      - "${CLICKHOUSE_HTTP_PORT:-8123}:8123"
+      - "${CLICKHOUSE_TCP_PORT:-9000}:9000"
+    environment:
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER:-admin}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-secret}
+      - TZ=Asia/Shanghai
+    volumes:
+      - ${DATA_PATH:-./data}/clickhouse:/var/lib/clickhouse
+      - ${LOG_PATH:-./logs}/clickhouse:/var/log/clickhouse
+    deploy:
+      resources:
+        limits:
+          memory: 4096M  # ClickHouse 比较吃内存，即便低配也建议给足
+        reservations:
+          memory: 1024M
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "localhost:8123/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - backend
+
+networks:
+  backend:
+    external: true

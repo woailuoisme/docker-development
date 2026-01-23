@@ -7,6 +7,12 @@ on:
         description: "Image Tag (e.g., latest)"
         required: true
         default: "latest"
+  workflow_call:
+    inputs:
+      tag:
+        description: "Image Tag"
+        required: true
+        type: string
 
 jobs:
   build-minio-multiarch:

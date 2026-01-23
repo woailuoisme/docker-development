@@ -1,40 +1,23 @@
-name: Build PostgreSQL 17 Multi-arch Images
+name: Build PHP-Reverb-Trixie Multi-arch Images
 
-# 手动触发构建 PostgreSQL 17 + PostGIS 多平台镜像
 on:
   workflow_dispatch:
     inputs:
-      postgres_version:
-        description: "PostgresSQL 基础版本 (例如: 17.6)"
-        required: true
-        default: "17.6"
-      alpine_version:
-        description: "Alpine 版本 (例如: alpine)"
-        required: true
-        default: "alpine"
       tag:
-        description: "镜像标签 (例如: latest)"
+        description: "Image Tag (e.g., latest, 8.5-reverb-latest)"
         required: true
         default: "latest"
   workflow_call:
     inputs:
-      pgsql_version:
-        description: "PostgreSQL Version"
-        required: false
-        type: string
-        default: "17.6"
       tag:
         description: "Image Tag"
         required: true
         type: string
 
 jobs:
-  # 构建 postgres 17 多平台镜像并推送
-  build-postgres17-multiarch:
+  build-php-reverb-trixie-multiarch:
     runs-on: ubuntu-latest
     env:
-      POSTGRES_VERSION: ${{ github.event.inputs.postgres_version }}
-      ALPINE_VERSION: ${{ github.event.inputs.alpine_version }}
       TAG: ${{ github.event.inputs.tag }}
       REGISTRY_DOCKERHUB: docker.io/jiaoio
       REGISTRY_REDHAT: quay.io/jiaoio
@@ -44,7 +27,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up QEMU for multi-arch builds
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
@@ -70,22 +53,15 @@ jobs:
           username: ${{ secrets.TENCENT_REGISTRY_USERNAME }}
           password: ${{ secrets.TENCENT_REGISTRY_PASSWORD }}
 
-      - name: Build and push postgres 17 multi-arch image
+      - name: Build and push PHP-Reverb-Trixie
         uses: docker/build-push-action@v6
         with:
-          context: ./postgres17
+          context: ./php-reverb-trixie
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
             CHANGE_SOURCE=false
-            POSTGRES_VERSION=${{ env.POSTGRES_VERSION }}-${{ env.ALPINE_VERSION }}
           tags: |
-            ${{ env.REGISTRY_DOCKERHUB }}/postgres:17
-            ${{ env.REGISTRY_DOCKERHUB }}/postgres:17-${{ env.TAG }}
-            ${{ env.REGISTRY_REDHAT }}/postgres:17
-            ${{ env.REGISTRY_REDHAT }}/postgres:17-${{ env.TAG }}
-            ${{ env.REGISTRY_TENCENT }}/postgres:17
-            ${{ env.REGISTRY_TENCENT }}/postgres:17-${{ env.TAG }}
-
-
-
+            ${{ env.REGISTRY_DOCKERHUB }}/php-reverb-trixie:${{ env.TAG }}
+            ${{ env.REGISTRY_REDHAT }}/php-reverb-trixie:${{ env.TAG }}
+            ${{ env.REGISTRY_TENCENT }}/php-reverb-trixie:${{ env.TAG }}

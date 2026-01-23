@@ -1,6 +1,5 @@
 FROM jiaoio/php-base-simple-cli-trixie:8.5-cli-latest
 
-
 ENV APP_PATH=/var/www/lunchbox \
     APP_PORT=8001 \
     APP_ENV=production \
