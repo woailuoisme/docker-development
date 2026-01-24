@@ -1,4 +1,4 @@
-ARG POSTGRES_VERSION=17.7-alpine
+ARG POSTGRES_VERSION=17.7-alpine3.23
 FROM postgres:${POSTGRES_VERSION}
 LABEL maintainer="seaside <531773730@qq.com>"
 
@@ -12,9 +12,17 @@ RUN if [ "$CHANGE_SOURCE" = "true" ]; then \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
     fi
 
+# 定义扩展版本参数 (基于 Alpine 3.23/edge 最新版)
+ARG POSTGIS_VERSION=3.6.1-r0
+ARG PGVECTOR_VERSION=0.8.1-r0
+ARG TIMESCALEDB_VERSION=2.23.0-r1
+ARG PGCRON_VERSION=1.6.7-r0
+
 RUN apk update && apk add --no-cache \
-    postgresql-pgvector \
-    postgis \
+    postgresql-pgvector=${PGVECTOR_VERSION} \
+    postgresql-timescaledb=${TIMESCALEDB_VERSION} \
+    postgresql-pg_cron=${PGCRON_VERSION} \
+    postgis=${POSTGIS_VERSION} \
     geos \
     proj \
     gdal \
@@ -25,8 +33,6 @@ RUN apk update && apk add --no-cache \
     && mkdir -p /usr/local/lib/postgresql \
     && ln -sf /usr/share/postgresql17/extension/* /usr/local/share/postgresql/extension/ \
     && ln -sf /usr/lib/postgresql17/*.so /usr/local/lib/postgresql/ \
-    && ln -sf /usr/share/postgresql18/extension/* /usr/local/share/postgresql/extension/ \
-    && ln -sf /usr/lib/postgresql18/*.so /usr/local/lib/postgresql/ \
     && cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime \
     && echo "${TIMEZONE}" > /etc/timezone \
     && apk del tzdata
