@@ -47,7 +47,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # 1. 编译并安装 pgai (Timescale)
 # pgvectorscale 需要 pgrx 0.16.1
-ARG PGAI_VERSION=v0.3.0
+ARG PGAI_VERSION=pgai-v0.12.1
 RUN cargo install cargo-pgrx --version 0.16.1 --locked \
     && cargo pgrx init --pg18 /usr/lib/postgresql/18/bin/pg_config \
     && git clone --depth 1 --branch ${PGAI_VERSION} https://github.com/timescale/pgai.git /tmp/pgai \

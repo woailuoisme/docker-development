@@ -135,6 +135,7 @@ jobs:
              MONGO_VERSION=${{ matrix.version }}
              REDIS_VERSION=${{ matrix.version }}
              POSTGRES_VERSION=${{ matrix.version }}
+             CHANGE_SOURCE=false
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-latest

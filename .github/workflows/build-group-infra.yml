@@ -137,6 +137,7 @@ jobs:
              TELEGRAF_VERSION=${{ matrix.version }}
              MEILI_VERSION=${{ matrix.version }}
              MINIO_VERSION=${{ matrix.version }}
+             CHANGE_SOURCE=false
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-latest
