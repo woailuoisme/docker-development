@@ -1,4 +1,4 @@
-ARG POSTGRES_VERSION=17.6-alpine
+ARG POSTGRES_VERSION=17.7-alpine
 FROM postgres:${POSTGRES_VERSION}
 LABEL maintainer="seaside <531773730@qq.com>"
 

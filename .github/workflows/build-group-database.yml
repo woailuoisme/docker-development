@@ -21,12 +21,16 @@ on:
         description: '构建 Redis'
         type: boolean
         default: false
-      build_pgsql_17:
+      build_postgres_17:
         description: '构建 PostgreSQL 17'
         type: boolean
         default: false
-      build_pgsql_18:
-        description: '构建 PostgreSQL 18'
+      build_postgres_18:
+        description: '构建 PostgreSQL 18 (Alpine)'
+        type: boolean
+        default: false
+      build_postgres_18_trixie:
+        description: '构建 PostgreSQL 18 (Trixie)'
         type: boolean
         default: false
       
@@ -49,14 +53,18 @@ on:
         description: 'Redis 版本'
         required: false
         default: '8.4-alpine'
-      pgsql17_version:
+      postgres17_version:
         description: 'PostgreSQL 17 版本'
         required: false
-        default: '17.6-alpine'
-      pgsql18_version:
+        default: '17.7-alpine'
+      postgres18_version:
         description: 'PostgreSQL 18 版本'
         required: false
         default: '18.1-alpine3.23'
+      postgres18_trixie_version:
+        description: 'PostgreSQL 18 Trixie 版本'
+        required: false
+        default: '18.1-trixie'
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio
@@ -85,8 +93,9 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mysql8 }}" == "true" ]] && add_task "mysql8" "./mysql8" "mysql8" "${{ inputs.mysql_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mongodb }}" == "true" ]] && add_task "mongodb" "./mongodb" "mongodb" "${{ inputs.mongo_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_redis }}" == "true" ]] && add_task "redis" "./redis" "redis" "${{ inputs.redis_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgsql_17 }}" == "true" ]] && add_task "pgsql-17" "./postgres17" "pgsql-17" "${{ inputs.pgsql17_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgsql_18 }}" == "true" ]] && add_task "pgsql-18" "./postgres18" "pgsql-18" "${{ inputs.pgsql18_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17 }}" == "true" ]] && add_task "postgres-17" "./postgres-alpine-17" "postgres-17" "${{ inputs.postgres17_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18 }}" == "true" ]] && add_task "postgres-18" "./postgres-alpine-18" "postgres-18" "${{ inputs.postgres18_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_trixie }}" == "true" ]] && add_task "postgres-18-trixie" "./postgres-trixie-18" "postgres-18" "${{ inputs.postgres18_trixie_version }}"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
