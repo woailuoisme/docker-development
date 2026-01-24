@@ -20,14 +20,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && apt-get update
 
-# 安装扩展（全部来自 apt，无需编译）
+# 定义扩展版本参数 (基于 PGDG Trixie 最新版 2026-01)
+ARG POSTGIS_VERSION=3.6.1+dfsg-1.pgdg13+1
+ARG PGVECTOR_VERSION=0.8.1-2.pgdg13+1
+ARG TIMESCALEDB_VERSION=2.24.0+dfsg-1.pgdg13+1
+ARG PGCRON_VERSION=1.6.7-2.pgdg13+1
+
+# 安装扩展（从官方仓库安装最新稳定版）
 RUN apt-get install -y --no-install-recommends \
-    # 核心扩展
-    postgresql-18-postgis-3 \
-    postgresql-18-pgvector \
-    postgresql-18-timescaledb \
-    postgresql-18-cron \
-    # 其他工具
+    postgresql-18-postgis-3=${POSTGIS_VERSION} \
+    postgresql-18-pgvector=${PGVECTOR_VERSION} \
+    postgresql-18-timescaledb=${TIMESCALEDB_VERSION} \
+    postgresql-18-cron=${PGCRON_VERSION} \
     tzdata \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
