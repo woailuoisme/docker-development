@@ -56,7 +56,7 @@ on:
       redis_version:
         description: 'Redis 版本'
         required: false
-        default: '8.4-alpine'
+        default: '8.4-bookworm'
       postgres17_version:
         description: 'PostgreSQL 17 版本 (Alpine)'
         required: false

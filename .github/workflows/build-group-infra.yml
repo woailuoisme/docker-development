@@ -33,6 +33,10 @@ on:
         description: '构建 MinIO'
         type: boolean
         default: false
+      build_rabbitmq:
+        description: '构建 RabbitMQ'
+        type: boolean
+        default: false
       
       # === 通用参数 ===
       tag:
@@ -65,6 +69,10 @@ on:
         description: 'MinIO 版本'
         required: false
         default: 'latest'
+      rabbitmq_version:
+        description: 'RabbitMQ 版本'
+        required: false
+        default: '4.2-management'
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio
@@ -96,6 +104,7 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_telegraf }}" == "true" ]] && add_task "telegraf" "./telegraf" "telegraf" "${{ inputs.telegraf_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_meilisearch }}" == "true" ]] && add_task "meilisearch" "./meilisearch" "meilisearch" "${{ inputs.meili_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_minio }}" == "true" ]] && add_task "minio" "./minio" "minio" "${{ inputs.minio_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_rabbitmq }}" == "true" ]] && add_task "rabbitmq" "./rabbitmq" "rabbitmq" "${{ inputs.rabbitmq_version }}"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
@@ -137,6 +146,7 @@ jobs:
              TELEGRAF_VERSION=${{ matrix.version }}
              MEILI_VERSION=${{ matrix.version }}
              MINIO_VERSION=${{ matrix.version }}
+             RABBITMQ_VERSION=${{ matrix.version }}
              CHANGE_SOURCE=false
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
