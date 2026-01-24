@@ -47,16 +47,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # 1. 编译并安装 pgai (Timescale)
 # pgvectorscale 需要 pgrx 0.16.1
-ARG PGAI_VERSION=pgai-v0.12.1
+ARG PGAI_VERSION=main
 RUN cargo install cargo-pgrx --version 0.16.1 --locked \
     && cargo pgrx init --pg18 /usr/lib/postgresql/18/bin/pg_config \
-    && git clone --depth 1 --branch ${PGAI_VERSION} https://github.com/timescale/pgai.git /tmp/pgai \
-    && cd /tmp/pgai/projects/extension && cargo pgrx install --release
+    && mkdir -p /tmp/pgai \
+    && curl -fSsL https://github.com/timescale/pgai/archive/refs/heads/${PGAI_VERSION}.tar.gz -o /tmp/pgai.tar.gz \
+    && tar -xzf /tmp/pgai.tar.gz -C /tmp/pgai --strip-components=1 \
+    && cd /tmp/pgai/projects/extension \
+    && cargo pgrx install --release
 
 # 2. 编译并安装 pgvectorscale (Timescale)
-ARG PGVECTORSCALE_VERSION=0.9.0
-RUN git clone --depth 1 --branch ${PGVECTORSCALE_VERSION} https://github.com/timescale/pgvectorscale.git /tmp/pgvectorscale \
-    && cd /tmp/pgvectorscale/pgvectorscale && cargo pgrx install --release
+ARG PGVECTORSCALE_VERSION=main
+RUN mkdir -p /tmp/pgvectorscale \
+    && curl -fSsL https://github.com/timescale/pgvectorscale/archive/refs/heads/${PGVECTORSCALE_VERSION}.tar.gz -o /tmp/pgvectorscale.tar.gz \
+    && tar -xzf /tmp/pgvectorscale.tar.gz -C /tmp/pgvectorscale --strip-components=1 \
+    && cd /tmp/pgvectorscale/pgvectorscale \
+    && cargo pgrx install --release
 
 # ==========================================
 # 阶段 2: 最终运行环境 (final)
