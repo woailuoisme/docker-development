@@ -1,0 +1,20 @@
+services:
+  postgres:
+    container_name: postgres
+    build:
+      context: .
+      args:
+        - POSTGRES_VERSION=18.1-trixie
+    restart: always
+    ports:
+      - "45432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ${DATA_PATH}postgres18:/var/lib/postgresql
+      - ${CONFIG_PATH}postgres18/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+      - frontend

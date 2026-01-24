@@ -22,7 +22,11 @@ on:
         type: boolean
         default: false
       build_postgres_17:
-        description: '构建 PostgreSQL 17'
+        description: '构建 PostgreSQL 17 (Alpine)'
+        type: boolean
+        default: false
+      build_postgres_17_trixie:
+        description: '构建 PostgreSQL 17 (Trixie)'
         type: boolean
         default: false
       build_postgres_18:
@@ -54,11 +58,15 @@ on:
         required: false
         default: '8.4-alpine'
       postgres17_version:
-        description: 'PostgreSQL 17 版本'
+        description: 'PostgreSQL 17 版本 (Alpine)'
         required: false
         default: '17.7-alpine'
+      postgres17_trixie_version:
+        description: 'PostgreSQL 17 Trixie 版本'
+        required: false
+        default: '17.7-trixie'
       postgres18_version:
-        description: 'PostgreSQL 18 版本'
+        description: 'PostgreSQL 18 版本 (Alpine)'
         required: false
         default: '18.1-alpine3.23'
       postgres18_trixie_version:
@@ -94,6 +102,7 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mongodb }}" == "true" ]] && add_task "mongodb" "./mongodb" "mongodb" "${{ inputs.mongo_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_redis }}" == "true" ]] && add_task "redis" "./redis" "redis" "${{ inputs.redis_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17 }}" == "true" ]] && add_task "postgres-17" "./postgres-alpine-17" "postgres-17" "${{ inputs.postgres17_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17_trixie }}" == "true" ]] && add_task "postgres-17-trixie" "./postgres-trixie-17" "postgres-17" "${{ inputs.postgres17_trixie_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18 }}" == "true" ]] && add_task "postgres-18" "./postgres-alpine-18" "postgres-18" "${{ inputs.postgres18_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_trixie }}" == "true" ]] && add_task "postgres-18-trixie" "./postgres-trixie-18" "postgres-18" "${{ inputs.postgres18_trixie_version }}"
           
