@@ -98,7 +98,7 @@ jobs:
           
           BUILD_ALL=${{ inputs.build_all }}
           
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mysql }}" == "true" ]] && add_task "mysql" "./mysql" "mysql" "${{ inputs.mysql_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mysql }}" == "true" ]] && add_task "mysql" "./mysql-8" "mysql" "${{ inputs.mysql_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mongodb }}" == "true" ]] && add_task "mongodb" "./mongodb" "mongodb" "${{ inputs.mongo_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_redis }}" == "true" ]] && add_task "redis" "./redis" "redis" "${{ inputs.redis_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17 }}" == "true" ]] && add_task "postgres-17" "./postgres-alpine-17" "postgres-17" "${{ inputs.postgres17_version }}"
