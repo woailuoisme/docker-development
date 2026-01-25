@@ -1,28 +1,43 @@
 <clickhouse>
-    <!-- ======================================================= -->
-    <!-- ClickHouse 低内存与双核性能优化配置 (LTS 25.8 适配版) -->
-    <!-- ======================================================= -->
+    <!-- 禁用不需要的接口和日志表，减少资源消耗 -->
+    <mysql_port remove="1" />
+    <postgresql_port remove="1" />
+    <query_thread_log remove="1" />
+    <opentelemetry_span_log remove="1" />
+    <processors_profile_log remove="1" />
 
-    <!-- 1. 缓存压缩：大幅降低元数据与原始数据的内存占用 -->
-    <mark_cache_size>256000000</mark_cache_size>
-    <uncompressed_cache_size>128000000</uncompressed_cache_size>
-    
-    <!-- 2. 连接限制：针对低配服务器，限制最大并发连接数 -->
-    <max_connections>128</max_connections>
+    <!-- 允许系统在内存不足时卸载二进制页面 -->
+    <mlock_executable>false</mlock_executable>
 
-    <!-- 3. 后台任务控制：匹配双核 CPU，防止后台合并任务耗尽资源 -->
+    <!-- 缓存大小（256MB + 64MB + 16MB = 336MB） -->
+    <mark_cache_size>268435456</mark_cache_size>
+    <index_mark_cache_size>67108864</index_mark_cache_size>
+    <uncompressed_cache_size>16777216</uncompressed_cache_size>
+
+    <!-- 连接和并发限制 -->
+    <max_connections>64</max_connections>
+    <max_concurrent_queries>8</max_concurrent_queries>
+
+    <!-- 内存管理：使用 75% RAM，为系统保留 25% -->
+    <max_server_memory_usage_to_ram_ratio>0.75</max_server_memory_usage_to_ram_ratio>
+
+    <!-- 后台合并线程池（2核优化） -->
     <background_pool_size>2</background_pool_size>
-    <background_move_pool_size>2</background_move_pool_size>
-    <background_schedule_pool_size>4</background_schedule_pool_size>
-    <background_merges_mutations_concurrency_ratio>1</background_merges_mutations_concurrency_ratio>
+    <background_merges_mutations_concurrency_ratio>2</background_merges_mutations_concurrency_ratio>
 
-    <!-- 4. 写入性能优化：异步写入 (Async Insert) -->
-    <async_insert>1</async_insert>
-    <async_insert_max_data_size>100000</async_insert_max_data_size>
-    <async_insert_busy_timeout_ms>200</async_insert_busy_timeout_ms>
-
-    <!-- 5. 内存管理策略 -->
-    <max_server_memory_usage_to_ram_ratio>0.9</max_server_memory_usage_to_ram_ratio>
-    <min_free_ram_to_start_background_process>128000000</min_free_ram_to_start_background_process>
+    <!-- MergeTree 合并优化 -->
+    <merge_tree>
+        <!-- 合并时每次读取的行数，降低内存使用 -->
+        <merge_max_block_size>1024</merge_max_block_size>
+        <!-- 单次合并最大 1GB -->
+        <max_bytes_to_merge_at_max_space_in_pool>1073741824</max_bytes_to_merge_at_max_space_in_pool>
+        <!-- 池空闲条目控制，必须 <= background_pool_size * background_merges_mutations_concurrency_ratio -->
+        <number_of_free_entries_in_pool_to_lower_max_size_of_merge>2</number_of_free_entries_in_pool_to_lower_max_size_of_merge>
+        <number_of_free_entries_in_pool_to_execute_mutation>2</number_of_free_entries_in_pool_to_execute_mutation>
+        <number_of_free_entries_in_pool_to_execute_optimize_entire_partition>2</number_of_free_entries_in_pool_to_execute_optimize_entire_partition>
+        <!-- Wide part 和垂直合并阈值 128MB -->
+        <min_bytes_for_wide_part>134217728</min_bytes_for_wide_part>
+        <vertical_merge_algorithm_min_bytes_to_activate>134217728</vertical_merge_algorithm_min_bytes_to_activate>
+    </merge_tree>
 
 </clickhouse>

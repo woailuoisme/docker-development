@@ -1,25 +1,28 @@
 <clickhouse>
-    <!-- ======================================================= -->
-    <!-- ClickHouse 用户资源限制配置 (2核 1GB 环境) -->
-    <!-- ======================================================= -->
     <profiles>
         <default>
-            <!-- 1. 内存熔断：限制单次查询的最大内存占用，防止单个查询拖垮整个系统 -->
-            <max_memory_usage>512M</max_memory_usage>
-            
-            <!-- 2. 溢出策略：当查询内存超过此值时，允许将中间数据溢出到磁盘继续计算 -->
-            <!-- 这对于执行 Group By 或 Sort 的大查询至关重要，能避免内存溢出报错 -->
-            <max_bytes_before_external_group_by>256M</max_bytes_before_external_group_by>
-            <max_bytes_before_external_sort>256M</max_bytes_before_external_sort>
-            
-            <!-- 3. 并发控制：配合双核 CPU，限制执行查询的线程数 -->
-            <!-- 减少线程上下文切换的开销，即使物理核心较少也能保持平稳 -->
+            <!-- 单查询最大线程数（2核优化） -->
             <max_threads>2</max_threads>
             
-            <!-- 4. 插入优化：开启异步写入模式 -->
-            <!-- 即使在用户级别也推荐开启，减少客户端等待时间 -->
+            <!-- 单次读取块大小，降低内存使用 -->
+            <max_block_size>8192</max_block_size>
+            
+            <!-- 查询队列等待时间 1 秒 -->
+            <queue_max_wait_ms>1000</queue_max_wait_ms>
+            
+            <!-- 查询最大执行时间 10 分钟 -->
+            <max_execution_time>600</max_execution_time>
+            
+            <!-- 禁用并行解析和格式化，节省内存 -->
+            <input_format_parallel_parsing>0</input_format_parallel_parsing>
+            <output_format_parallel_formatting>0</output_format_parallel_formatting>
+            
+            <!-- GROUP BY 和 ORDER BY 超过 3GB 溢出到磁盘 -->
+            <max_bytes_before_external_group_by>3221225472</max_bytes_before_external_group_by>
+            <max_bytes_before_external_sort>3221225472</max_bytes_before_external_sort>
+            
+            <!-- 启用异步插入，不等待完成 -->
             <async_insert>1</async_insert>
-            <!-- 不等待异步写入完成即向客户端返回，最大化吞吐量 -->
             <wait_for_async_insert>0</wait_for_async_insert>
         </default>
     </profiles>

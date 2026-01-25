@@ -23,25 +23,7 @@ ENV PGBOUNCER_ADMIN_USER="" \
     PGBOUNCER_ADMIN_PASSWORD=""
 
 # 额外用户（可选，格式：user1:pass1,user2:pass2）
-ENV PGBOUNCER_EXTRA_USERS=""
-
-# 连接池配置
-ENV MAX_CLIENT_CONN=200 \
-    DEFAULT_POOL_SIZE=25 \
-    MIN_POOL_SIZE=5 \
-    RESERVE_POOL_SIZE=5 \
-    MAX_DB_CONNECTIONS=50 \
-    MAX_USER_CONNECTIONS=50
-
-# 超时配置（秒）
-ENV QUERY_WAIT_TIMEOUT=120 \
-    SERVER_IDLE_TIMEOUT=600 \
-    SERVER_LIFETIME=3600
-
-# 日志配置
-ENV LOG_CONNECTIONS=1 \
-    LOG_DISCONNECTIONS=1 \
-    VERBOSE=0 \
+ENV PGBOUNCER_EXTRA_USERS="" \
     TZ=${TIMEZONE}
 
 # ============================================================================
@@ -78,8 +60,8 @@ RUN groupadd -r pgbouncer 2>/dev/null || true && \
     && mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer \
     && chown -R pgbouncer:pgbouncer /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer
 
-# 4. 复制配置模板文件
-COPY --chown=pgbouncer:pgbouncer pgbouncer.envsubst.ini /etc/pgbouncer/pgbouncer.envsubst.ini
+# 4. 复制配置文件
+COPY --chown=pgbouncer:pgbouncer pgbouncer.ini /etc/pgbouncer/pgbouncer.ini
 COPY --chown=pgbouncer:pgbouncer entrypoint.sh /usr/local/bin/
 
 # 设置执行权限
@@ -96,4 +78,3 @@ USER pgbouncer
 
 # 使用 entrypoint 脚本启动
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["pgbouncer", "/etc/pgbouncer/pgbouncer.ini"]
