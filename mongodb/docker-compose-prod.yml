@@ -1,0 +1,15 @@
+services:
+  mongodb:
+    image: jiaoio/mongodb:8.0
+    container_name: mongodb
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_ROOT_USER:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD:-password}
+    volumes:
+      - ${DATA_PATH}mongodb:/data/db
+    ports:
+      - "${MONGODB_PORT:-27017}:27017"
+    networks:
+      - backend
+      - frontend

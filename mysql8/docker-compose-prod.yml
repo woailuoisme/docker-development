@@ -1,0 +1,23 @@
+services:
+  mysql:
+    build:
+      context: .
+      args:
+        - MYSQL_VERSION=8.4
+    container_name: mysql
+    restart: always
+    stop_grace_period: 1m
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      TZ: ${TIMEZONE:-Asia/Shanghai}
+    ports:
+      - "43306:3306"
+    volumes:
+      - ${DATA_PATH}mysql8:/var/lib/mysql
+      - ${CONFIG_PATH}mysql8/conf.d:/etc/mysql/conf.d
+      - ${CONFIG_PATH}mysql8/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - backend

@@ -1,0 +1,32 @@
+{
+	import snippets/global-log.conf
+}
+
+import sites/*
+import templates/*
+
+import fpm-app-auth dev.{$SITE_ADDRESS} /var/www/lunchbox php-fpm:9000
+import proxy-octane-app-auth rest.{$SITE_ADDRESS} php-roadrunner:8001
+
+import proxy-app mo.{$SITE_ADDRESS} minio:9001
+import proxy-app mos.{$SITE_ADDRESS} minio:9000
+import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
+import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
+
+
+:8888 {
+	respond /health 200 {
+		body "OK"
+	}
+	respond /ready 200 {
+		body "Ready"
+	}
+}
+
+#mqtt.{$SITE_ADDRESS} {
+#	respond "MQTT Management Endpoint" 200
+#	handle /health {
+#		respond "OK" 200
+#	}
+#}
+
