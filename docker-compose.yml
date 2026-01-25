@@ -26,7 +26,8 @@ include:
 
   # --- DATABASES & STORAGE ---
 #  - postgres-alpine-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
-  - postgres-trixie-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
+#  - postgres-trixie-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
+  - postgres-trixie-18/docker-compose-prod.yml   # 默认数据库 PostgreSQL 18
   # - postgres17/docker-compose.yml # 备选版本
   - redis/docker-compose.yml        # 缓存
 #  - mysql8/docker-compose.yml       # MySQL 8.4

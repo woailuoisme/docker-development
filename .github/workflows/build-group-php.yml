@@ -119,7 +119,7 @@ jobs:
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ inputs.php_version }}-${{ inputs.tag }}
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ inputs.php_version }}-${{ matrix.type }}-${{ inputs.tag }}
-            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ inputs.php_version }}-latest
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ inputs.php_version }}
             ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ inputs.php_version }}-${{ inputs.tag }}
             ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ inputs.php_version }}-${{ matrix.type }}-${{ inputs.tag }}
-            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ inputs.php_version }}-latest
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ inputs.php_version }}

@@ -1,0 +1,15 @@
+services:
+  authelia:
+    image: jiaoio/authelia:4.39-latest
+    restart: always
+    ports:
+      - "9091:9091"
+    volumes:
+      - ${CONFIG_PATH}authelia/config:/config
+    environment:
+      - X_AUTHELIA_CONFIG_FILTERS=template
+      - TZ=${TIMEZONE}
+      - DOMAIN=${SITE_ADDRESS}
+    networks:
+      - frontend
+      - backend
