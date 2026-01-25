@@ -147,6 +147,6 @@ jobs:
              CHANGE_SOURCE=false
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
-            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}
             ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
             ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}
