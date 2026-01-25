@@ -101,10 +101,10 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mysql }}" == "true" ]] && add_task "mysql" "./mysql-8" "mysql" "${{ inputs.mysql_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mongodb }}" == "true" ]] && add_task "mongodb" "./mongodb" "mongodb" "${{ inputs.mongo_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_redis }}" == "true" ]] && add_task "redis" "./redis" "redis" "${{ inputs.redis_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17 }}" == "true" ]] && add_task "postgres-17" "./postgres-alpine-17" "postgres-17" "${{ inputs.postgres17_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17_trixie }}" == "true" ]] && add_task "postgres-17-trixie" "./postgres-trixie-17" "postgres-17" "${{ inputs.postgres17_trixie_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18 }}" == "true" ]] && add_task "postgres-18" "./postgres-alpine-18" "postgres-18" "${{ inputs.postgres18_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_trixie }}" == "true" ]] && add_task "postgres-18-trixie" "./postgres-trixie-18" "postgres-18" "${{ inputs.postgres18_trixie_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17 }}" == "true" ]] && add_task "postgres-17-alpine" "./postgres-alpine-17" "postgres" "${{ inputs.postgres17_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17_trixie }}" == "true" ]] && add_task "postgres-17-trixie" "./postgres-trixie-17" "postgres" "${{ inputs.postgres17_trixie_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18 }}" == "true" ]] && add_task "postgres-18-alpine" "./postgres-alpine-18" "postgres" "${{ inputs.postgres18_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_trixie }}" == "true" ]] && add_task "postgres-18-trixie" "./postgres-trixie-18" "postgres" "${{ inputs.postgres18_trixie_version }}"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
