@@ -7,9 +7,9 @@ RUN if [ "${CHANGE_SOURCE}" = "true" ]; then \
     fi && \
     apk add --no-cache tzdata && \
     ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
-    echo "${TIMEZONE}" > /etc/timezone \
+    echo "${TIMEZONE}" > /etc/timezone
 
-    ENV DEV=true
+ENV DEV=true
 
 COPY config/*.conf /mosquitto/config
 

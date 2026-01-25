@@ -1,7 +1,6 @@
 services:
   php-roadrunner:
-    build:
-      context: .
+    image: jiaoio/php-roadrunner-trixie:8.5
     container_name: php-roadrunner
     restart: always
     environment:
@@ -11,7 +10,6 @@ services:
       - OCTANE_WORKERS=${OCTANE_WORKERS:-4}
       - OCTANE_MAX_REQUESTS=${OCTANE_MAX_REQUESTS:-1000}
       - WATCH=false
-      - ENABLE_SUPERVISOR=false
     ports:
       - "8201:8001"
     volumes:

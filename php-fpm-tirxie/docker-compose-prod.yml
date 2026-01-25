@@ -1,12 +1,6 @@
 services:
   php-fpm:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - CHANGE_SOURCE=${CHANGE_SOURCE}
-        - WWWUSER=${WWWUSER:-33}
-        - WWWGROUP=${WWWGROUP:-33}
+    image: jiaoio/php-fpm-trixie:8.5
     container_name: php-fpm
     restart: always
     volumes:
@@ -16,9 +10,6 @@ services:
       - APP_PATH=${APP_PATH}
       - APP_ENV=${APP_ENV}
       - APP_DEBUG=true
-      - ENABLE_SUPERVISOR=false
-      - ENABLE_SCHEDULE=false
-      - ENABLE_HORIZON=false
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

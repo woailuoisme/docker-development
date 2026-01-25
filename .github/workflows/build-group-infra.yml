@@ -37,6 +37,10 @@ on:
         description: '构建 RabbitMQ'
         type: boolean
         default: false
+      build_pgbouncer:
+        description: '构建 PgBouncer'
+        type: boolean
+        default: false
       
       # === 通用参数 ===
       tag:
@@ -73,6 +77,10 @@ on:
         description: 'RabbitMQ 版本'
         required: false
         default: '4.2-management'
+      pgbouncer_version:
+        description: 'PgBouncer 版本'
+        required: false
+        default: 'latest'
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio
@@ -105,6 +113,7 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_meilisearch }}" == "true" ]] && add_task "meilisearch" "./meilisearch" "meilisearch" "${{ inputs.meili_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_minio }}" == "true" ]] && add_task "minio" "./minio" "minio" "${{ inputs.minio_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_rabbitmq }}" == "true" ]] && add_task "rabbitmq" "./rabbitmq" "rabbitmq" "${{ inputs.rabbitmq_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgbouncer }}" == "true" ]] && add_task "pgbouncer" "./pgbouncer" "pgbouncer" "${{ inputs.pgbouncer_version }}"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
@@ -147,6 +156,7 @@ jobs:
              MEILI_VERSION=${{ matrix.version }}
              MINIO_VERSION=${{ matrix.version }}
              RABBITMQ_VERSION=${{ matrix.version }}
+             PGBOUNCER_VERSION=${{ matrix.version }}
              CHANGE_SOURCE=false
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}

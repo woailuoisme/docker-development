@@ -1,4 +1,3 @@
-# 推荐版本：LTS 稳定版
 FROM clickhouse/clickhouse-server:25.8-jammy
 
 # 1. 拷贝针对低内存优化的配置文件

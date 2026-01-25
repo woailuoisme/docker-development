@@ -1,7 +1,6 @@
 services:
   php-franken:
-    build:
-      context: .
+    image: jiaoio/php-franken-trixie:8.5
     container_name: php-franken
     restart: always
     ports:
@@ -14,7 +13,6 @@ services:
       - APP_PATH=${APP_PATH}
       - APP_ENV=${APP_ENV}
       - APP_DEBUG=false
-      - ENABLE_SUPERVISOR=false
       - WATCH=fasle
       - OCTANE_POLL=false
       - OCTANE_WORKERS=${OCTANE_WORKERS:-4}

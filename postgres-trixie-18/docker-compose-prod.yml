@@ -1,7 +1,7 @@
 services:
   postgres:
     container_name: postgres
-    image: jiaoio/postgres-18:18.1-trixie-latest
+    image: jiaoio/postgres:18.1-trixie
     restart: always
     ports:
       - "45432:5432"

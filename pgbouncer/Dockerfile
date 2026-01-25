@@ -1,8 +1,10 @@
-FROM alpine:3.23
+FROM debian:trixie-slim
 LABEL maintainer="seaside <531773730@qq.com>"
 
+# 构建参数
 ARG CHANGE_SOURCE=false
 ARG TIMEZONE=Asia/Shanghai
+ARG PGBOUNCER_VERSION=1.25.1-1.pgdg13+1
 
 # ============================================================================
 # PgBouncer 环境变量默认值
@@ -38,36 +40,45 @@ ENV QUERY_WAIT_TIMEOUT=120 \
 # 日志配置
 ENV LOG_CONNECTIONS=1 \
     LOG_DISCONNECTIONS=1 \
-    VERBOSE=0
+    VERBOSE=0 \
+    TZ=${TIMEZONE}
 
 # ============================================================================
 # 系统配置
 # ============================================================================
 
-# 更换镜像源（可选）
+# 1. 切换镜像源 (Debian Trixie)
 RUN if [ "$CHANGE_SOURCE" = "true" ]; then \
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
+    sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources; \
     fi
 
-# 安装 pgbouncer 和必要工具
-RUN apk add --no-cache \
-    pgbouncer \
-    postgresql-client \
+# 2. 安装 pgbouncer 和必要工具
+# 使用 PostgreSQL 官方仓库以获取最新版本
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release \
+    && curl -fSsL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    pgbouncer=${PGBOUNCER_VERSION} \
+    postgresql-client-18 \
     tzdata \
     bash \
-    curl \
     netcat-openbsd \
-    gettext \
-    && cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime \
+    gettext-base \
+    && ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime \
     && echo "${TIMEZONE}" > /etc/timezone \
-    && apk del tzdata
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 创建非 root 用户和必要目录
-RUN addgroup -S pgbouncer && adduser -S pgbouncer -G pgbouncer \
+# 3. 创建非 root 用户和必要目录 (如果安装包没自动创建的话，强制设置权限)
+RUN groupadd -r pgbouncer 2>/dev/null || true && \
+    useradd -r -g pgbouncer pgbouncer 2>/dev/null || true \
     && mkdir -p /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer \
     && chown -R pgbouncer:pgbouncer /etc/pgbouncer /var/log/pgbouncer /var/run/pgbouncer
 
-# 复制配置模板文件
+# 4. 复制配置模板文件
 COPY --chown=pgbouncer:pgbouncer pgbouncer.envsubst.ini /etc/pgbouncer/pgbouncer.envsubst.ini
 COPY --chown=pgbouncer:pgbouncer entrypoint.sh /usr/local/bin/
 

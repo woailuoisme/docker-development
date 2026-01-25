@@ -1,9 +1,6 @@
 services:
   mysql:
-    build:
-      context: .
-      args:
-        - MYSQL_VERSION=8.4
+    image: jiaoio/mysql:8.4
     container_name: mysql
     restart: always
     stop_grace_period: 1m
