@@ -4,6 +4,7 @@ LABEL maintainer="seaside <531773730@qq.com>"
 # 构建参数
 ARG CHANGE_SOURCE=false
 ARG TIMEZONE=Asia/Shanghai
+# pgbouncer 1.25.1 版本号 (来自 PostgreSQL apt 仓库)
 ARG PGBOUNCER_VERSION=1.25.1-1.pgdg13+1
 
 # ============================================================================
@@ -53,7 +54,6 @@ RUN if [ "$CHANGE_SOURCE" = "true" ]; then \
     fi
 
 # 2. 安装 pgbouncer 和必要工具
-# 使用 PostgreSQL 官方仓库以获取最新版本
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
