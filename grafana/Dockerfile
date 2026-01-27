@@ -25,6 +25,11 @@ RUN grafana-cli plugins install yesoreyeram-infinity-datasource && \
     grafana-cli plugins install volkovlabs-form-panel && \
     grafana-cli plugins install grafana-clock-panel
 
+# 移除 Footer 文档、支持、社区等链接 (通过静态替换实现)
+# 针对 Grafana 12.x 的 JS 构建文件进行深度清理
+RUN find /usr/share/grafana/public/build/ -name "*.js" -exec sed -i 's/Welcome to Grafana/欢迎使用控制台/g' {} + && \
+    sed -i 's|<\/head>|<style>footer { display: none !important; }</style><\/head>|g' /usr/share/grafana/public/views/index.html
+
 COPY grafana.ini /etc/grafana/grafana.ini
 COPY provisioning /etc/grafana/provisioning
 COPY dashboards /etc/grafana/provisioning/dashboards
