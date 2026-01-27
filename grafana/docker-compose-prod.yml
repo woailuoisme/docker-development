@@ -3,6 +3,7 @@ services:
     build:
       context: .
     container_name: grafana
+    restart: always
     ports:
       - "${GRAFANA_PORT:-13000}:3000"
     volumes:

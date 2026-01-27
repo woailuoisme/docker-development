@@ -36,3 +36,5 @@ authelia/config/db.sqlite3
 .kiro
 /scripts/setup-github-secrets.sh
 /mosquitto/config/passwd
+
+/simulators/nodejs/node_modules

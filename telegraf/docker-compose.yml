@@ -18,6 +18,7 @@ services:
       - "${TELEGRAF_PORT:-8380}:8080" # 监控和指标端点
     tty: true
     stdin_open: true
+    restart: always
     depends_on:
       - mosquitto
       - postgres

@@ -380,7 +380,10 @@ class FrozenMealVendingMachine:
 
 
 if __name__ == "__main__":
-    vm = FrozenMealVendingMachine("VM-SH-001")
+    device_no = os.getenv('DEVICE_NO', 'VM-SH-001')
+    report_interval = int(os.getenv('REPORT_INTERVAL', 10))
+    
+    vm = FrozenMealVendingMachine(device_no)
     vm.connect()
     
     def signal_handler(sig, frame):
@@ -394,4 +397,4 @@ if __name__ == "__main__":
     logger.info(f"Simulator started for {vm.device_no}")
     while True:
         vm.run_telemetry()
-        time.sleep(10)
+        time.sleep(report_interval)

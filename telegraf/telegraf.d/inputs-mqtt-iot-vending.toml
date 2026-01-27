@@ -1,28 +1,16 @@
-# MQTT 消费者输入 - 智能售货机全量数据
+# MQTT 消费者配置 - 增加 optional=true 容错处理
+
+# ==================== 1. 遥测解析 (Telemetry) ====================
 [[inputs.mqtt_consumer]]
   servers = ["tcp://${MQTT_HOST}:${MQTT_PORT}"]
-  topics = [
-    "v1/vm/+/telemetry",
-    "v1/vm/+/events",
-    "v1/vm/+/status",
-    "v1/vm/+/commands/ack"
-  ]
+  topics = ["v1/vm/+/telemetry"]
   data_format = "json_v2"
-  client_id = "telegraf_iot_vending_consumer"
-  qos = 1
-  
-  # MQTT 认证
+  client_id = "telegraf_iot_telemetry"
   username = "${MQTT_USERNAME}"
   password = "${MQTT_PASSWORD}"
   
-  # 连接配置
-  connection_timeout = "30s"
-  keepalive = "30s"
-
-  # ==================== 1. 遥测解析 (Telemetry) ====================
   [[inputs.mqtt_consumer.json_v2]]
     measurement_name = "vm_telemetry"
-    # 从主题 v1/vm/{device_no}/telemetry 提取 device_no
     [[inputs.mqtt_consumer.topic_parsing]]
       topic = "v1/vm/+/telemetry"
       tags = "_/_/device_no/_"
@@ -44,48 +32,44 @@
       rename = "door_closed"
       type = "bool"
     
-    # 冷冻室温度 (数组扁平化)
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "environment.freezer_temps.0"
       rename = "temp_zone_0"
-      type = "float"
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "environment.freezer_temps.1"
       rename = "temp_zone_1"
-      type = "float"
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "environment.freezer_temps.2"
       rename = "temp_zone_2"
-      type = "float"
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "environment.freezer_temps.3"
       rename = "temp_zone_3"
-      type = "float"
     
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "environment.ambient_temp"
       rename = "ambient_temp"
-      type = "float"
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "environment.vibration_g"
       rename = "vibration_g"
-      type = "float"
-    
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "connectivity.rssi"
       rename = "rssi"
-      type = "int"
-    
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "location.lat"
       rename = "lat"
-      type = "float"
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "location.lng"
       rename = "lng"
-      type = "float"
 
-  # ==================== 2. 关键事件解析 (Events) ====================
+# ==================== 2. 关键事件解析 (Events) ====================
+[[inputs.mqtt_consumer]]
+  servers = ["tcp://${MQTT_HOST}:${MQTT_PORT}"]
+  topics = ["v1/vm/+/events"]
+  data_format = "json_v2"
+  client_id = "telegraf_iot_events"
+  username = "${MQTT_USERNAME}"
+  password = "${MQTT_PASSWORD}"
+
   [[inputs.mqtt_consumer.json_v2]]
     measurement_name = "vm_events"
     [[inputs.mqtt_consumer.topic_parsing]]
@@ -98,25 +82,29 @@
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "data.order_id"
       rename = "order_id"
-      type = "string"
+      optional = true
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "data.channel_id"
       rename = "channel_id"
-      type = "string"
+      optional = true
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "data.error_code"
       rename = "error_code"
-      type = "string"
+      optional = true
     [[inputs.mqtt_consumer.json_v2.field]]
-      path = "data.image_url"
-      rename = "image_url"
-      type = "string"
-    [[inputs.mqtt_consumer.json_v2.field]]
-      path = "data.actual_power"
-      rename = "actual_power"
-      type = "int"
+      path = "data.g_force"
+      rename = "g_force"
+      optional = true
 
-  # ==================== 3. 设备状态解析 (Status) ====================
+# ==================== 3. 设备状态解析 (Status) ====================
+[[inputs.mqtt_consumer]]
+  servers = ["tcp://${MQTT_HOST}:${MQTT_PORT}"]
+  topics = ["v1/vm/+/status"]
+  data_format = "json_v2"
+  client_id = "telegraf_iot_status"
+  username = "${MQTT_USERNAME}"
+  password = "${MQTT_PASSWORD}"
+
   [[inputs.mqtt_consumer.json_v2]]
     measurement_name = "vm_status"
     [[inputs.mqtt_consumer.topic_parsing]]
@@ -128,12 +116,20 @@
     
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "firmware"
-      type = "string"
+      optional = true
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "hardware"
-      type = "string"
+      optional = true
 
-  # ==================== 4. 指令响应解析 (Commands ACK) ====================
+# ==================== 4. 指令响应解析 (Commands ACK) ====================
+[[inputs.mqtt_consumer]]
+  servers = ["tcp://${MQTT_HOST}:${MQTT_PORT}"]
+  topics = ["v1/vm/+/commands/ack"]
+  data_format = "json_v2"
+  client_id = "telegraf_iot_acks"
+  username = "${MQTT_USERNAME}"
+  password = "${MQTT_PASSWORD}"
+
   [[inputs.mqtt_consumer.json_v2]]
     measurement_name = "vm_command_acks"
     [[inputs.mqtt_consumer.topic_parsing]]
@@ -141,16 +137,15 @@
       tags = "_/_/device_no/_/_"
 
     [[inputs.mqtt_consumer.json_v2.tag]]
-      path = "status" # success/failed
+      path = "status"
     
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "cmd_id"
-      type = "string"
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "result.duration_ms"
       rename = "execution_duration_ms"
-      type = "int"
+      optional = true
     [[inputs.mqtt_consumer.json_v2.field]]
       path = "error.code"
       rename = "error_code"
-      type = "string"
+      optional = true

@@ -1,7 +1,11 @@
 apiVersion: 1
 
-datasources:
+deleteDatasources:
   - name: iot-vending-timescaledb
+    orgId: 1
+
+datasources:
+  - name: IoT Vending Machine
     type: postgres
     uid: iot-vending-timescaledb
     access: proxy
@@ -11,8 +15,9 @@ datasources:
     basicAuth: false
     isDefault: true
     jsonData:
+      database: lunchbox
       sslmode: 'disable'
       postgresVersion: 1500 # Use 1500 as safe stable version
       timescaledb: true
     secureJsonData:
-      password: ${POSTGRES_PASSWORD:-iot_password}
+      password: '598f18a1c99d539ced6631add2b428b3'

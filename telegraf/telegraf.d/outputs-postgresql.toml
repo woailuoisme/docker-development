@@ -1,6 +1,6 @@
 # PostgreSQL/TimescaleDB 输出
 [[outputs.postgresql]]
-  connection = "host=${TIMESCALEDB_HOST} port=5432 user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable"
+  connection = "host=${TIMESCALEDB_HOST} port=5432 user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable connect_timeout=5"
   
   ## 使用 TimescaleDB 的表创建模板
   ## 自动创建表并转换为 hypertable
