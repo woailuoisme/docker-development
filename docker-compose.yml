@@ -71,6 +71,7 @@ include:
   # - influxdb/docker-compose.yml      # 时序数据库
   # - influxdb-ui/docker-compose.yml   # InfluxDB 管理界面
   # - node-red/docker-compose.yml      # 流程编排
+  - simulators/docker-compose.yml
 
   # --- MONITORING & WEBSITES ---
   # - beszel/docker-compose.yml       # 服务器监控 Hub

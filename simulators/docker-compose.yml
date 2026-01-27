@@ -1,0 +1,17 @@
+services:
+  simulator-node:
+    build:
+      context: ./nodejs
+      dockerfile: Dockerfile
+    container_name: simulator
+    restart: always
+    stdin_open: true
+    tty: true
+    env_file:
+      - ./nodejs/.env
+    environment:
+      - MQTT_HOST=mosquitto # 容器内部互联必须用服务名，覆盖 .env 的 localhost
+      - TZ=Asia/Shanghai
+    networks:
+      - backend
+      - frontend

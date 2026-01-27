@@ -1,5 +1,5 @@
 # 阶段 1: 安装依赖 (使用 Bun 极速安装)
-FROM oven/bun:1.2 AS builder
+FROM oven/bun:1.3-alpine AS builder
 WORKDIR /app
 
 # 复制依赖定义文件
@@ -8,8 +8,8 @@ COPY package.json bun.lock ./
 # 安装生产环境依赖
 RUN bun install --frozen-lockfile --production
 
-# 阶段 2: 最终运行镜像 (使用 Node.js 22-slim 保持轻量)
-FROM node:22-slim AS runner
+# 阶段 2: 最终运行镜像 (使用 Node.js 24-alpine3.23保持轻量)
+FROM node:24-alpine3.23 AS runner
 WORKDIR /app
 
 # 仅从 builder 阶段拷贝生产环境依赖
