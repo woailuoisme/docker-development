@@ -1,0 +1,230 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT count(DISTINCT device_no) FROM vm_status WHERE status='online' AND time > now() - INTERVAL '5m'",
+          "refId": "A"
+        }
+      ],
+      "title": "当前在线设备",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "volt",
+          "max": 260,
+          "min": 180,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 200 },
+              { "color": "green", "value": 210 },
+              { "color": "orange", "value": 235 },
+              { "color": "red", "value": 245 }
+            ]
+          }
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "targets": [
+        { "rawSql": "SELECT voltage as value FROM vm_telemetry WHERE $__timeFilter(time) AND device_no = '$device_no' ORDER BY time DESC LIMIT 1", "refId": "A" }
+      ],
+      "title": "实时输入电压",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "celsius"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "id": 2,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right" },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT time, freezer_temp_0 as \"Zone 0\", freezer_temp_1 as \"Zone 1\", freezer_temp_2 as \"Zone 2\", freezer_temp_3 as \"Zone 3\" FROM vm_telemetry WHERE $__timeFilter(time) AND device_no = '$device_no' ORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "title": "温区波动趋势 (选定设备)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "id": 5,
+      "options": {
+        "basemap": { "config": { "showRotate": true }, "type": "default" },
+        "view": { "allLayers": true, "id": "coords", "lat": 35, "lon": 110, "zoom": 4 }
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT device_no, lat, lng FROM vm_telemetry WHERE time > now() - INTERVAL '10m' GROUP BY device_no, lat, lng",
+          "refId": "A"
+        }
+      ],
+      "title": "设备地理分布",
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 3,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT time, device_no, event_type, order_id, error_code, image_url FROM vm_events WHERE $__timeFilter(time) ORDER BY time DESC LIMIT 50",
+          "refId": "A"
+        }
+      ],
+      "title": "实时动态流 (业务与异常事件)",
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 39,
+  "templating": {
+    "list": [
+      {
+        "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+        "definition": "SELECT DISTINCT device_no FROM vm_telemetry",
+        "name": "device_no",
+        "query": "SELECT DISTINCT device_no FROM vm_telemetry",
+        "refresh": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "title": "IoT 售货机专业监控大屏",
+  "uid": "iot_vending_premium",
+  "version": 1
+}

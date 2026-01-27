@@ -1,0 +1,18 @@
+apiVersion: 1
+
+datasources:
+  - name: iot-vending-timescaledb
+    type: postgres
+    uid: iot-vending-timescaledb
+    access: proxy
+    url: postgres:5432
+    user: ${POSTGRES_USER:-iot}
+    database: ${POSTGRES_DB:-iot_vending}
+    basicAuth: false
+    isDefault: true
+    jsonData:
+      sslmode: 'disable'
+      postgresVersion: 1500 # Use 1500 as safe stable version
+      timescaledb: true
+    secureJsonData:
+      password: ${POSTGRES_PASSWORD:-iot_password}
