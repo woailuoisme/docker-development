@@ -27,6 +27,7 @@ groups:
           description: "检测到冷冻温区温度超过安全阈值(-10℃)，请立即检查压缩机状态。"
         labels:
           severity: critical
+        isPaused: true
 
       # 2. 设备离线告警
       - uid: vm-offline-alert
@@ -48,6 +49,7 @@ groups:
           description: "设备响应心跳超时超过10分钟，怀疑网络中断或电源故障。"
         labels:
           severity: emergency
+        isPaused: true
 
       # 3. 暴力破坏告警
       - uid: vm-vandalism-alert

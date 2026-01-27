@@ -8,7 +8,7 @@ RUN if [ "${CHANGE_SOURCE}" = "true" ]; then \
     sed -i 's/security.ubuntu.com/mirrors.aliyun.com/' /etc/apt/sources.list; \
     fi && \
     apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata curl && \
     ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
     echo "${TIMEZONE}" > /etc/timezone && \
     apt-get clean && \
@@ -42,6 +42,6 @@ EXPOSE 3000
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+    CMD curl -f http://localhost:3000/api/health || exit 1
 
 # 使用默认的 Grafana 入口点

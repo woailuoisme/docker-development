@@ -26,6 +26,7 @@ import proxy-app mo.{$SITE_ADDRESS} minio:9001
 import proxy-app mos.{$SITE_ADDRESS} minio:9000
 #import proxy-app push.{$SITE_ADDRESS} centrifugo:8000
 #import proxy-app msg.{$SITE_ADDRESS} gotify:80
+import proxy-app msg.{$SITE_ADDRESS} grafana:3000
 
 #import proxy-app-subpath msg.{$SITE_ADDRESS} msg gotify:80
 #import proxy-app mq.{$SITE_ADDRESS} rabbitmq:15672

@@ -14,7 +14,8 @@
   quiet = false
 
   log_with_timezone = "Asia/Shanghai"
-#  logformat = "structured"
+  logformat = "structured"
+  skip_processors_after_aggregators = false
 
 # 全局标签
 [global_tags]

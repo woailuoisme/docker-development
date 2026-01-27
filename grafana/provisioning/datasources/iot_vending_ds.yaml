@@ -6,8 +6,8 @@ datasources:
     uid: iot-vending-timescaledb
     access: proxy
     url: postgres:5432
-    user: ${POSTGRES_USER:-iot}
-    database: ${POSTGRES_DB:-iot_vending}
+    user: postgres
+    database: lunchbox
     basicAuth: false
     isDefault: true
     jsonData:

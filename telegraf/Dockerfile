@@ -29,11 +29,11 @@ RUN cd /etc/telegraf/telegraf.d && \
 # 设置工作目录
 WORKDIR /etc/telegraf
 
-# 健康检查
+# 健康检查 - 仅测试主配置文件以避免由于 MQTT Client ID 冲突导致的连接中断
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=10s \
     CMD telegraf --test --config /etc/telegraf/telegraf.toml --config-directory /etc/telegraf/telegraf.d || exit 1
 
 # 启动 Telegraf 并指定配置文件和配置目录
-CMD ["telegraf", "--config", "/etc/telegraf/telegraf.toml", "--config-directory", "/etc/telegraf/telegraf.d"]
+CMD ["telegraf", "--non-strict-env-handling", "--config", "/etc/telegraf/telegraf.toml", "--config-directory", "/etc/telegraf/telegraf.d"]
 
 

@@ -15,7 +15,9 @@ services:
       - TELEGRAF_BUFFER_LIMIT=${TELEGRAF_BUFFER_LIMIT:-10000}
       - TELEGRAF_FLUSH_INTERVAL=${TELEGRAF_FLUSH_INTERVAL:-10}
     ports:
-      - "${TELEGRAF_PORT:-8080}:8080" # 监控和指标端点
+      - "${TELEGRAF_PORT:-8380}:8080" # 监控和指标端点
+    tty: true
+    stdin_open: true
     depends_on:
       - mosquitto
       - postgres
