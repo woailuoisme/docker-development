@@ -1,6 +1,6 @@
 FROM eclipse-mosquitto:2.0.22-openssl
 
-ARG CHANGE_SOURCE=false
+ARG CHANGE_SOURCE=true
 ARG TIMEZONE=Asia/Shanghai
 RUN if [ "${CHANGE_SOURCE}" = "true" ]; then \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/' /etc/apk/repositories; \

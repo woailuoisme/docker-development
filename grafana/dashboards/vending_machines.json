@@ -1,183 +1,35 @@
 {
-  "dashboard": {
-    "id": null,
-    "title": "售货机监控仪表板",
-    "tags": ["iot", "vending", "monitoring"],
-    "timezone": "browser",
-    "panels": [
-      {
-        "id": 1,
-        "title": "售货机状态概览",
-        "type": "stat",
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 0
-        },
-        "targets": [
-          {
-            "datasource": "TimescaleDB",
-            "rawSql": "SELECT COUNT(DISTINCT machine_id) as total_machines, COUNT(DISTINCT CASE WHEN online = true THEN machine_id END) as online_machines, COUNT(DISTINCT CASE WHEN low_stock_alert = true THEN machine_id END) as low_stock_machines FROM machine_status WHERE time > NOW() - INTERVAL '1 hour'",
-            "format": "table"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "displayMode": "list"
-            }
-          }
-        }
+  "id": null,
+  "title": "售货机实时分析旧版",
+  "tags": [
+    "iot",
+    "vending"
+  ],
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 1,
+      "title": "设备分布状态",
+      "type": "stat",
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
       },
-      {
-        "id": 2,
-        "title": "在线状态",
-        "type": "piechart",
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 0
-        },
-        "targets": [
-          {
-            "datasource": "TimescaleDB",
-            "rawSql": "SELECT status, COUNT(*) as count FROM machine_status WHERE time > NOW() - INTERVAL '1 hour' GROUP BY status",
-            "format": "table"
-          }
-        ]
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 0
       },
-      {
-        "id": 3,
-        "title": "每小时交易量",
-        "type": "timeseries",
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 8
-        },
-        "targets": [
-          {
-            "datasource": "TimescaleDB",
-            "rawSql": "SELECT time_bucket('1 hour', time) as time, SUM(transactions_last_hour) as transactions FROM machine_status WHERE time > NOW() - INTERVAL '24 hours' GROUP BY time_bucket('1 hour', time) ORDER BY time",
-            "format": "time_series"
-          }
-        ]
-      },
-      {
-        "id": 4,
-        "title": "每小时收入",
-        "type": "timeseries",
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 8
-        },
-        "targets": [
-          {
-            "datasource": "TimescaleDB",
-            "rawSql": "SELECT time_bucket('1 hour', time) as time, SUM(revenue_last_hour) as revenue FROM machine_status WHERE time > NOW() - INTERVAL '24 hours' GROUP BY time_bucket('1 hour', time) ORDER BY time",
-            "format": "time_series"
-          }
-        ]
-      },
-      {
-        "id": 5,
-        "title": "各售货机库存水平",
-        "type": "barchart",
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 16
-        },
-        "targets": [
-          {
-            "datasource": "TimescaleDB",
-            "rawSql": "SELECT machine_id, current_stock, total_capacity FROM machine_status WHERE time > NOW() - INTERVAL '5 minutes'",
-            "format": "table"
-          }
-        ]
-      },
-      {
-        "id": 6,
-        "title": "支付方式分布",
-        "type": "piechart",
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 16
-        },
-        "targets": [
-          {
-            "datasource": "TimescaleDB",
-            "rawSql": "SELECT payment_method, COUNT(*) as count FROM transactions WHERE time > NOW() - INTERVAL '24 hours' GROUP BY payment_method",
-            "format": "table"
-          }
-        ]
-      },
-      {
-        "id": 7,
-        "title": "告警统计",
-        "type": "stat",
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 24
-        },
-        "targets": [
-          {
-            "datasource": "TimescaleDB",
-            "rawSql": "SELECT type, severity, COUNT(*) as count FROM alerts WHERE time > NOW() - INTERVAL '24 hours' AND resolved = false GROUP BY type, severity",
-            "format": "table"
-          }
-        ]
-      },
-      {
-        "id": 8,
-        "title": "设备温度监控",
-        "type": "timeseries",
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 24
-        },
-        "targets": [
-          {
-            "datasource": "TimescaleDB",
-            "rawSql": "SELECT time, machine_id, temperature FROM machine_status WHERE time > NOW() - INTERVAL '1 hour'",
-            "format": "time_series"
-          }
-        ]
-      }
-    ],
-    "time": {
-      "from": "now-24h",
-      "to": "now"
-    },
-    "timepicker": {},
-    "templating": {
-      "list": [
+      "targets": [
         {
-          "name": "machine_id",
-          "type": "query",
-          "datasource": "TimescaleDB",
-          "query": "SELECT DISTINCT machine_id FROM machine_status",
-          "refresh": 1,
-          "includeAll": true,
-          "multi": true
+          "refId": "A",
+          "rawSql": "SELECT count(*) FROM vm_status WHERE status='online'",
+          "format": "table"
         }
       ]
     }
-  },
-  "overwrite": true
+  ],
+  "schemaVersion": 39,
+  "uid": "vending_machines_legacy"
 }

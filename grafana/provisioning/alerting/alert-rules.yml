@@ -2,40 +2,70 @@ apiVersion: 1
 
 groups:
   - orgId: 1
-    name: iot-monitoring-alerts
+    name: iot-vending-alerts
     folder: IoT Alerts
     interval: 1m
     rules:
+      # 1. 冷冻温区超温告警
       - uid: high-temperature-alert
-        title: 设备温度过高告警
+        title: "[P1] 冷冻温区超温告警"
         condition: A
         data:
           - refId: A
-            relativeTimeRange:
-              from: 300
-              to: 0
-            datasourceUid: timescaledb
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: iot-vending-timescaledb
             model:
-              intervalMs: 1000
-              maxDataPoints: 43200
               rawSql: |
-                SELECT 
-                  time AS "time",
-                  machine_id,
-                  temperature
-                FROM machine_status
-                WHERE 
-                  $__timeFilter(time)
-                  AND temperature > 35
-                ORDER BY time
+                SELECT time, device_no, freezer_temp_0, freezer_temp_1, freezer_temp_2, freezer_temp_3
+                FROM vm_telemetry
+                WHERE $__timeFilter(time) 
+                AND (freezer_temp_0 > -10 OR freezer_temp_1 > -10 OR freezer_temp_2 > -10 OR freezer_temp_3 > -10)
               refId: A
-        noDataState: NoData
-        execErrState: Error
         for: 5m
         annotations:
-          description: "设备 {{ $labels.machine_id }} 温度达到 {{ $values.A }}°C，超过阈值 35°C"
-          summary: "设备温度异常"
+          summary: "设备 {{ $labels.device_no }} 冷冻温区异常"
+          description: "检测到冷冻温区温度超过安全阈值(-10℃)，请立即检查压缩机状态。"
         labels:
-          severity: warning
-          device_type: vending_machine
-        isPaused: false
+          severity: critical
+
+      # 2. 设备离线告警
+      - uid: vm-offline-alert
+        title: "[P0] 设备意外离线"
+        condition: A
+        data:
+          - refId: A
+            relativeTimeRange: { from: 900, to: 0 }
+            datasourceUid: iot-vending-timescaledb
+            model:
+              rawSql: |
+                SELECT time, device_no
+                FROM vm_status
+                WHERE status = 'offline' AND $__timeFilter(time)
+              refId: A
+        for: 10m
+        annotations:
+          summary: "设备 {{ $labels.device_no }} 已离线"
+          description: "设备响应心跳超时超过10分钟，怀疑网络中断或电源故障。"
+        labels:
+          severity: emergency
+
+      # 3. 暴力破坏告警
+      - uid: vm-vandalism-alert
+        title: "[P0] 暴力破坏告警"
+        condition: A
+        data:
+          - refId: A
+            relativeTimeRange: { from: 60, to: 0 }
+            datasourceUid: iot-vending-timescaledb
+            model:
+              rawSql: |
+                SELECT time, device_no
+                FROM vm_events
+                WHERE event_type = 'VANDALISM_ALERT' AND $__timeFilter(time)
+              refId: A
+        for: 0m # 立即触发
+        annotations:
+          summary: "设备 {{ $labels.device_no }} 遭受暴力撞击"
+          description: "加速度计检测到剧烈震动，可能存在人为破坏，请查阅抓拍视频。"
+        labels:
+          severity: emergency

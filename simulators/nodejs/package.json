@@ -1,0 +1,11 @@
+{
+  "name": "vm-iot-simulator-nodejs",
+  "version": "1.0.0",
+  "description": "Vending Machine IoT Simulator in Node.js",
+  "main": "simulator.js",
+  "dependencies": {
+    "mqtt": "^5.14.1",
+    "@faker-js/faker": "^9.4.0",
+    "dotenv": "^16.4.7"
+  }
+}

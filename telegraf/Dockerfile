@@ -4,11 +4,14 @@ FROM telegraf:${TELEGRAF_VERSION}
 ARG CHANGE_SOURCE=false
 ARG TIMEZONE=Asia/Shanghai
 RUN if [ "${CHANGE_SOURCE}" = "true" ]; then \
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/' /etc/apk/repositories; \
+    sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources; \
     fi && \
-    apk add --no-cache tzdata && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata && \
     ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
-    echo "${TIMEZONE}" > /etc/timezone
+    echo "${TIMEZONE}" > /etc/timezone && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # 复制主配置文件
 COPY telegraf.toml /etc/telegraf/telegraf.toml

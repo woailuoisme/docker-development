@@ -53,12 +53,12 @@ import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
 	}
 }
 
-#mqtt.{$SITE_ADDRESS} {
-#	respond "MQTT Management Endpoint" 200
-#	handle /health {
-#		respond "OK" 200
-#	}
-#}
+mqtt.{$SITE_ADDRESS} {
+	respond "MQTT Management Endpoint" 200
+	handle /health {
+		respond "OK" 200
+	}
+}
 
 #https://pg.{$SITE_ADDRESS} {
 #	respond "Postgres Management Endpoint" 200

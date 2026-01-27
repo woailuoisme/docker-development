@@ -36,8 +36,8 @@ include:
 #  - rustfs/docker-compose.yml        # 对象存储
   - meilisearch/docker-compose.yml  # 全文检索
   - rabbitmq/docker-compose.yml     # 消息队列
-  - clickhouse/docker-compose.yml   # OLAP 数据库
-  - pgbouncer/docker-compose.yml    # PG 连接池
+#  - pgbouncer/docker-compose.yml    # PG 连接池
+#  - clickhouse/docker-compose.yml   # OLAP 数据库
 #  - influxdb/docker-compose.yml
 #  - influxdb-ui/docker-compose.yml
 
@@ -56,18 +56,18 @@ include:
   - php-schedule-trixie/docker-compose.yml   # 调度任务
   - php-franken-trixie/docker-compose.yml    # FrankenPHP 引擎
   - php-reverb-trixie/docker-compose.yml     # Laravel Reverb
-  # --- TOOLS & MESSAGING ---
-  - dozzle/docker-compose.yml       # 日志查看器
+  - dozzle/docker-compose.yml
 #  - homepage/docker-compose.yml      # 仪表盘
-#  - gotify/docker-compose.yml       # 通知推送 (Gotify)
+  - gotify/docker-compose.yml       # 通知推送 (Gotify)
 #  - ntfy/docker-compose.yml         # 通知推送 (Ntfy)
 #  - centrifugo/docker-compose.yml   # 实时消息
 #  - wud/docker-compose.yml          # 镜像更新提醒
 #  - mosquitto/docker-compose.yml    # MQTT 代理
 
   # --- IOT & VISUALIZATION ---
-  # - telegraf/docker-compose.yml     # 数据采集
-  # - grafana/docker-compose.yml       # 数据可视化
+  - mosquitto/docker-compose.yml
+  - telegraf/docker-compose.yml     # 数据采集
+  - grafana/docker-compose.yml       # 数据可视化
   # - influxdb/docker-compose.yml      # 时序数据库
   # - influxdb-ui/docker-compose.yml   # InfluxDB 管理界面
   # - node-red/docker-compose.yml      # 流程编排

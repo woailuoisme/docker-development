@@ -18,8 +18,13 @@ services:
       # 生产环境配置
       - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:-http://localhost:13000}
       - GF_SERVER_DOMAIN=${GF_SERVER_DOMAIN:-localhost}
+      # 强制启用控制台颜色
+      - GF_LOG_CONSOLE_FORMAT=console
+      - GF_LOG_CONSOLE_USE_COLORS=true
       # Gotify 集成配置
       - GOTIFY_APP_TOKEN=${GOTIFY_APP_TOKEN}
+    tty: true # 允许分配 TTY 从而显示颜色
+    stdin_open: true
     depends_on:
       - postgres
     networks:
