@@ -1,0 +1,14 @@
+services:
+  vue-press:
+    build:
+      context: ./vuepress
+      dockerfile: Dockerfile
+    container_name: vue-press
+    restart: always
+    volumes:
+      - ${DOCS_PATH}/.vitepress/dist:/usr/share/nginx/html:ro
+    ports:
+      - "8090:80"
+    networks:
+      - backend
+      - frontend

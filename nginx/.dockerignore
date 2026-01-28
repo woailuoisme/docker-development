@@ -1,0 +1,33 @@
+# Nginx Docker构建排除文件
+# 优化构建速度和镜像大小
+
+# 排除模板和文档文件
+templates/
+README*.md
+*.md
+
+# 排除开发和测试文件
+sites/*.http
+sites/*.https
+sites/.dockerignore
+
+# 排除临时和日志文件
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+
+# 排除版本控制文件
+.git/
+.gitignore
+
+# 排除IDE配置文件
+.vscode/
+.idea/
+*.code-workspace
+
+# 排除备份和旧文件
+*.old
+*.backup
+*~

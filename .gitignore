@@ -31,7 +31,6 @@ ssh/
 authelia/config/db.sqlite3
 
 /pgbouncer/userlist.txt
-/docs
 /certs
 .kiro
 /scripts/setup-github-secrets.sh

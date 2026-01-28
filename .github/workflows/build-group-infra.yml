@@ -41,6 +41,34 @@ on:
         description: '构建 PgBouncer'
         type: boolean
         default: false
+      build_arcane:
+        description: '构建 Arcane'
+        type: boolean
+        default: false
+      build_beszel:
+        description: '构建 Beszel'
+        type: boolean
+        default: false
+      build_beszel_agent:
+        description: '构建 Beszel Agent'
+        type: boolean
+        default: false
+      build_socket_proxy:
+        description: '构建 Docker Socket Proxy'
+        type: boolean
+        default: false
+      build_certbot:
+        description: '构建 Certbot'
+        type: boolean
+        default: false
+      build_nginx_base:
+        description: '构建 Nginx Base (Zstd/Brotli)'
+        type: boolean
+        default: false
+      build_nginx:
+        description: '构建 Nginx'
+        type: boolean
+        default: false
       
       # === 通用参数 ===
       tag:
@@ -81,6 +109,34 @@ on:
         description: 'PgBouncer 版本'
         required: false
         default: 'latest'
+      arcane_version:
+        description: 'Arcane 版本'
+        required: false
+        default: 'latest'
+      beszel_version:
+        description: 'Beszel 版本'
+        required: false
+        default: 'latest'
+      beszel_agent_version:
+        description: 'Beszel Agent 版本'
+        required: false
+        default: 'latest'
+      socket_proxy_version:
+        description: 'Docker Socket Proxy 版本'
+        required: false
+        default: 'v0.4.2'
+      certbot_version:
+        description: 'Certbot 版本'
+        required: false
+        default: 'v5.2.2'
+      nginx_version:
+        description: 'Nginx 版本'
+        required: false
+        default: '1.29.4'
+      nginx_tag_suffix:
+        description: 'Nginx 版本号后缀 (如 trixie)'
+        required: false
+        default: 'trixie'
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio
@@ -114,6 +170,13 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_minio }}" == "true" ]] && add_task "minio" "./minio" "minio" "${{ inputs.minio_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_rabbitmq }}" == "true" ]] && add_task "rabbitmq" "./rabbitmq" "rabbitmq" "${{ inputs.rabbitmq_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgbouncer }}" == "true" ]] && add_task "pgbouncer" "./pgbouncer" "pgbouncer" "${{ inputs.pgbouncer_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_arcane }}" == "true" ]] && add_task "arcane" "./arcane" "arcane" "${{ inputs.arcane_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_beszel }}" == "true" ]] && add_task "beszel" "./beszel" "beszel" "${{ inputs.beszel_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_beszel_agent }}" == "true" ]] && add_task "beszel-agent" "./beszel-agent" "beszel-agent" "${{ inputs.beszel_agent_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_socket_proxy }}" == "true" ]] && add_task "docker-socket-proxy" "./docker-proxy" "docker-socket-proxy" "${{ inputs.socket_proxy_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_certbot }}" == "true" ]] && add_task "certbot" "./certbot" "certbot" "${{ inputs.certbot_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx_base }}" == "true" ]] && add_task "nginx-base" "./nginx-base" "nginx-base" "${{ inputs.nginx_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx }}" == "true" ]] && add_task "nginx" "./nginx" "nginx" "${{ inputs.nginx_version }}"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
@@ -157,6 +220,12 @@ jobs:
              MINIO_VERSION=${{ matrix.version }}
              RABBITMQ_VERSION=${{ matrix.version }}
              PGBOUNCER_VERSION=${{ matrix.version }}
+             ARCANE_VERSION=${{ matrix.version }}
+             BESZEL_VERSION=${{ matrix.version }}
+             BESZEL_AGENT_VERSION=${{ matrix.version }}
+             SOCKET_PROXY_VERSION=${{ matrix.version }}
+             CERTBOT_VERSION=${{ matrix.version }}
+             NGINX_VERSION=${{ matrix.version }}-${{ inputs.nginx_tag_suffix }}
              CHANGE_SOURCE=false
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}

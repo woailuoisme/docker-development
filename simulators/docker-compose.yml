@@ -12,6 +12,8 @@ services:
     environment:
       - MQTT_HOST=mosquitto # 容器内部互联必须用服务名，覆盖 .env 的 localhost
       - TZ=Asia/Shanghai
+    depends_on:
+      - mosquitto
     networks:
       - backend
       - frontend

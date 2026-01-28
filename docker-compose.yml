@@ -20,8 +20,14 @@ include:
   # --- CORE & SECURITY ---
   - dnsmasq/docker-compose.yml      # DNS 服务
   - caddy/docker-compose.yml        # 网关渲染与反代
+#  - caddy-simple/docker-compose.yml        # 网关渲染与反代
   - authelia/docker-compose.yml     # 鉴权
   - go-access/docker-compose.yml    # 日志分析
+  - dozzle/docker-compose.yml
+  - docker-socket-proxy/docker-compose.yml
+  - arcane/docker-compose.yml
+  - beszel/docker-compose.yml
+  - beszel-agent/docker-compose.yml
 #  - docker-proxy/docker-compose.yml # Docker Socket 代理
 
   # --- DATABASES & STORAGE ---
@@ -54,9 +60,8 @@ include:
   - php-roadrunner-trixie/docker-compose.yml # RoadRunner 引擎
   - php-horizon-trixie/docker-compose.yml    # 队列监控
   - php-schedule-trixie/docker-compose.yml   # 调度任务
-  - php-franken-trixie/docker-compose.yml    # FrankenPHP 引擎
-  - php-reverb-trixie/docker-compose.yml     # Laravel Reverb
-  - dozzle/docker-compose.yml
+#  - php-franken-trixie/docker-compose.yml    # FrankenPHP 引擎
+#  - php-reverb-trixie/docker-compose.yml     # Laravel Reverb
 #  - homepage/docker-compose.yml      # 仪表盘
   - gotify/docker-compose.yml       # 通知推送 (Gotify)
 #  - ntfy/docker-compose.yml         # 通知推送 (Ntfy)
@@ -70,7 +75,7 @@ include:
   - grafana/docker-compose.yml       # 数据可视化
   # - influxdb/docker-compose.yml      # 时序数据库
   # - influxdb-ui/docker-compose.yml   # InfluxDB 管理界面
-  # - node-red/docker-compose.yml      # 流程编排
+#  - node-red/docker-compose.yml      # 流程编排
   - simulators/docker-compose.yml
 
   # --- MONITORING & WEBSITES ---

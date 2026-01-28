@@ -1,0 +1,24 @@
+# docker run --rm ghcr.io/getarcaneapp/arcane:latest /app/arcane generate secret
+# default username: arcane password: arcane-admin
+services:
+  arcane:
+    container_name: arcane
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3552:3552'
+    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DATA_PATH}arcane:/app/data
+      - ${CONFIG_PATH}arcane/projects:/app/data/projects
+    restart: unless-stopped
+    environment:
+      - DOCKER_HOST=tcp://docker-socket-proxy:2375
+    depends_on:
+      - docker-socket-proxy
+    networks:
+      - frontend
+      - backend
+
+

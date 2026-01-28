@@ -274,7 +274,7 @@ CREATE INDEX idx_status_device ON vm_status (device_no, time DESC);
 
 ### 6.2 温度监控面板
 
-```sql
+```postgresql
 -- 冷冻温区趋势图
 SELECT 
     time_bucket('5 minutes', time) AS bucket,

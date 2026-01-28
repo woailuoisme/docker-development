@@ -1,21 +1,18 @@
 services:
   beszel:
-    image: henrygd/beszel:latest
     container_name: beszel
-    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # 默认用户名: ailuoga166@gmail.com 密码: ailuoga166@gmail.com
     environment:
-      - ADMIN_EMAIL=admin@example.com
-      - ADMIN_PASSWORD=admin@example.com
+      - USER_EMAIL=${BESZEL_USER_EMAIL:-ailuoga166@gmail.com}
+      - USER_PASSWORD=${BESZEL_USER_PASSWORD:-ailuoga166@gmail.com}
+    restart: always
     ports:
-      - "8090:8090"
+      - "${BESZEL_PORT:-8090}:8090"
     volumes:
       - ${DATA_PATH}beszel:/beszel_data
-    healthcheck:
-      test: ["CMD", "/beszel", "health", "--url", "http://localhost:8090"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
     networks:
       - backend
       - frontend
