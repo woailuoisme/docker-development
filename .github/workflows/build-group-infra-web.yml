@@ -36,10 +36,7 @@ on:
         default: 'latest'
       nginx_version:
         description: 'Nginx 版本'
-        default: '1.29.4'
-      nginx_tag_suffix:
-        description: 'Nginx 标签后缀'
-        default: 'trixie'
+        default: '1.29.4-trixie'
       certbot_version:
         description: 'Certbot 版本'
         default: 'v5.2.2'
@@ -96,7 +93,6 @@ jobs:
           build-args: |
             CADDY_BASE_VERSION=${{ matrix.version }}
             NGINX_VERSION=${{ matrix.version }}
-            NGINX_TAG_SUFFIX=${{ inputs.nginx_tag_suffix }}
             CERTBOT_VERSION=${{ matrix.version }}
             GOACCESS_VERSION=${{ matrix.version }}
             CHANGE_SOURCE=false

@@ -1,6 +1,5 @@
-ARG NGINX_VERSION=1.29.4
-ARG NGINX_TAG_SUFFIX=trixie
-FROM nginx:${NGINX_VERSION}-${NGINX_TAG_SUFFIX}
+ARG NGINX_VERSION=1.29.4-trixie
+FROM nginx:${NGINX_VERSION}
 
 LABEL maintainer="seaside <seaside@qq.com>"
 # 复制配置文件
