@@ -21,6 +21,8 @@ include:
   - dnsmasq/docker-compose.yml      # DNS 服务
 #  - caddy/docker-compose.yml        # 网关渲染与反代
   - caddy-simple/docker-compose.yml        # 网关渲染与反代
+  - nginx-base/docker-compose.yml
+#  - nginx/docker-compose.yml
   - authelia/docker-compose.yml     # 鉴权
   - go-access/docker-compose.yml    # 日志分析
   - dozzle/docker-compose.yml

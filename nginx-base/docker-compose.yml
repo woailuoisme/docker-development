@@ -1,17 +1,20 @@
 services:
-  nginx-base:
+  nginx-tester:
     image: jiaoio/nginx-base:1.29.4-trixie
-    container_name: nginx-base-validator
+    container_name: nginx-perf-tester
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:80"
+    tty: true
+    stdin_open: true
     command: >
       bash -c "
-      echo '✅ [Step 1] Checking Nginx Version' &&
-      nginx -v &&
-      echo '✅ [Step 2] Checking Compiled Dynamic Modules' &&
-      ls -l /usr/lib/nginx/modules/ngx_http_zstd_filter_module.so &&
-      ls -l /usr/lib/nginx/modules/ngx_http_brotli_filter_module.so &&
-      ls -l /usr/lib/nginx/modules/ngx_http_modsecurity_module.so &&
-      echo '✅ [Step 3] Checking ModSecurity Shared Libraries' &&
-      ldconfig -p | grep modsecurity &&
-      echo '✅ [Step 4] Checking OWASP CRS Rules' &&
-      ls -l /etc/nginx/modsec/owasp-crs/rules | head -n 5 &&
-      echo '🚀 All validations passed successfully!'"
+      echo '🚀 Starting High Performance Nginx Tester...' &&
+      echo '✅ Zstd/Brotli Modules will be loaded from /usr/lib/nginx/modules/' &&
+      nginx -g 'daemon off;'"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/test"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

@@ -1,5 +1,5 @@
 ARG NGINX_VERSION=1.29.4-trixie
-FROM nginx:${NGINX_VERSION}
+FROM jiaoio/nginx-base:${NGINX_VERSION}
 
 LABEL maintainer="seaside <seaside@qq.com>"
 # 复制配置文件
@@ -71,10 +71,6 @@ COPY scripts/startup.sh /opt/startup.sh
 RUN sed -i 's/\r//g' /opt/startup.sh && \
     chmod +x /opt/startup.sh
 
-#   pgrep nginx - 查找所有名为"nginx"的进程
-#   如果找到进程（返回状态码0），命令成功
-#   状态码0 : 健康（找到nginx进程）
-#   状态码1 : 不健康（未找到nginx进程）
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD pgrep nginx -l > /dev/null || exit 1
 

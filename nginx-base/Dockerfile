@@ -37,7 +37,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    libzstd1 libbrotli1 && \
+    libzstd1 libbrotli1 \
+    procps curl ca-certificates gettext openssl bash && \
     rm -rf /var/lib/apt/lists/*
 
 # 集中复制所有编译好的 .so 模块
