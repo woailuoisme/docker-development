@@ -1,0 +1,107 @@
+name: Build Group - Infra System
+on:
+  workflow_dispatch:
+    inputs:
+      build_all:
+        description: '🚀 构建所有系统服务'
+        type: boolean
+        default: false
+      build_authelia:
+        description: '构建 Authelia'
+        type: boolean
+        default: false
+      build_beszel:
+        description: '构建 Beszel'
+        type: boolean
+        default: false
+      build_beszel_agent:
+        description: '构建 Beszel Agent'
+        type: boolean
+        default: false
+      build_arcane:
+        description: '构建 Arcane'
+        type: boolean
+        default: false
+      build_telegraf:
+        description: '构建 Telegraf'
+        type: boolean
+        default: false
+      tag:
+        description: '镜像标签 (e.g., latest)'
+        required: true
+        default: 'latest'
+      # 版本参数
+      authelia_version:
+        description: 'Authelia 版本'
+        default: '4.39'
+      beszel_version:
+        description: 'Beszel 版本'
+        default: 'latest'
+      beszel_agent_version:
+        description: 'Beszel Agent 版本'
+        default: 'latest'
+      arcane_version:
+        description: 'Arcane 版本'
+        default: 'latest'
+      telegraf_version:
+        description: 'Telegraf 版本'
+        default: '1.37-alpine'
+
+env:
+  REGISTRY_DOCKERHUB: docker.io/jiaoio
+  REGISTRY_REDHAT: quay.io/jiaoio
+
+jobs:
+  matrix-builder:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          MATRIX_JSON='[]'
+          add_task() {
+            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$1\", \"context\": \"$2\", \"image\": \"$3\", \"version\": \"$4\"}]")
+          }
+          BUILD_ALL=${{ inputs.build_all }}
+          
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_authelia }}" == "true" ]] && add_task "authelia" "./authelia" "authelia" "${{ inputs.authelia_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_beszel }}" == "true" ]] && add_task "beszel" "./beszel" "beszel" "${{ inputs.beszel_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_beszel_agent }}" == "true" ]] && add_task "beszel-agent" "./beszel-agent" "beszel-agent" "${{ inputs.beszel_agent_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_arcane }}" == "true" ]] && add_task "arcane" "./arcane" "arcane" "${{ inputs.arcane_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_telegraf }}" == "true" ]] && add_task "telegraf" "./telegraf" "telegraf" "${{ inputs.telegraf_version }}"
+          
+          echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: matrix-builder
+    if: ${{ fromJson(needs.matrix-builder.outputs.matrix).include[0] != null }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
+    name: Build ${{ matrix.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          echo "${{ secrets.REDHAT_REGISTRY_TOKEN }}" | docker login quay.io -u "${{ secrets.REDHAT_REGISTRY_USERNAME }}" --password-stdin
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            AUTHELIA_VERSION=${{ matrix.version }}
+            BESZEL_VERSION=${{ matrix.version }}
+            BESZEL_AGENT_VERSION=${{ matrix.version }}
+            ARCANE_VERSION=${{ matrix.version }}
+            TELEGRAF_VERSION=${{ matrix.version }}
+            CHANGE_SOURCE=false
+          tags: |
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}

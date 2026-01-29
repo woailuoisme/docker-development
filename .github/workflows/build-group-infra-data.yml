@@ -1,0 +1,107 @@
+name: Build Group - Infra Data
+on:
+  workflow_dispatch:
+    inputs:
+      build_all:
+        description: '🚀 构建所有数据服务'
+        type: boolean
+        default: false
+      build_minio:
+        description: '构建 MinIO'
+        type: boolean
+        default: false
+      build_rabbitmq:
+        description: '构建 RabbitMQ'
+        type: boolean
+        default: false
+      build_meilisearch:
+        description: '构建 Meilisearch'
+        type: boolean
+        default: false
+      build_pgbouncer:
+        description: '构建 PgBouncer'
+        type: boolean
+        default: false
+      build_socket_proxy:
+        description: '构建 Docker Socket Proxy'
+        type: boolean
+        default: false
+      tag:
+        description: '镜像标签 (e.g., latest)'
+        required: true
+        default: 'latest'
+      # 版本参数
+      minio_version:
+        description: 'MinIO 版本'
+        default: 'latest'
+      rabbitmq_version:
+        description: 'RabbitMQ 版本'
+        default: '4.2-management'
+      meili_version:
+        description: 'Meilisearch 版本'
+        default: 'v1.33'
+      pgbouncer_version:
+        description: 'PgBouncer 版本'
+        default: '1.25.1-1.pgdg13+1'
+      socket_proxy_version:
+        description: 'Docker Socket Proxy 版本'
+        default: 'v0.4.2'
+
+env:
+  REGISTRY_DOCKERHUB: docker.io/jiaoio
+  REGISTRY_REDHAT: quay.io/jiaoio
+
+jobs:
+  matrix-builder:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          MATRIX_JSON='[]'
+          add_task() {
+            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$1\", \"context\": \"$2\", \"image\": \"$3\", \"version\": \"$4\"}]")
+          }
+          BUILD_ALL=${{ inputs.build_all }}
+          
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_minio }}" == "true" ]] && add_task "minio" "./minio" "minio" "${{ inputs.minio_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_rabbitmq }}" == "true" ]] && add_task "rabbitmq" "./rabbitmq" "rabbitmq" "${{ inputs.rabbitmq_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_meilisearch }}" == "true" ]] && add_task "meilisearch" "./meilisearch" "meilisearch" "${{ inputs.meili_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgbouncer }}" == "true" ]] && add_task "pgbouncer" "./pgbouncer" "pgbouncer" "${{ inputs.pgbouncer_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_socket_proxy }}" == "true" ]] && add_task "docker-socket-proxy" "./docker-proxy" "docker-socket-proxy" "${{ inputs.socket_proxy_version }}"
+          
+          echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: matrix-builder
+    if: ${{ fromJson(needs.matrix-builder.outputs.matrix).include[0] != null }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
+    name: Build ${{ matrix.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          echo "${{ secrets.REDHAT_REGISTRY_TOKEN }}" | docker login quay.io -u "${{ secrets.REDHAT_REGISTRY_USERNAME }}" --password-stdin
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            MINIO_VERSION=${{ matrix.version }}
+            RABBITMQ_VERSION=${{ matrix.version }}
+            MEILI_VERSION=${{ matrix.version }}
+            PGBOUNCER_VERSION=${{ matrix.version }}
+            SOCKET_PROXY_VERSION=${{ matrix.version }}
+            CHANGE_SOURCE=false
+          tags: |
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}

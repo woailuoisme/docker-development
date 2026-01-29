@@ -1,0 +1,106 @@
+name: Build Group - Infra Web
+on:
+  workflow_dispatch:
+    inputs:
+      build_all:
+        description: '🚀 构建所有 Web 服务'
+        type: boolean
+        default: false
+      build_caddy:
+        description: '构建 Caddy'
+        type: boolean
+        default: false
+      build_nginx_base:
+        description: '构建 Nginx Base'
+        type: boolean
+        default: false
+      build_nginx:
+        description: '构建 Nginx'
+        type: boolean
+        default: false
+      build_certbot:
+        description: '构建 Certbot'
+        type: boolean
+        default: false
+      build_goaccess:
+        description: '构建 GoAccess'
+        type: boolean
+        default: false
+      tag:
+        description: '镜像标签 (e.g., latest)'
+        required: true
+        default: 'latest'
+      # 版本参数
+      caddy_base_version:
+        description: 'Caddy 版本'
+        default: 'latest'
+      nginx_version:
+        description: 'Nginx 版本'
+        default: '1.29.4'
+      nginx_tag_suffix:
+        description: 'Nginx 标签后缀'
+        default: 'trixie'
+      certbot_version:
+        description: 'Certbot 版本'
+        default: 'v5.2.2'
+      goaccess_version:
+        description: 'GoAccess 版本'
+        default: 'latest'
+
+env:
+  REGISTRY_DOCKERHUB: docker.io/jiaoio
+  REGISTRY_REDHAT: quay.io/jiaoio
+
+jobs:
+  matrix-builder:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          MATRIX_JSON='[]'
+          add_task() {
+            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$1\", \"context\": \"$2\", \"image\": \"$3\", \"version\": \"$4\"}]")
+          }
+          BUILD_ALL=${{ inputs.build_all }}
+          
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_caddy }}" == "true" ]] && add_task "caddy" "./caddy" "caddy" "${{ inputs.caddy_base_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx_base }}" == "true" ]] && add_task "nginx-base" "./nginx-base" "nginx-base" "${{ inputs.nginx_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx }}" == "true" ]] && add_task "nginx" "./nginx" "nginx" "${{ inputs.nginx_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_certbot }}" == "true" ]] && add_task "certbot" "./certbot" "certbot" "${{ inputs.certbot_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_goaccess }}" == "true" ]] && add_task "goaccess" "./go-access" "goaccess" "${{ inputs.goaccess_version }}"
+          
+          echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: matrix-builder
+    if: ${{ fromJson(needs.matrix-builder.outputs.matrix).include[0] != null }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
+    name: Build ${{ matrix.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          echo "${{ secrets.REDHAT_REGISTRY_TOKEN }}" | docker login quay.io -u "${{ secrets.REDHAT_REGISTRY_USERNAME }}" --password-stdin
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            CADDY_BASE_VERSION=${{ matrix.version }}
+            NGINX_VERSION=${{ matrix.version }}-${{ inputs.nginx_tag_suffix }}
+            CERTBOT_VERSION=${{ matrix.version }}
+            GOACCESS_VERSION=${{ matrix.version }}
+            CHANGE_SOURCE=false
+          tags: |
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}
