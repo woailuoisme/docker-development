@@ -44,6 +44,13 @@ RUN NGINX_PURE_VERSION=${NGINX_VERSION%-*} && \
     --add-dynamic-module=../ModSecurity-nginx && \
     make -j$(nproc) modules
 
+# 4. 下载 OWASP 核心规则集 (CRS) 和默认配置
+RUN mkdir -p /usr/src/modsec && \
+    curl -fSsL https://raw.githubusercontent.com/owasp-modsecurity/ModSecurity/v3/master/modsecurity.conf-recommended -o /usr/src/modsec/modsecurity.conf && \
+    curl -fSsL https://raw.githubusercontent.com/owasp-modsecurity/ModSecurity/v3/master/unicode.mapping -o /usr/src/modsec/unicode.mapping && \
+    git clone --depth 1 https://github.com/coreruleset/coreruleset.git /usr/src/modsec/owasp-crs && \
+    cp /usr/src/modsec/owasp-crs/crs-setup.conf.example /usr/src/modsec/owasp-crs/crs-setup.conf
+
 # 最终运行时镜像
 FROM nginx:${NGINX_VERSION}
 
@@ -60,7 +67,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     libxml2 libxslt1.1 libgeoip1 libgd3 liblmdb0 libcurl4 liblua5.3-0 && \
     rm -rf /var/lib/apt/lists/*
 
-# 从构建机复制 ModSecurity 核心库和模块
+# 从构建机复制 ModSecurity 核心库、模块和规则集
 COPY --from=builder /usr/local/modsecurity /usr/local/modsecurity
 COPY --from=builder /usr/local/lib/libmodsecurity.so* /usr/local/lib/
 COPY --from=builder /usr/src/nginx-src/objs/ngx_http_zstd_*.so /usr/lib/nginx/modules/
@@ -70,13 +77,8 @@ COPY --from=builder /usr/src/nginx-src/objs/ngx_http_modsecurity_module.so /usr/
 # 刷新动态链接库
 RUN ldconfig
 
-# 预置 OWASP 核心规则集 (CRS) 和默认配置
-RUN mkdir -p /etc/nginx/modsec && \
-    curl -fSsL https://raw.githubusercontent.com/owasp-modsecurity/ModSecurity/v3/master/modsecurity.conf-recommended -o /etc/nginx/modsec/modsecurity.conf && \
-    curl -fSsL https://raw.githubusercontent.com/owasp-modsecurity/ModSecurity/v3/master/unicode.mapping -o /etc/nginx/modsec/unicode.mapping && \
-    mkdir -p /etc/nginx/modsec/owasp-crs && \
-    git clone --depth 1 https://github.com/coreruleset/coreruleset.git /etc/nginx/modsec/owasp-crs && \
-    mv /etc/nginx/modsec/owasp-crs/crs-setup.conf.example /etc/nginx/modsec/owasp-crs/crs-setup.conf
+# 复制 WAF 配置和 CRS 规则集
+COPY --from=builder /usr/src/modsec /etc/nginx/modsec
 
 STOPSIGNAL SIGQUIT
 

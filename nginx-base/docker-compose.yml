@@ -1,0 +1,17 @@
+services:
+  nginx-base:
+    image: jiaoio/nginx-base:1.29.4-trixie
+    container_name: nginx-base-validator
+    command: >
+      bash -c "
+      echo '✅ [Step 1] Checking Nginx Version' &&
+      nginx -v &&
+      echo '✅ [Step 2] Checking Compiled Dynamic Modules' &&
+      ls -l /usr/lib/nginx/modules/ngx_http_zstd_filter_module.so &&
+      ls -l /usr/lib/nginx/modules/ngx_http_brotli_filter_module.so &&
+      ls -l /usr/lib/nginx/modules/ngx_http_modsecurity_module.so &&
+      echo '✅ [Step 3] Checking ModSecurity Shared Libraries' &&
+      ldconfig -p | grep modsecurity &&
+      echo '✅ [Step 4] Checking OWASP CRS Rules' &&
+      ls -l /etc/nginx/modsec/owasp-crs/rules | head -n 5 &&
+      echo '🚀 All validations passed successfully!'"
