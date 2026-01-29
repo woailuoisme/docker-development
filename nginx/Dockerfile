@@ -57,11 +57,14 @@ RUN mkdir -p /var/cache/nginx && \
 # 复制配置文件和代码片段
 COPY logrotate/nginx /etc/logrotate.d/
 COPY snippets /etc/nginx/snippets
+COPY templates /etc/nginx/templates
+COPY apply /etc/nginx/apply
 
 # 复制用户配置文件和初始化脚本
 COPY users.yml /etc/nginx/auth/
 COPY scripts/init-users.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/init-users.sh
+COPY scripts/apply_template.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/init-users.sh /usr/local/bin/apply_template.sh
 
 # 移除默认配置
 RUN rm -f /etc/nginx/conf.d/default.conf
