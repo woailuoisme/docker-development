@@ -13,16 +13,18 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     libzstd-dev \
     libbrotli-dev
 
-# 2. 下载源码并编译模块 (Zstd + Brotli)
+# 2. 下载源码并编译模块 (Zstd + Brotli + Headers-More)
 RUN NGINX_PURE_VERSION=${NGINX_VERSION%-*} && \
     wget -qO- http://nginx.org/download/nginx-${NGINX_PURE_VERSION}.tar.gz | tar xz && \
     ln -s nginx-${NGINX_PURE_VERSION} nginx-src && \
     git clone --depth 1 https://github.com/tokers/zstd-nginx-module.git && \
     git clone --depth 1 --recursive https://github.com/google/ngx_brotli.git && \
+    git clone --depth 1 https://github.com/openresty/headers-more-nginx-module.git && \
     cd nginx-src && \
     ./configure --with-compat \
     --add-dynamic-module=../zstd-nginx-module \
-    --add-dynamic-module=../ngx_brotli && \
+    --add-dynamic-module=../ngx_brotli \
+    --add-dynamic-module=../headers-more-nginx-module && \
     make -j$(nproc) modules
 
 # 最终运行时镜像
@@ -41,9 +43,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     procps curl ca-certificates gettext openssl bash && \
     rm -rf /var/lib/apt/lists/*
 
-# 集中复制所有编译好的 .so 模块
 COPY --from=builder /usr/src/nginx-src/objs/ngx_http_zstd_*.so /usr/lib/nginx/modules/
 COPY --from=builder /usr/src/nginx-src/objs/ngx_http_brotli_*.so /usr/lib/nginx/modules/
+COPY --from=builder /usr/src/nginx-src/objs/ngx_http_headers_more_filter_module.so /usr/lib/nginx/modules/
 
 STOPSIGNAL SIGQUIT
 
