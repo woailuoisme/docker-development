@@ -19,8 +19,8 @@ volumes:
 include:
   # --- CORE & SECURITY ---
   - dnsmasq/docker-compose.yml      # DNS 服务
-  - caddy/docker-compose.yml        # 网关渲染与反代
-#  - caddy-simple/docker-compose.yml        # 网关渲染与反代
+#  - caddy/docker-compose.yml        # 网关渲染与反代
+  - caddy-simple/docker-compose.yml        # 网关渲染与反代
   - authelia/docker-compose.yml     # 鉴权
   - go-access/docker-compose.yml    # 日志分析
   - dozzle/docker-compose.yml

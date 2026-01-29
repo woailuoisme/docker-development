@@ -9,66 +9,12 @@ on:
         type: boolean
         default: false
       
-      build_goaccess:
-        description: '构建 GoAccess'
-        type: boolean
-        default: false
-      build_authelia:
-        description: '构建 Authelia'
-        type: boolean
-        default: false
-      build_caddy:
-        description: '构建 Caddy'
-        type: boolean
-        default: false
-      build_telegraf:
-        description: '构建 Telegraf'
-        type: boolean
-        default: false
-      build_meilisearch:
-        description: '构建 Meilisearch'
-        type: boolean
-        default: false
-      build_minio:
-        description: '构建 MinIO'
-        type: boolean
-        default: false
-      build_rabbitmq:
-        description: '构建 RabbitMQ'
-        type: boolean
-        default: false
-      build_pgbouncer:
-        description: '构建 PgBouncer'
-        type: boolean
-        default: false
-      build_arcane:
-        description: '构建 Arcane'
-        type: boolean
-        default: false
-      build_beszel:
-        description: '构建 Beszel'
-        type: boolean
-        default: false
-      build_beszel_agent:
-        description: '构建 Beszel Agent'
-        type: boolean
-        default: false
-      build_socket_proxy:
-        description: '构建 Docker Socket Proxy'
-        type: boolean
-        default: false
-      build_certbot:
-        description: '构建 Certbot'
-        type: boolean
-        default: false
-      build_nginx_base:
-        description: '构建 Nginx Base (Zstd/Brotli)'
-        type: boolean
-        default: false
-      build_nginx:
-        description: '构建 Nginx'
-        type: boolean
-        default: false
+      custom_services:
+        description: '指定构建的服务 (逗号分隔，如: nginx,caddy,minio)'
+        type: string
+        default: ''
+      
+
       
       # === 通用参数 ===
       tag:
@@ -161,22 +107,24 @@ jobs:
           }
           
           BUILD_ALL=${{ inputs.build_all }}
+          CUSTOM_SVCS=",${{ inputs.custom_services }},"
+          CUSTOM_SVCS=${CUSTOM_SVCS// /} # Remove spaces
           
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_goaccess }}" == "true" ]] && add_task "goaccess" "./go-access" "goaccess" "${{ inputs.goaccess_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_authelia }}" == "true" ]] && add_task "authelia" "./authelia" "authelia" "${{ inputs.authelia_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_caddy }}" == "true" ]] && add_task "caddy" "./caddy" "caddy" "${{ inputs.caddy_base_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_telegraf }}" == "true" ]] && add_task "telegraf" "./telegraf" "telegraf" "${{ inputs.telegraf_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_meilisearch }}" == "true" ]] && add_task "meilisearch" "./meilisearch" "meilisearch" "${{ inputs.meili_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_minio }}" == "true" ]] && add_task "minio" "./minio" "minio" "${{ inputs.minio_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_rabbitmq }}" == "true" ]] && add_task "rabbitmq" "./rabbitmq" "rabbitmq" "${{ inputs.rabbitmq_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgbouncer }}" == "true" ]] && add_task "pgbouncer" "./pgbouncer" "pgbouncer" "${{ inputs.pgbouncer_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_arcane }}" == "true" ]] && add_task "arcane" "./arcane" "arcane" "${{ inputs.arcane_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_beszel }}" == "true" ]] && add_task "beszel" "./beszel" "beszel" "${{ inputs.beszel_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_beszel_agent }}" == "true" ]] && add_task "beszel-agent" "./beszel-agent" "beszel-agent" "${{ inputs.beszel_agent_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_socket_proxy }}" == "true" ]] && add_task "docker-socket-proxy" "./docker-proxy" "docker-socket-proxy" "${{ inputs.socket_proxy_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_certbot }}" == "true" ]] && add_task "certbot" "./certbot" "certbot" "${{ inputs.certbot_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx_base }}" == "true" ]] && add_task "nginx-base" "./nginx-base" "nginx-base" "${{ inputs.nginx_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx }}" == "true" ]] && add_task "nginx" "./nginx" "nginx" "${{ inputs.nginx_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",goaccess,"* ]] && add_task "goaccess" "./go-access" "goaccess" "${{ inputs.goaccess_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",authelia,"* ]] && add_task "authelia" "./authelia" "authelia" "${{ inputs.authelia_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",caddy,"* ]] && add_task "caddy" "./caddy" "caddy" "${{ inputs.caddy_base_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",telegraf,"* ]] && add_task "telegraf" "./telegraf" "telegraf" "${{ inputs.telegraf_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",meilisearch,"* ]] && add_task "meilisearch" "./meilisearch" "meilisearch" "${{ inputs.meili_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",minio,"* ]] && add_task "minio" "./minio" "minio" "${{ inputs.minio_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",rabbitmq,"* ]] && add_task "rabbitmq" "./rabbitmq" "rabbitmq" "${{ inputs.rabbitmq_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",pgbouncer,"* ]] && add_task "pgbouncer" "./pgbouncer" "pgbouncer" "${{ inputs.pgbouncer_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",arcane,"* ]] && add_task "arcane" "./arcane" "arcane" "${{ inputs.arcane_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",beszel,"* ]] && add_task "beszel" "./beszel" "beszel" "${{ inputs.beszel_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",beszel-agent,"* ]] && add_task "beszel-agent" "./beszel-agent" "beszel-agent" "${{ inputs.beszel_agent_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",docker-socket-proxy,"* ]] && add_task "docker-socket-proxy" "./docker-proxy" "docker-socket-proxy" "${{ inputs.socket_proxy_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",certbot,"* ]] && add_task "certbot" "./certbot" "certbot" "${{ inputs.certbot_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",nginx-base,"* ]] && add_task "nginx-base" "./nginx-base" "nginx-base" "${{ inputs.nginx_version }}"
+          [[ "$BUILD_ALL" == "true" || "$CUSTOM_SVCS" == *",nginx,"* ]] && add_task "nginx" "./nginx" "nginx" "${{ inputs.nginx_version }}"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
