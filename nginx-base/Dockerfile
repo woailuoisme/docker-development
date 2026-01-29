@@ -23,8 +23,9 @@ RUN wget -qO- http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz | tar xz &
     --add-dynamic-module=../ngx_brotli && \
     make -j$(nproc) modules
 
+ARG NGINX_TAG_SUFFIX=trixie
 # 最终运行时镜像
-FROM nginx:${NGINX_VERSION}-trixie
+FROM nginx:${NGINX_VERSION}-${NGINX_TAG_SUFFIX}
 
 LABEL maintainer="seaside <seaside@qq.com>"
 

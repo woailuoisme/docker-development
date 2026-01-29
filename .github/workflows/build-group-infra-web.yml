@@ -95,7 +95,8 @@ jobs:
           push: true
           build-args: |
             CADDY_BASE_VERSION=${{ matrix.version }}
-            NGINX_VERSION=${{ matrix.version }}-${{ inputs.nginx_tag_suffix }}
+            NGINX_VERSION=${{ matrix.version }}
+            NGINX_TAG_SUFFIX=${{ inputs.nginx_tag_suffix }}
             CERTBOT_VERSION=${{ matrix.version }}
             GOACCESS_VERSION=${{ matrix.version }}
             CHANGE_SOURCE=false
