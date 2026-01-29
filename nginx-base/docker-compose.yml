@@ -3,9 +3,10 @@ services:
     image: jiaoio/nginx-base:1.29.4-trixie
     container_name: nginx-perf-tester
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./security-headers.conf:/etc/nginx/security-headers.conf:ro
-      - ./waf.conf:/etc/nginx/waf.conf:ro
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/security-headers.conf:/etc/nginx/security-headers.conf:ro
+      - ./config/waf.conf:/etc/nginx/waf.conf:ro
+      - ./config/default.conf:/etc/nginx/default.conf:ro
     ports:
       - "8080:80"
     tty: true
