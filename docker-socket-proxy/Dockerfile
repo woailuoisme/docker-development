@@ -1,4 +1,4 @@
-FROM tecnativa/docker-socket-proxy:v0.4.2
+FROM linuxserver/socket-proxy:latest
 
 LABEL maintainer="seaside <531773730@qq.com>"
 
@@ -73,9 +73,3 @@ ENV POST=1 \
     AUTH=0 \
     PLUGINS=0 \
     SYSTEM=0
-
-# ============================================
-# 健康检查
-# ============================================
-HEALTHCHECK --interval=60s --timeout=5s --retries=3 \
-    CMD wget --spider -q http://localhost:2375/_ping || exit 1

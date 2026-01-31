@@ -3,10 +3,18 @@ ARG CERTBOT_VERSION=latest
 FROM certbot/certbot:${CERTBOT_VERSION}
 
 LABEL maintainer="seaside <531773730@qq.com>"
+ARG CHANGE_SOURCE=true
+ARG TIMEZONE=Asia/Shanghai
 
-# 安装阿里云和 Cloudflare DNS 插件
-RUN pip install certbot-dns-cloudflare certbot-dns-aliyun && \
-    apk add --no-cache netcat-openbsd
+# 替换为阿里云镜像源以解决网络问题，并抑制 pip 警告
+ENV PIP_ROOT_USER_ACTION=ignore
+RUN if [ "${CHANGE_SOURCE}" = "true" ]; then \
+        sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
+    fi && \
+    apk add --no-cache netcat-openbsd tzdata && \
+    cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
+    echo "${TIMEZONE}" > /etc/timezone && \
+    pip install --no-cache-dir certbot-dns-cloudflare certbot-dns-aliyun
 
 # 创建必要的目录
 RUN mkdir -p /etc/letsencrypt

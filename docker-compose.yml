@@ -23,6 +23,8 @@ include:
   - caddy-simple/docker-compose.yml        # 网关渲染与反代
   - nginx-base/docker-compose.yml
 #  - nginx/docker-compose.yml
+  - nginx-proxy-manager/docker-compose.yml
+  - certbot/docker-compose.yml
   - authelia/docker-compose.yml     # 鉴权
   - go-access/docker-compose.yml    # 日志分析
   - dozzle/docker-compose.yml
@@ -84,3 +86,5 @@ include:
   # - beszel/docker-compose.yml       # 服务器监控 Hub
   # - beszel-agent/docker-compose.yml # 服务器监控 Agent
   # - docs/docker-compose.yml         # 项目文档
+
+  - wordpress/docker-compose.yml

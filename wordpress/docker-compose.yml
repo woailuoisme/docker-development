@@ -1,0 +1,44 @@
+services:
+  wordpress:
+    container_name: wordpress
+    build: .
+    # image: wordpress:6.9-php8.4-fpm-alpine
+    restart: always
+    ports:
+      - "9000:9000"
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+    volumes:
+      - ${DATA_PATH}wordpress:/var/www/html
+      # 配置文件已在构建时复制，此处注释掉挂载，除非需要热更新
+      # - ./config/wp.ini:/usr/local/etc/php/conf.d/wp.ini
+      # - ./config/www.conf:/usr/local/etc/php-fpm.d/zz-www.conf
+    depends_on:
+      wp-mysql:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+
+  wp-mysql:
+    image: mysql:8.4
+    container_name: wp-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${WORDPRESS_DB_NAME}
+      MYSQL_USER: ${WORDPRESS_DB_USER}
+      MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${WORDPRESS_DB_ROOT_PASSWORD}
+    volumes:
+      - ${DATA_PATH}wp-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - backend

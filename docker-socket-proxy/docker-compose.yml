@@ -5,12 +5,14 @@ services:
     container_name: docker-socket-proxy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    restart: always
-    privileged: true
+    restart: unless-stopped
     ports:
       - "42375:2375"
     security_opt:
       - no-new-privileges:true
+    tmpfs:
+      - /run
+    read_only: true
     networks:
       - backend
       - frontend

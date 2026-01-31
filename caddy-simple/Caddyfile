@@ -7,6 +7,7 @@ import templates/*
 
 import fpm-app-auth dev.{$SITE_ADDRESS} /var/www/lunchbox php-fpm:9000
 import proxy-octane-app-auth rest.{$SITE_ADDRESS} php-roadrunner:8001
+import wp wp.{$SITE_ADDRESS} /var/www/html wordpress:9000
 
 import proxy-app mo.{$SITE_ADDRESS} minio:9001
 import proxy-app mos.{$SITE_ADDRESS} minio:9000

@@ -1,6 +1,11 @@
-FROM alpine:latest
+FROM alpine:3.23
 
-RUN apk add --no-cache dnsmasq drill
+ARG CHANGE_SOURCE=true
+
+RUN if [ "${CHANGE_SOURCE}" = "true" ]; then \
+        sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
+    fi && \
+    apk add --no-cache dnsmasq drill
 
 COPY dnsmasq.conf /etc/dnsmasq.conf
 

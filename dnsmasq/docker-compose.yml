@@ -1,8 +1,8 @@
 services:
-  dnsmasq:
+  dns:
     build:
       context: .
-    container_name: dnsmasq
+    container_name: dns
     restart: always
     ports:
       - "5354:53/udp"
