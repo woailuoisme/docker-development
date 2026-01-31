@@ -1,0 +1,22 @@
+services:
+  mkcert:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mkcert
+    environment:
+      # 在此处定义你需要的本地域名，空格分隔
+      - DOMAIN=${DOMAIN:-localhost 127.0.0.1 ::1 haoxiaoguai.local}
+    volumes:
+      # 持久化 CA 证书，避免每次重建容器都生成新的 CA
+      - ./data:/root/.local/share/mkcert
+      # 输出证书到 Nginx 目录
+      - ../nginx-simple/ssl:/ssl
+    # 运行完成后自动退出
+    restart: "no"
+    networks:
+      - backend
+
+networks:
+  backend:
+    external: true

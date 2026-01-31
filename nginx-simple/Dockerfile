@@ -5,7 +5,7 @@ LABEL maintainer="seaside <seaside@qq.com>"
 # 复制配置文件
 COPY nginx.conf /etc/nginx/
 # 环境变量配置
-ARG CHANGE_SOURCE=false
+ARG CHANGE_SOURCE=true
 ARG TIMEZONE=Asia/Shanghai
 ARG PHP_UPSTREAM_CONTAINER=php-fpm
 ARG PHP_UPSTREAM_PORT=9000
@@ -20,12 +20,10 @@ RUN if [ ${CHANGE_SOURCE} = true ]; then \
     sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list; \
     fi && \
     apt-get update && \
-    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
     gettext \
     logrotate \
     openssl \
-    bash \
     tzdata \
     apache2-utils \
     curl \
@@ -42,15 +40,11 @@ RUN set -x ; \
     deluser www-data 2>/dev/null || true ; \
     delgroup www-data 2>/dev/null || true ; \
     groupadd -g ${WWWUSER} www-data ; \
-    useradd -u ${WWWGROUP} -g www-data -s /bin/bash -d /var/www/html www-data
-
-# 确保 /run 和 /var/run 目录对 www-data 用户可写
-RUN mkdir -p /run /var/run && \
+    useradd -u ${WWWGROUP} -g www-data -s /bin/bash -d /var/www/html www-data && \
+    mkdir -p /run /var/run && \
     chown -R www-data:www-data /run /var/run && \
-    chmod 755 /run /var/run
-
-# 确保 Nginx 缓存目录存在并具有正确的权限
-RUN mkdir -p /var/cache/nginx && \
+    chmod 755 /run /var/run && \
+    mkdir -p /var/cache/nginx && \
     chown -R www-data:www-data /var/cache/nginx && \
     chmod -R 755 /var/cache/nginx
 
@@ -58,7 +52,7 @@ RUN mkdir -p /var/cache/nginx && \
 COPY logrotate/nginx /etc/logrotate.d/
 COPY snippets /etc/nginx/snippets
 COPY templates /etc/nginx/templates
-COPY apply /etc/nginx/apply
+COPY apply.caddyfile /etc/nginx/apply.caddyfile
 
 # 复制用户配置文件和初始化脚本
 COPY users.yml /etc/nginx/auth/

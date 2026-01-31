@@ -1,0 +1,26 @@
+services:
+  acme:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: acme
+    environment:
+      - DNS_PROVIDER=${DNS_PROVIDER:-aliyun}
+#      - DOMAIN=${DOMAIN:-haoxiaoguai.xyz}
+      - DOMAIN=haoxiaoguai.xyz
+      - EMAIL=${ACME_EMAIL:-admin@haoxiaoguai.xyz}
+      # Cloudflare
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
+      # Aliyun
+      - ALIYUN_ACCESS_KEY_ID=${ALIYUN_ACCESS_KEY_ID:-}
+      - ALIYUN_ACCESS_KEY_SECRET=${ALIYUN_ACCESS_KEY_SECRET:-}
+      - ACME_DEBUG=${ACME_DEBUG:-0}
+      - TZ=Asia/Shanghai
+    volumes:
+      - ${DATA_PATH:-../data/}acme:/acme.sh
+      # 将证书直接输出到 Nginx 的 SSL 目录
+      - ${CONFIG_PATH:-../}nginx-simple/ssl:/ssl
+    restart: unless-stopped
+    networks:
+      - backend
+

@@ -1,0 +1,41 @@
+services:
+  openresty:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: openresty
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443/tcp"
+      - "443:443/udp"
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      # 挂载核心配置
+      - ./nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+      # 挂载子配置目录
+      - ./nginx/conf.d:/usr/local/openresty/nginx/conf/conf.d:ro
+      # 挂载 SSL 证书 (从 acme 服务同步)
+      - ${CONFIG_PATH:-../}nginx-simple/ssl/live/haoxiaoguai.xyz:/usr/local/openresty/nginx/conf/ssl:ro
+      # 挂载 Lua 脚本目录
+      - ./nginx/lua:/usr/local/openresty/nginx/lua:ro
+      # 挂载日志目录
+      - ${LOG_PATH:-../logs/}openresty:/usr/local/openresty/nginx/logs
+      # 挂载静态资源目录
+      - ./nginx/html:/usr/local/openresty/nginx/html:ro
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  frontend:
+    external: true
+  backend:
+    external: true

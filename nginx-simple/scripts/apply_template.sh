@@ -5,7 +5,7 @@
 
 TEMPLATE_DIR="/etc/nginx/templates"
 OUTPUT_DIR="/etc/nginx/sites-available"
-APPLY_FILE="/etc/nginx/apply"
+APPLY_FILE="/etc/nginx/apply.caddyfile"
 
 # 确保输出目录存在
 mkdir -p "$OUTPUT_DIR"

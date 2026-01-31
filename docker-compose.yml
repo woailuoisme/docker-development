@@ -24,8 +24,10 @@ include:
 #  - nginx-base/docker-compose.yml
 #  - nginx/docker-compose.yml
   - nginx-simple/docker-compose.yml
-  - nginx-proxy-manager/docker-compose.yml
-  - certbot/docker-compose.yml
+  - openresty/docker-compose.yml
+#  - nginx-proxy-manager/docker-compose.yml
+#  - certbot/docker-compose.yml
+  - acme/docker-compose.yml
   - authelia/docker-compose.yml     # 鉴权
   - go-access/docker-compose.yml    # 日志分析
   - dozzle/docker-compose.yml
