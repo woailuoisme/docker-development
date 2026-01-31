@@ -16,7 +16,6 @@ services:
       - "8080:8080"
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-      - ${DATA_PATH}wordpress:/var/www/html
       - ${CONFIG_PATH}caddy:/etc/caddy
       - ${DATA_PATH}caddy:/data/caddy
       - ${LOG_PATH}caddy:/srv/logs

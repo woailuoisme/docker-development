@@ -32,5 +32,5 @@ RUN chmod +x /usr/local/bin/init-wp.sh && \
     sed -i '/exec "$@"/i /usr/local/bin/init-wp.sh' /usr/local/bin/docker-entrypoint.sh
 
 # 健康检测
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=60s --timeout=5s --start-period=5s --retries=3 \
     CMD SCRIPT_NAME=/ping.php SCRIPT_FILENAME=/var/www/ping.php REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 || exit 1
