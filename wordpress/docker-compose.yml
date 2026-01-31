@@ -33,6 +33,23 @@ services:
       - frontend
       - backend
 
+  wp-redis:
+    image: redis:8.4-alpine
+    container_name: wp-redis
+    volumes:
+      - ${DATA_PATH}wp-redis:/data
+    restart: always
+    command: --requirepass ${WORDPRESS_REDIS_PASSWORD:-redis_secret}
+    healthcheck:
+      test: [ "CMD-SHELL", " redis-cli ping || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - backend
+      - frontend
+
   wp-mysql:
     image: mysql:8.4
     container_name: wp-mysql
@@ -46,7 +63,7 @@ services:
       - ${DATA_PATH}wp-mysql:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD || exit 1"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
       retries: 5
       start_period: 30s

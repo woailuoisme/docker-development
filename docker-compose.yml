@@ -87,4 +87,4 @@ include:
   # - beszel-agent/docker-compose.yml # 服务器监控 Agent
   # - docs/docker-compose.yml         # 项目文档
 
-  - wordpress/docker-compose.yml
+#  - wordpress/docker-compose.yml
