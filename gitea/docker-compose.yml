@@ -1,0 +1,66 @@
+networks:
+  backend:
+    external: true
+
+services:
+  # 数据库服务
+  db:
+    image: postgres:18-alpine
+    restart: always
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWD}
+      - POSTGRES_DB=${DB_NAME}
+    networks:
+      - backend
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+
+  # Gitea 主服务
+  server:
+    image: gitea/gitea:latest
+    container_name: gitea
+    env_file: .env
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__database__DB_TYPE=${DB_TYPE}
+      - GITEA__database__HOST=${DB_HOST}
+      - GITEA__database__NAME=${DB_NAME}
+      - GITEA__database__USER=${DB_USER}
+      - GITEA__database__PASSWD=${DB_PASSWD}
+    restart: always
+    networks:
+      - backend
+    volumes:
+      - ./gitea:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "${HTTP_PORT}:3000"
+      - "${SSH_PORT}:22"
+    depends_on:
+      - db
+
+  # Gitea Actions Runner 服务
+  runner:
+    image: gitea/act_runner:latest
+    container_name: act_runner
+    restart: always
+    env_file: .env
+    depends_on:
+      - server
+    volumes:
+      - ./runner-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # 注意：在 Docker 网络内部，使用服务名称访问 Gitea
+      - GITEA_INSTANCE_URL=${GITEA_INSTANCE_URL}
+      # 重要：首次启动后，你需要进入 Gitea 管理后台 (Site Administration -> Actions -> Runners)
+      # 创建一个新的 Runner 并获取 Registration Token，然后填入 .env 文件并重启 runner 容器
+      - GITEA_RUNNER_REGISTRATION_TOKEN=${RUNNER_TOKEN}
+      - GITEA_RUNNER_NAME=${RUNNER_NAME}
+      - GITEA_RUNNER_LABELS=${RUNNER_LABELS}
+    networks:
+      - backend

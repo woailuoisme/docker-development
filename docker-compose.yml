@@ -21,8 +21,9 @@ include:
   - dnsmasq/docker-compose.yml      # DNS 服务
 #  - caddy/docker-compose.yml        # 网关渲染与反代
   - caddy-simple/docker-compose.yml        # 网关渲染与反代
-  - nginx-base/docker-compose.yml
+#  - nginx-base/docker-compose.yml
 #  - nginx/docker-compose.yml
+  - nginx-simple/docker-compose.yml
   - nginx-proxy-manager/docker-compose.yml
   - certbot/docker-compose.yml
   - authelia/docker-compose.yml     # 鉴权
@@ -67,7 +68,7 @@ include:
 #  - php-franken-trixie/docker-compose.yml    # FrankenPHP 引擎
 #  - php-reverb-trixie/docker-compose.yml     # Laravel Reverb
 #  - homepage/docker-compose.yml      # 仪表盘
-  - gotify/docker-compose.yml       # 通知推送 (Gotify)
+#  - gotify/docker-compose.yml       # 通知推送 (Gotify)
 #  - ntfy/docker-compose.yml         # 通知推送 (Ntfy)
 #  - centrifugo/docker-compose.yml   # 实时消息
 #  - wud/docker-compose.yml          # 镜像更新提醒
@@ -86,5 +87,5 @@ include:
   # - beszel/docker-compose.yml       # 服务器监控 Hub
   # - beszel-agent/docker-compose.yml # 服务器监控 Agent
   # - docs/docker-compose.yml         # 项目文档
-
+#  - gitea/docker-compose.yml
 #  - wordpress/docker-compose.yml

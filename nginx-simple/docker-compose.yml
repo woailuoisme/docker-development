@@ -1,0 +1,29 @@
+services:
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+      args:
+        - CHANGE_SOURCE=${CHANGE_SOURCE}
+        - PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
+        - PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
+    restart: always
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
+      - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
+      - ${CONFIG_PATH}nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ${CONFIG_PATH}nginx/snippets/:/etc/nginx/snippets/
+      - ${CONFIG_PATH}certbot/conf:/etc/nginx/ssl
+    ports:
+      - "${NGINX_HOST_HTTP_PORT}:80"
+      - "${NGINX_HOST_HTTPS_PORT}:443"
+      - "${NGINX_HOST_HTTPS_PORT}:443/udp"
+      - "${NGINX_HOST_WSS_PORT}:8080"
+#      - "45432:45432" # PostgresSQL 代理
+#      - "46379:46379" # Redis 代理
+    depends_on:
+      - certbot
+    networks:
+      - frontend
+      - backend

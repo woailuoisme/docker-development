@@ -1,0 +1,41 @@
+# ==============================================================================
+# Nginx 动态站点生成配置 (Caddy-style Import)
+# ==============================================================================
+# 语法说明:
+#   import <模板名称> <参数1> <参数2> ...
+#
+# 变量说明:
+#   支持使用环境变量，例如 {$SITE_ADDRESS} 会被替换为宿主机定义的域名后缀。
+#
+# 可用模板及参数:
+#   1. fpm-app           - 标准 PHP-FPM 应用
+#      用法: import fpm-app <域名> <项目根路径> <FPM地址:端口>
+#
+#   2. fpm-app-auth      - 带密码保护的 PHP-FPM 应用
+#      用法: import fpm-app-auth <域名> <项目根路径> <FPM地址:端口>
+#
+#   3. octane-app        - 高性能 Octane/FrankenPHP 应用
+#      用法: import octane-app <域名> <后端地址:端口>
+#
+#   4. proxy-app         - 标准反向代理 (Node, Go, Docker 等)
+#      用法: import proxy-app <域名> <后端地址:端口>
+#
+#   5. proxy-app-auth    - 带密码保护的反向代理 (Dozzle, Meili 等)
+#      用法: import proxy-app-auth <域名> <后端地址:端口>
+#
+#   6. proxy-spa         - Vue/React/Angular 静态单页应用
+#      用法: import proxy-spa <域名> <静态文件目录>
+#
+#   7. proxy-octane-app-auth - 带密码保护的高性能 Octane 代理
+#      用法: import proxy-octane-app-auth <域名> <后端地址:端口>
+# ==============================================================================
+
+# --- 应用实例 ---
+
+import fpm-app-auth dev.{$SITE_ADDRESS} /var/www/lunchbox php-fpm:9000
+import proxy-octane-app-auth rest.{$SITE_ADDRESS} php-roadrunner:8001
+
+import proxy-app mo.{$SITE_ADDRESS} minio:9001
+import proxy-app mos.{$SITE_ADDRESS} minio:9000
+import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
+import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
