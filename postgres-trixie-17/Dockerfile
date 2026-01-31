@@ -45,8 +45,8 @@ COPY postgresql.conf /etc/postgresql/postgresql.conf
 COPY docker-entrypoint-initdb.d/ /docker-entrypoint-initdb.d/
 
 # 设置环境变量
-ENV POSTGRES_CONFIG_FILE=/etc/postgresql/postgresql.conf
-ENV TZ=${TIMEZONE}
+ENV POSTGRES_CONFIG_FILE=/etc/postgresql/postgresql.conf \
+    TS_LICENSE=timescale
 
 # 使用原始入口点，通过 CMD 传递配置参数
 CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
