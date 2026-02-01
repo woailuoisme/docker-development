@@ -21,6 +21,10 @@ on:
         description: '构建 Redis'
         type: boolean
         default: false
+      build_valkey:
+        description: '构建 Valkey'
+        type: boolean
+        default: false
       build_postgres_17_trixie:
         description: '构建 PostgreSQL 17 (Trixie)'
         type: boolean
@@ -49,6 +53,10 @@ on:
         description: 'Redis 版本'
         required: false
         default: '8.4-bookworm'
+      valkey_version:
+        description: 'Valkey 版本'
+        required: false
+        default: '9.0.1'
       postgres17_trixie_version:
         description: 'PostgreSQL 17 Trixie 版本'
         required: false
@@ -85,6 +93,7 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mysql }}" == "true" ]] && add_task "mysql" "./mysql-8" "mysql" "${{ inputs.mysql_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mongodb }}" == "true" ]] && add_task "mongodb" "./mongodb" "mongodb" "${{ inputs.mongo_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_redis }}" == "true" ]] && add_task "redis" "./redis" "redis" "${{ inputs.redis_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_valkey }}" == "true" ]] && add_task "valkey" "./valkey" "valkey" "${{ inputs.valkey_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17_trixie }}" == "true" ]] && add_task "postgres-17-trixie" "./postgres-trixie-17" "postgres" "${{ inputs.postgres17_trixie_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_trixie }}" == "true" ]] && add_task "postgres-18-trixie" "./postgres-trixie-18" "postgres" "${{ inputs.postgres18_trixie_version }}"
           
@@ -125,6 +134,7 @@ jobs:
              MYSQL_VERSION=${{ matrix.version }}
              MONGO_VERSION=${{ matrix.version }}
              REDIS_VERSION=${{ matrix.version }}
+             VALKEY_VERSION=${{ matrix.version }}
              POSTGRES_VERSION=${{ matrix.version }}
              CHANGE_SOURCE=false
           tags: |

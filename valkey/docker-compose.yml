@@ -6,7 +6,7 @@ services:
     container_name: valkey_server
     restart: always
     environment:
-      - VALKEY_PASSWORD=haoxiaoguai  # 设置默认密码
+      - VALKEY_PASSWORD=haoxiaoguai
     sysctls:
       - net.core.somaxconn=4096
     ports:
