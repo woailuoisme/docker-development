@@ -6,7 +6,7 @@ services:
     container_name: valkey_server
     restart: always
     environment:
-      - VALKEY_PASSWORD=haoxiaoguai
+      - VALKEY_PASSWORD=${REDIS_PASSWORD}
     sysctls:
       - net.core.somaxconn=4096
     ports:

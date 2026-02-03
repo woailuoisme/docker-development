@@ -5,12 +5,13 @@ services:
       dockerfile: Dockerfile
     container_name: acme
     environment:
-      - DNS_PROVIDER=${DNS_PROVIDER:-aliyun}
+      - DNS_PROVIDER=${DNS_PROVIDER:-cloudflare}
 #      - DOMAIN=${DOMAIN:-haoxiaoguai.xyz}
-      - DOMAIN=haoxiaoguai.xyz
+#      - DOMAIN=haoxiaoguai.xyz
+      - DOMAIN=gaara.lol
       - EMAIL=${ACME_EMAIL:-admin@haoxiaoguai.xyz}
       # Cloudflare
-      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
+      - CLOUDFLARE_API_TOKEN=${DNS_CLOUDFLARE_API_TOKEN:-}
       # Aliyun
       - ALIYUN_ACCESS_KEY_ID=${ALIYUN_ACCESS_KEY_ID:-}
       - ALIYUN_ACCESS_KEY_SECRET=${ALIYUN_ACCESS_KEY_SECRET:-}

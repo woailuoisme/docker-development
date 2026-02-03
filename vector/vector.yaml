@@ -1,0 +1,26 @@
+# Vector 基础配置
+
+sources:
+  docker_logs:
+    type: docker_logs
+
+sinks:
+  console:
+    type: console
+    inputs:
+      - docker_logs
+    encoding:
+      codec: json
+
+  prometheus_exporter:
+    type: prometheus_exporter
+    inputs:
+      - docker_logs
+    address: 0.0.0.0:8686
+
+  # 将指标发送到 VictoriaMetrics (使用 Prometheus Remote Write 协议)
+  victoria_metrics:
+    type: prometheus_remote_write
+    inputs:
+      - docker_logs
+    endpoint: "http://victoria-metrics:8428/api/v1/write"

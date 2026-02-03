@@ -19,22 +19,22 @@ volumes:
 include:
   # --- CORE & SECURITY ---
   - dnsmasq/docker-compose.yml      # DNS 服务
-#  - caddy/docker-compose.yml        # 网关渲染与反代
-  - caddy-simple/docker-compose.yml        # 网关渲染与反代
+  - caddy/docker-compose.yml        # 网关渲染与反代
+#  - caddy-simple/docker-compose.yml        # 网关渲染与反代
 #  - nginx-base/docker-compose.yml
 #  - nginx/docker-compose.yml
-  - nginx-simple/docker-compose.yml
-  - openresty/docker-compose.yml
+#  - nginx-simple/docker-compose.yml
+#  - openresty/docker-compose.yml
 #  - nginx-proxy-manager/docker-compose.yml
 #  - certbot/docker-compose.yml
-  - acme/docker-compose.yml
+#  - acme/docker-compose.yml
   - authelia/docker-compose.yml     # 鉴权
   - go-access/docker-compose.yml    # 日志分析
   - dozzle/docker-compose.yml
   - docker-socket-proxy/docker-compose.yml
-  - arcane/docker-compose.yml
-  - beszel/docker-compose.yml
-  - beszel-agent/docker-compose.yml
+#  - arcane/docker-compose.yml
+#  - beszel/docker-compose.yml
+#  - beszel-agent/docker-compose.yml
 #  - docker-proxy/docker-compose.yml # Docker Socket 代理
 
   # --- DATABASES & STORAGE ---
@@ -49,7 +49,7 @@ include:
   - minio/docker-compose.yml        # 对象存储
 #  - rustfs/docker-compose.yml        # 对象存储
   - meilisearch/docker-compose.yml  # 全文检索
-  - rabbitmq/docker-compose.yml     # 消息队列
+#  - rabbitmq/docker-compose.yml     # 消息队列
 #  - pgbouncer/docker-compose.yml    # PG 连接池
 #  - clickhouse/docker-compose.yml   # OLAP 数据库
 #  - influxdb/docker-compose.yml

@@ -1,0 +1,60 @@
+# ==============================================================================
+# 监控与日志组件选型参考：Vector & VictoriaMetrics
+# ==============================================================================
+# 1. 组件功能介绍:
+#    - Vector (v0.53.0):
+#        * 核心功能: 高性能、端到端的可观测性数据流水线。
+#        * 职责: 负责从 Docker 引擎采集原始日志，进行实时解析、过滤和转换，并将结果推送到存储后端。
+#    - VictoriaMetrics (v1.134.0):
+#        * 核心功能: 极速、低成本且高可用的时序数据库 (TSDB)。
+#        * 职责: 长期存储监控指标，完全兼容 Prometheus 查询协议，提供极高的数据压缩比。
+#
+# 2. 典型使用场景:
+#    - 统一日志采集: 自动收集宿主机上所有 Docker 容器的 stdout/stderr 日志。
+#    - 指标化监控: 将日志内容（如 Nginx 访问量、错误率）实时转化为时序指标并存储。
+#    - 长期数据归档: 利用 VictoriaMetrics 的存储优势，实现低成本的监控数据长期保留。
+#
+# 3. 选型对比 (Vector vs vmagent):
+#    特性          | Vector (当前方案)                | vmagent (备选方案)
+#    --------------|---------------------------------|---------------------------------
+#    主要定位      | 全能型日志+指标流水线            | 专为指标采集设计的轻量级 Agent
+#    优势          | 日志处理能力强大，支持 VRL 脚本  | 资源占用极低，配置完全兼容 Prometheus
+#    配置复杂度    | 较高 (需编写 vector.yaml)        | 较低 (兼容 prometheus.yml)
+#    适用建议      | 需要同时处理日志与指标时首选     | 仅需极致性能的指标采集时首选
+# ==============================================================================
+
+services:
+  vector:
+    image: timberio/vector:0.53.0-debian
+    container_name: vector
+    restart: always
+    ports:
+      - "8686:8686"
+    volumes:
+      - ./vector.yaml:/etc/vector/vector.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - monitor
+
+  # VictoriaMetrics: 高性能时序数据库，完全兼容 Prometheus 协议
+  victoria-metrics:
+    image: victoriametrics/victoria-metrics:v1.134.0
+    container_name: victoria-metrics
+    restart: always
+    ports:
+      - "8428:8428"
+    volumes:
+      - vmdata:/storage
+    command:
+      - '--storageDataPath=/storage'
+      - '--httpListenAddr=:8428'
+      - '--retentionPeriod=1' # 存储保留时长，单位为月
+    networks:
+      - monitor
+
+networks:
+  monitor:
+    external: true
+
+volumes:
+  vmdata:
