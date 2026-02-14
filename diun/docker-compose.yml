@@ -18,8 +18,5 @@ services:
       - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=false
     networks:
       - backend
-    # 如果你也想让 Watchtower 自动更新 Diun，保留此标签
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
     security_opt:
       - no-new-privileges:true

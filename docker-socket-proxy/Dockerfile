@@ -1,9 +1,5 @@
-
-
 ARG VERSION=3.2.10
 FROM linuxserver/socket-proxy:${VERSION}
-
-
 
 LABEL maintainer="seaside <531773730@qq.com>"
 
@@ -80,5 +76,5 @@ ENV POST=1 \
     SYSTEM=0
 
 # 健康检查：通过 wget 访问 HAProxy 的 /_ping 接口确保服务可用
-HEALTHCHECK --interval=60s --timeout=5s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:2375/_ping || exit 1
