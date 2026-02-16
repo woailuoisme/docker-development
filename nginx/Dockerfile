@@ -1,4 +1,4 @@
-ARG NGINX_VERSION=1.29.4-trixie
+ARG NGINX_VERSION=1.29.5-trixie
 FROM jiaoio/nginx-base:${NGINX_VERSION}
 
 LABEL maintainer="seaside <seaside@qq.com>"

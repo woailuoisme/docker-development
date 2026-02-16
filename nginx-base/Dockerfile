@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG NGINX_VERSION=1.29.4-trixie
+ARG NGINX_VERSION=1.29.5-trixie
 FROM buildpack-deps:trixie AS builder
 
 ARG NGINX_VERSION
