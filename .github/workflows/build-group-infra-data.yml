@@ -39,7 +39,7 @@ on:
         default: '4.2-management'
       meili_version:
         description: 'Meilisearch 版本'
-        default: 'v1.33'
+        default: 'v1.35'
       pgbouncer_version:
         description: 'PgBouncer 版本'
         default: '1.25.1-1.pgdg13+1'
