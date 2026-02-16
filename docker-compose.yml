@@ -32,6 +32,7 @@ include:
   - go-access/docker-compose.yml    # 日志分析
   - dozzle/docker-compose.yml
   - docker-socket-proxy/docker-compose.yml
+  - 3xui/docker-compose.yml
 #  - arcane/docker-compose.yml
 #  - beszel/docker-compose.yml
 #  - beszel-agent/docker-compose.yml

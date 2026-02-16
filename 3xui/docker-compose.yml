@@ -1,0 +1,20 @@
+services:
+  3xui:
+    image: ghcr.io/mhsanaei/3x-ui:2.8.10
+    container_name: 3xui
+    volumes:
+      - ${DATA_PATH}3xui/db/:/etc/x-ui/
+      - ${DATA_PATH}3xui/cert/:/root/cert/
+    environment:
+      XRAY_VMESS_AEAD_FORCED: "false"
+      XUI_ENABLE_FAIL2BAN: "true"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:2053/"]
+      interval: 60s
+      timeout: 10s
+      retries: 1
+    tty: true
+    restart: always
+    networks:
+      - frontend
+      - backend
