@@ -1,6 +1,6 @@
 services:
   nginx-tester:
-    image: jiaoio/nginx-base:1.29.4-trixie
+    image: jiaoio/nginx-base:1.29.5-trixie
     container_name: nginx-perf-tester
     volumes:
       - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
