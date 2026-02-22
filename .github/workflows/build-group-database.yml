@@ -60,11 +60,11 @@ on:
       postgres17_trixie_version:
         description: 'PostgreSQL 17 Trixie 版本'
         required: false
-        default: '17.7-trixie'
+        default: '17.8-trixie'
       postgres18_trixie_version:
         description: 'PostgreSQL 18 Trixie 版本'
         required: false
-        default: '18.1-trixie'
+        default: '18.2-trixie'
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio

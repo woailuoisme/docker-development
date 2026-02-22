@@ -1,5 +1,5 @@
 ARG PHP_VERSION=8.5
-FROM jiaoio/php-base-franken-trixie:${PHP_VERSION}-latest
+FROM jiaoio/php${PHP_VERSION}-dev:franken-trixie
 
 ARG CHANGE_SOURCE=true
 

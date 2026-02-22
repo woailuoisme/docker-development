@@ -1,11 +1,6 @@
 ARG CHANGE_SOURCE=true
-# PHP-FPM 服务镜像 - 基于 php-base 镜像构建
-#FROM jiaoio/php-base-fpm
-#FROM jiaoio/php-base-fpm:8.5-fpm-latest
-#FROM quay.io/jiaoio/php-base-fpm
-#FROM ccr.ccs.tencentyun.com/jiaoio/php-base-fpm
 ARG PHP_VERSION=8.5
-FROM jiaoio/php-base-fpm-trixie:${PHP_VERSION}-latest
+FROM jiaoio/php${PHP_VERSION}-dev:fpm-trixie
 LABEL maintainer="seaside <531773730@qq.com>"
 
 # 动态用户ID支持

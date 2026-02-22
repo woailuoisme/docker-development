@@ -1,4 +1,4 @@
-ARG POSTGRES_VERSION=18.1-trixie
+ARG POSTGRES_VERSION=18.2-trixie
 FROM postgres:${POSTGRES_VERSION}
 LABEL maintainer="seaside <531773730@qq.com>"
 
@@ -21,9 +21,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get update
 
 # 定义扩展版本参数 (基于 PGDG Trixie 最新版 2026-01)
-ARG POSTGIS_VERSION=3.6.1+dfsg-1.pgdg13+1
+ARG POSTGIS_VERSION=3.6.2+dfsg-1.pgdg13+1
 ARG PGVECTOR_VERSION=0.8.1-2.pgdg13+1
-ARG TIMESCALEDB_VERSION=2.24.0+dfsg-1.pgdg13+1
+ARG TIMESCALEDB_VERSION=2.25.1+dfsg-1.pgdg13+1
 ARG PGCRON_VERSION=1.6.7-2.pgdg13+1
 
 # 安装扩展（从官方仓库安装最新稳定版）

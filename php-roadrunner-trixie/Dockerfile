@@ -1,5 +1,5 @@
 ARG PHP_VERSION=8.5
-FROM jiaoio/php-base-roadrunner-trixie:8.5-latest
+FROM jiaoio/php${PHP_VERSION}-dev:roadrunner-trixie
 
 ARG CHANGE_SOURCE=true
 
