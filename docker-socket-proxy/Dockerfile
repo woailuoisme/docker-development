@@ -1,4 +1,4 @@
-ARG VERSION=3.2.10
+ARG VERSION=3.2.12
 FROM linuxserver/socket-proxy:${VERSION}
 
 LABEL maintainer="seaside <531773730@qq.com>"

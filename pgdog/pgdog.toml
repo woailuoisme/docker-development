@@ -1,0 +1,10 @@
+[general]
+pooler_mode = "transaction"          # default transaction
+workers = 4                          # default 2
+healthcheck_interval = 30_000        # delaut 30
+
+[[databases]]
+name = "lunchbox"
+host = "postgres"
+port = 5432
+role = "primary"

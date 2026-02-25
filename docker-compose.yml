@@ -40,19 +40,22 @@ include:
 
   # --- DATABASES & STORAGE ---
 #  - postgres-alpine-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
-  - postgres-trixie-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
-#  - postgres-trixie-18/docker-compose-prod.yml   # 默认数据库 PostgreSQL 18
+#  - postgres-trixie-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
+  - postgres-trixie-18/docker-compose-prod.yml   # 默认数据库 PostgreSQL 18
   # - postgres17/docker-compose.yml # 备选版本
 #  - bytebase/docker-compose.yml
   - redis/docker-compose.yml        # 缓存
-  - valkey/docker-compose.yml        # 缓存
+  - etcd/docker-compose.yml        # 服务发现
+#  - valkey/docker-compose.yml        # 缓存
 #  - mysql8/docker-compose.yml       # MySQL 8.4
 #  - mongodb/docker-compose.yml      # MongoDB
   - minio/docker-compose.yml        # 对象存储
+#  - garage/docker-compose.yml
 #  - rustfs/docker-compose.yml        # 对象存储
   - meilisearch/docker-compose.yml  # 全文检索
 #  - rabbitmq/docker-compose.yml     # 消息队列
 #  - pgbouncer/docker-compose.yml    # PG 连接池
+#  - pgdog/docker-compose.yml
 #  - clickhouse/docker-compose.yml   # OLAP 数据库
 #  - influxdb/docker-compose.yml
 #  - influxdb-ui/docker-compose.yml
@@ -70,7 +73,7 @@ include:
   - php-roadrunner-trixie/docker-compose.yml # RoadRunner 引擎
   - php-horizon-trixie/docker-compose.yml    # 队列监控
   - php-schedule-trixie/docker-compose.yml   # 调度任务
-#  - php-franken-trixie/docker-compose.yml    # FrankenPHP 引擎
+  - php-franken-trixie/docker-compose.yml    # FrankenPHP 引擎
 #  - php-reverb-trixie/docker-compose.yml     # Laravel Reverb
 #  - homepage/docker-compose.yml      # 仪表盘
 #  - gotify/docker-compose.yml       # 通知推送 (Gotify)
@@ -80,13 +83,13 @@ include:
 #  - mosquitto/docker-compose.yml    # MQTT 代理
 
   # --- IOT & VISUALIZATION ---
-  - mosquitto/docker-compose.yml
-  - telegraf/docker-compose.yml     # 数据采集
-  - grafana/docker-compose.yml       # 数据可视化
+#  - simulators/docker-compose.yml
+#  - mosquitto/docker-compose.yml
+#  - telegraf/docker-compose.yml     # 数据采集
+#  - grafana/docker-compose.yml       # 数据可视化
   # - influxdb/docker-compose.yml      # 时序数据库
   # - influxdb-ui/docker-compose.yml   # InfluxDB 管理界面
 #  - node-red/docker-compose.yml      # 流程编排
-  - simulators/docker-compose.yml
 
   # --- MONITORING & WEBSITES ---
   # - beszel/docker-compose.yml       # 服务器监控 Hub
@@ -94,3 +97,4 @@ include:
   # - docs/docker-compose.yml         # 项目文档
 #  - gitea/docker-compose.yml
 #  - wordpress/docker-compose.yml
+#  - librespeed/docker-compose.yml

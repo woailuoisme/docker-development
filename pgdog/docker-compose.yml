@@ -1,0 +1,14 @@
+services:
+  pgdog:
+    image: ghcr.io/pgdogdev/pgdog:0.1.30
+    container_name: pgdog
+    ports:
+      - "6432:6432"
+    volumes:
+      - ${CONFIG_PATH}pgdog/pgdog.toml:/pgdog/pgdog.toml:ro
+      - ${CONFIG_PATH}pgdog/users.toml:/pgdog/users.toml:ro
+    depends_on:
+      - postgres
+    restart: always
+    networks:
+      - backend

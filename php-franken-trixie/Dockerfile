@@ -1,5 +1,5 @@
 ARG PHP_VERSION=8.5
-FROM jiaoio/php${PHP_VERSION}-dev:franken-trixie
+FROM jiaoio/php${PHP_VERSION}:franken-trixie
 
 ARG CHANGE_SOURCE=true
 
@@ -44,25 +44,6 @@ RUN chmod +x /usr/local/bin/startup.sh
 # 复制健康检查脚本
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh
 RUN chmod +x /usr/local/bin/healthcheck.sh
-
-# 创建 Caddy/FrankenPHP 所需的目录并设置权限
-RUN mkdir -p /data/caddy \
-    && mkdir -p /config/caddy \
-    && mkdir -p /home/www-data/.local/share/caddy \
-    && mkdir -p /home/www-data/.config/caddy \
-    && chown -R www-data:www-data /data/caddy \
-    && chown -R www-data:www-data /config/caddy \
-    && chown -R www-data:www-data /home/www-data/.local \
-    && chown -R www-data:www-data /home/www-data/.config
-
-# 创建 .ssh 目录并添加 GitHub、Gitee 主机指纹（用于挂载SSH密钥）
-RUN mkdir -p /home/www-data/.ssh \
-    && chown -R www-data:www-data /home/www-data/.ssh \
-    && chmod 700 /home/www-data/.ssh \
-    && ssh-keyscan github.com >> /home/www-data/.ssh/known_hosts \
-    && ssh-keyscan gitee.com >> /home/www-data/.ssh/known_hosts \
-    && chown www-data:www-data /home/www-data/.ssh/known_hosts \
-    && chmod 644 /home/www-data/.ssh/known_hosts
 
 # 健康检测配置
 HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 \

@@ -1,6 +1,6 @@
 services:
   caddy:
-    image: jiaoio/caddy:latest-latest
+    image: jiaoio/caddy:latest
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
       - AWS_ACCESS_KEY_ID=${ALIYUN_ACCESS_KEY_ID}
@@ -11,7 +11,6 @@ services:
       - "80:80"
       - "443:443"
       - "443:443/udp"
-      - "8080:8080"
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       - ${CONFIG_PATH}caddy:/etc/caddy

@@ -1,0 +1,16 @@
+services:
+  librespeed:
+    image: linuxserver/librespeed:5.5.1
+    container_name: librespeed
+    environment:
+      - PUID=1000          # 你的用户 ID
+      - PGID=1000          # 你的组 ID
+      - TZ=Asia/shanghai   # 时区
+#      - PASSWORD=yourpassword  # 可选：设置访问密码保护页面
+    volumes:
+#      - ${CONFIG_PATH}librespeed/config:/config  # 持久化配置（主题、密码等）
+    ports:
+      - "9180:8080"              # 映射到主机 8080 端口
+    restart: unless-stopped
+    networks:
+      - frontend

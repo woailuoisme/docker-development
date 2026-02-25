@@ -1,0 +1,39 @@
+metadata_dir = "/tmp/meta"                     # 元数据目录，建议放在更快的磁盘
+data_dir = "/tmp/data"                         # 数据目录，单节点可与元数据同盘
+metadata_snapshots_dir = "/tmp/meta-snapshots" # 元数据快照目录，建议与元数据盘区分
+db_engine = "lmdb"                             # 默认且性能更优
+metadata_auto_snapshot_interval = "6h"         # 定时快照，降低断电损坏风险
+metadata_fsync = true                          # 强一致性写入保障
+data_fsync = false                             # 单节点开发环境可关闭以提升写入性能
+
+replication_factor = 1                         # 单节点模式
+compression_level = 1                          # 低开销压缩，兼顾性能与空间
+block_size = "1M"                              # 默认块大小，适合通用场景
+block_ram_buffer_max = "256MiB"                # 块缓存上限，适合小内存环境
+block_max_concurrent_reads = 16                # 读取并发限制
+block_max_concurrent_writes_per_request = 10   # 单请求写入并发限制
+lmdb_map_size = "1T"                           # LMDB 映射上限，按容量预留
+allow_world_readable_secrets = false           # 禁止弱权限密钥文件
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+rpc_secret = "83ed026cdbcff2961ae7959ed147c7a8bfc7ebcd2dc2343e553bb53fd923b577"
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+root_domain = ".s3.test.local"
+
+[s3_web]
+bind_addr = "[::]:3902"
+root_domain = ".web.test.local"
+index = "index.html"
+
+[admin]
+api_bind_addr = "[::]:3903"
+admin_token = "ss0nVNSi0ekemzCpbC2DryyP84eD6hd3UAiHXBF+hv8="
+metrics_token = "P4BlCZbsxl5q7x7oD+Jv9/OVT9amVQJ7A7LsbcXS27Y="
+metrics_require_token = true                   # 管理指标接口需要鉴权
+
+[k2v_api]
+api_bind_addr = "[::]:3904"

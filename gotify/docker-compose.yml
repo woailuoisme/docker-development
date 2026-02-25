@@ -1,6 +1,6 @@
 services:
   gotify:
-    image: gotify/server:2.8
+    image: gotify/server:2.9
     container_name: gotify
     restart: always
     ports:
