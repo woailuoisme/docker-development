@@ -22,7 +22,7 @@ rpc_secret = "83ed026cdbcff2961ae7959ed147c7a8bfc7ebcd2dc2343e553bb53fd923b577"
 [s3_api]
 s3_region = "garage"
 api_bind_addr = "[::]:3900"
-root_domain = ".s3.test.local"
+#root_domain = ".s3.test.local"
 
 [s3_web]
 bind_addr = "[::]:3902"

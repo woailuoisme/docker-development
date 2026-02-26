@@ -12,6 +12,8 @@ services:
     volumes:
       - ${CONFIG_PATH}garage/garage.toml:/etc/garage.toml:ro
       - ${DATA_PATH}garage:/tmp
+    depends_on:
+      - garage-webui
     networks:
       - backend
     # 可选：调试日志
@@ -19,7 +21,7 @@ services:
     #   - RUST_LOG=garage=debug,garage_api=trace
 
   garage-webui:
-    image: khairul169/garage-webui:latest
+    image: khairul169/garage-webui:1.1.0
     container_name: garage-webui
     restart: unless-stopped
     volumes:
@@ -27,9 +29,7 @@ services:
     ports:
       - "3909:3909"
     environment:
-      API_BASE_URL: "http://garage:3903"
       S3_ENDPOINT_URL: "http://garage:3900"
-    depends_on:
-      - garage
+      API_BASE_URL: "http://garage:3903"
     networks:
       - backend

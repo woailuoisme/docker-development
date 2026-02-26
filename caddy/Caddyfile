@@ -23,6 +23,11 @@ import proxy-octane-app-auth rest.{$SITE_ADDRESS} php-roadrunner:8001
 
 import proxy-app mo.{$SITE_ADDRESS} minio:9001
 import proxy-app mos.{$SITE_ADDRESS} minio:9000
+
+import proxy-app s3.{$SITE_ADDRESS} garage:3900
+import proxy-app s3.web.{$SITE_ADDRESS} garage:3902
+import proxy-app-auth s3-admin.{$SITE_ADDRESS} garage-webui:3909
+
 #import proxy-app push.{$SITE_ADDRESS} centrifugo:8000
 #import proxy-app msg.{$SITE_ADDRESS} gotify:80
 import proxy-app grafana.{$SITE_ADDRESS} grafana:3000
