@@ -42,7 +42,7 @@ on:
         default: 'v1.37.0'
       pgbouncer_version:
         description: 'PgBouncer 版本'
-        default: '1.25.1-1.pgdg13+1'
+        default: '1.25.1'
       socket_proxy_version:
         description: 'Socket Proxy 版本'
         default: '3.2.13'
@@ -72,7 +72,7 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_rabbitmq }}" == "true" ]] && add_task "rabbitmq" "./rabbitmq" "rabbitmq" "${{ inputs.rabbitmq_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_meilisearch }}" == "true" ]] && add_task "meilisearch" "./meilisearch" "meilisearch" "${{ inputs.meili_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgbouncer }}" == "true" ]] && add_task "pgbouncer" "./pgbouncer" "pgbouncer" "${{ inputs.pgbouncer_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_socket_proxy }}" == "true" ]] && add_task "socket-proxy" "./docker-proxy" "socket-proxy" "${{ inputs.socket_proxy_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_socket_proxy }}" == "true" ]] && add_task "socket-proxy" "./socket-proxy" "socket-proxy" "${{ inputs.socket_proxy_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_garage }}" == "true" ]] && add_task "garage" "./garage" "garage" "${{ inputs.garage_version }}"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
@@ -101,7 +101,6 @@ jobs:
             MINIO_VERSION=${{ matrix.version }}
             RABBITMQ_VERSION=${{ matrix.version }}
             MEILI_VERSION=${{ matrix.version }}
-            PGBOUNCER_VERSION=${{ matrix.version }}
             SOCKET_PROXY_VERSION=${{ matrix.version }}
             GARAGE_VERSION=${{ matrix.version }}
             CHANGE_SOURCE=false
