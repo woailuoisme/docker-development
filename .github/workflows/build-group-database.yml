@@ -38,12 +38,6 @@ on:
         type: boolean
         default: false
       
-      # === 通用参数 ===
-      tag:
-        description: '镜像标签 (e.g., latest)'
-        required: true
-        default: 'latest'
-
       # === 版本参数 ===
       mysql_version:
         description: 'MySQL 版本'
@@ -148,7 +142,5 @@ jobs:
              POSTGRES_VERSION=${{ matrix.version }}
              CHANGE_SOURCE=false
           tags: |
-            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}
-            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}
             ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}

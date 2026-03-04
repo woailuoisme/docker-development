@@ -38,11 +38,6 @@ on:
         type: boolean
         default: false
       
-      # === 通用参数 ===
-      tag:
-        description: '镜像标签 (e.g., latest)'
-        required: true
-        default: 'latest'
       php_version:
         description: 'PHP 基础版本 (默认: 8.5)'
         required: false
@@ -117,7 +112,5 @@ jobs:
             PHP_VERSION=${{ inputs.php_version }}
             CHANGE_SOURCE=false
           tags: |
-            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ inputs.php_version }}-${{ inputs.tag }}
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ inputs.php_version }}
-            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ inputs.php_version }}-${{ inputs.tag }}
             ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ inputs.php_version }}
