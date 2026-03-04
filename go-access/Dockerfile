@@ -1,4 +1,4 @@
-ARG GOACCESS_VERSION=latest
+ARG GOACCESS_VERSION=1.10.1
 FROM allinurl/goaccess:${GOACCESS_VERSION}
 
 ENV TZ=Asia/Shanghai \

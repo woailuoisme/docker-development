@@ -1,5 +1,5 @@
-ARG VERSION=3.2.12
-FROM linuxserver/socket-proxy:${VERSION}
+ARG SOCKET_PROXY_VERSION=3.2.13
+FROM linuxserver/socket-proxy:${SOCKET_PROXY_VERSION}
 
 LABEL maintainer="seaside <531773730@qq.com>"
 

@@ -2,6 +2,8 @@ services:
   authelia:
     build:
       context: .
+      args:
+        - AUTHELIA_VERSION=4.39
     container_name: authelia
     restart: always
     ports:

@@ -1,4 +1,5 @@
-FROM eclipse-mosquitto:2.0.22-openssl
+ARG MOSQUITTO_VERSION=2.1.2-alpine
+FROM eclipse-mosquitto:${MOSQUITTO_VERSION}
 
 ARG CHANGE_SOURCE=true
 ARG TIMEZONE=Asia/Shanghai

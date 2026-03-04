@@ -3,7 +3,7 @@ services:
     build:
       context: .
       args:
-        - MONGO_VERSION=${MONGO_VERSION:-8.0}
+        - MONGO_VERSION=${MONGO_VERSION:-8.2.5}
     container_name: mongodb
     restart: always
     environment:

@@ -2,6 +2,8 @@ services:
   garage:
     build:
       context: .
+      args:
+        - GARAGE_VERSION=v2.2.0
     container_name: garage
     restart: unless-stopped
     ports:

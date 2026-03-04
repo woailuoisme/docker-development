@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - ACME_VERSION=3.1.2
     container_name: acme
     environment:
       - DNS_PROVIDER=${DNS_PROVIDER:-cloudflare}

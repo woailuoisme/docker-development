@@ -1,4 +1,4 @@
-ARG RABBITMQ_VERSION=4.2-management
+ARG RABBITMQ_VERSION=4.2.4-management
 FROM rabbitmq:${RABBITMQ_VERSION}
 
 LABEL maintainer="seaside <531773730@qq.com>"

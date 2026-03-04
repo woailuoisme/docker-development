@@ -1,4 +1,4 @@
-ARG MEILI_VERSION=v1.35
+ARG MEILI_VERSION=v1.37.0
 FROM getmeili/meilisearch:${MEILI_VERSION}
 
 ARG TIMEZONE=Asia/Shanghai

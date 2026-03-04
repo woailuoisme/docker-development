@@ -2,6 +2,8 @@ services:
   docker-socket-proxy:
     build:
       context: .
+      args:
+        - SOCKET_PROXY_VERSION=${SOCKET_PROXY_VERSION:-3.2.13}
     container_name: docker-socket-proxy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro

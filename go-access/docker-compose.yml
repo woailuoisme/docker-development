@@ -2,6 +2,8 @@ services:
   go-access:
     build:
       context: .
+      args:
+        - GOACCESS_VERSION=1.10.1
     container_name: go-access
     restart: always
     volumes:

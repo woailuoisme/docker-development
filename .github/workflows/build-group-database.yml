@@ -44,27 +44,27 @@ on:
       mysql_version:
         description: 'MySQL 版本'
         required: false
-        default: '8.4'
+        default: '8.4.8'
       mongo_version:
         description: 'MongoDB 版本'
         required: false
-        default: '8.0'
+        default: '8.2.5'
       redis_version:
         description: 'Redis 版本'
         required: false
-        default: '8.6-trixie'
+        default: '8.6.1-trixie'
       valkey_version:
         description: 'Valkey 版本'
         required: false
-        default: '9.0.1'
+        default: '9.0.3-trixie'
       postgres17_trixie_version:
         description: 'PostgreSQL 17 Trixie 版本'
         required: false
-        default: '17.8-trixie'
+        default: '17.9-trixie'
       postgres18_trixie_version:
         description: 'PostgreSQL 18 Trixie 版本'
         required: false
-        default: '18.2-trixie'
+        default: '18.3-trixie'
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio

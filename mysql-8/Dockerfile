@@ -1,4 +1,4 @@
-ARG MYSQL_VERSION=8.4
+ARG MYSQL_VERSION=8.4.8
 FROM mysql:${MYSQL_VERSION}
 
 LABEL maintainer="Seaside"

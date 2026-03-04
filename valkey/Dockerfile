@@ -1,4 +1,5 @@
-FROM valkey/valkey:9.0.2-trixie
+ARG VALKEY_VERSION=9.0.3-trixie
+FROM valkey/valkey:${VALKEY_VERSION}
 
 # 设置时区并准备目录
 ENV TZ=Asia/Shanghai

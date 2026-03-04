@@ -1,4 +1,5 @@
-FROM ghcr.io/getarcaneapp/arcane:latest
+ARG ARCANE_VERSION=v1.15.3
+FROM ghcr.io/getarcaneapp/arcane:${ARCANE_VERSION}
 
 # ============================================
 # 环境变量配置

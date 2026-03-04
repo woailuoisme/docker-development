@@ -1,4 +1,4 @@
-ARG MONGO_VERSION=8.0
+ARG MONGO_VERSION=8.2.5
 FROM mongo:${MONGO_VERSION}
 
 LABEL maintainer="seaside <531773730@qq.com>"

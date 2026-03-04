@@ -31,17 +31,17 @@ include:
   - authelia/docker-compose.yml     # 鉴权
   - go-access/docker-compose.yml    # 日志分析
   - dozzle/docker-compose.yml
-  - docker-socket-proxy/docker-compose.yml
+  - socket-proxy/docker-compose.yml
 #  - 3xui/docker-compose.yml
-#  - arcane/docker-compose.yml
+  - arcane/docker-compose.yml
 #  - beszel/docker-compose.yml
 #  - beszel-agent/docker-compose.yml
 #  - docker-proxy/docker-compose.yml # Docker Socket 代理
 
   # --- DATABASES & STORAGE ---
 #  - postgres-alpine-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
-#  - postgres-trixie-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
-  - postgres-trixie-18/docker-compose-prod.yml   # 默认数据库 PostgreSQL 18
+  - postgres-trixie-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
+#  - postgres-trixie-18/docker-compose-prod.yml   # 默认数据库 PostgreSQL 18
   # - postgres17/docker-compose.yml # 备选版本
 #  - bytebase/docker-compose.yml
   - redis/docker-compose.yml        # 缓存
@@ -94,6 +94,7 @@ include:
   # --- MONITORING & WEBSITES ---
   # - beszel/docker-compose.yml       # 服务器监控 Hub
   # - beszel-agent/docker-compose.yml # 服务器监控 Agent
+  - glances/docker-compose.yml
   # - docs/docker-compose.yml         # 项目文档
 #  - gitea/docker-compose.yml
 #  - wordpress/docker-compose.yml

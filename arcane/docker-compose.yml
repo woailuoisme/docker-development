@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - ARCANE_VERSION=v1.15.3
     ports:
       - '3552:3552'
     volumes:
@@ -15,6 +17,8 @@ services:
     restart: unless-stopped
     environment:
       - DOCKER_HOST=tcp://docker-socket-proxy:2375
+      - ENCRYPTION_KEY=TtQR8Lsn8ltqxC8OeUD127FsVvg7fW2GihUzSnBO/zQ=
+      - JWT_SECRET=Gx2/hJ/i9YUgNBcvsuN5tccDkd3BOKFfRJd9XWpkSoM=
     depends_on:
       - docker-socket-proxy
     networks:

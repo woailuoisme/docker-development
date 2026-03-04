@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       build_all:
-        description: '🚀 构建所有数据服务'
+        description: '构建所有数据服务'
         type: boolean
         default: false
       build_minio:
@@ -23,7 +23,11 @@ on:
         type: boolean
         default: false
       build_socket_proxy:
-        description: '构建 Docker Socket Proxy'
+        description: '构建Socket Proxy'
+        type: boolean
+        default: false
+      build_garage:
+        description: '构建 Garage'
         type: boolean
         default: false
       tag:
@@ -36,16 +40,19 @@ on:
         default: 'latest'
       rabbitmq_version:
         description: 'RabbitMQ 版本'
-        default: '4.2-management'
+        default: '4.2.4-management'
       meili_version:
         description: 'Meilisearch 版本'
-        default: 'v1.35'
+        default: 'v1.37.0'
       pgbouncer_version:
         description: 'PgBouncer 版本'
         default: '1.25.1-1.pgdg13+1'
       socket_proxy_version:
-        description: 'Docker Socket Proxy 版本'
-        default: 'v0.4.2'
+        description: 'Socket Proxy 版本'
+        default: '3.2.13'
+      garage_version:
+        description: 'Garage 版本'
+        default: 'v2.2.0'
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio
@@ -69,7 +76,8 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_rabbitmq }}" == "true" ]] && add_task "rabbitmq" "./rabbitmq" "rabbitmq" "${{ inputs.rabbitmq_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_meilisearch }}" == "true" ]] && add_task "meilisearch" "./meilisearch" "meilisearch" "${{ inputs.meili_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgbouncer }}" == "true" ]] && add_task "pgbouncer" "./pgbouncer" "pgbouncer" "${{ inputs.pgbouncer_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_socket_proxy }}" == "true" ]] && add_task "docker-socket-proxy" "./docker-proxy" "docker-socket-proxy" "${{ inputs.socket_proxy_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_socket_proxy }}" == "true" ]] && add_task "socket-proxy" "./docker-proxy" "socket-proxy" "${{ inputs.socket_proxy_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_garage }}" == "true" ]] && add_task "garage" "./garage" "garage" "${{ inputs.garage_version }}"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
@@ -99,6 +107,7 @@ jobs:
             MEILI_VERSION=${{ matrix.version }}
             PGBOUNCER_VERSION=${{ matrix.version }}
             SOCKET_PROXY_VERSION=${{ matrix.version }}
+            GARAGE_VERSION=${{ matrix.version }}
             CHANGE_SOURCE=false
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}-${{ inputs.tag }}

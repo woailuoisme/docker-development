@@ -1,4 +1,5 @@
-FROM grafana/grafana:12.3-ubuntu
+ARG GRAFANA_VERSION=12.3-ubuntu
+FROM grafana/grafana:${GRAFANA_VERSION}
 
 ARG CHANGE_SOURCE=true
 ARG TIMEZONE=Asia/Shanghai

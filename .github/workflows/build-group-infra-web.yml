@@ -42,7 +42,7 @@ on:
         default: 'v5.2.2'
       goaccess_version:
         description: 'GoAccess 版本'
-        default: 'latest'
+        default: '1.10.1'
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio

@@ -4,7 +4,7 @@ services:
       context: .
       args:
         - TIMEZONE=${TIMEZONE:-Asia/Shanghai}
-        - MEILI_VERSION=${MEILI_VERSION:-v1.33}
+        - MEILI_VERSION=${MEILI_VERSION:-v1.37.0}
     container_name: meilisearch
     restart: always
     command: meilisearch --config-file-path /meili_config/config.toml

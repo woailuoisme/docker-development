@@ -1,4 +1,5 @@
-FROM henrygd/beszel:latest
+ARG BESZEL_VERSION=0.18.4
+FROM henrygd/beszel:${BESZEL_VERSION}
 
 # ============================================
 # 环境变量配置

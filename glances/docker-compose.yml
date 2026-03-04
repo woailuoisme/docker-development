@@ -1,0 +1,17 @@
+services:
+  glances:
+    image: nicolargo/glances:latest-full          # 或 ubuntu-latest-full
+    container_name: glances
+    restart: unless-stopped
+    privileged: true                              # 插件如 sensors/GPU 需要
+    pid: host
+#    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - TZ=Asia/Tokyo
+      - GLANCES_OPT=-w                            # Web 模式
+      # - GLANCES_OPT=-w --password 你的密碼     # 加基本驗證（推薦）
+    ports:
+      - "61208:61208"                             # 必須暴露，否則外部連不到 Web UI
+      - "61209:61209"                             # API 選用

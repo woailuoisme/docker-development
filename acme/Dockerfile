@@ -1,4 +1,5 @@
-FROM neilpang/acme.sh:3.1.2
+ARG ACME_VERSION=3.1.2
+FROM neilpang/acme.sh:${ACME_VERSION}
 
 LABEL maintainer="seaside <531773730@qq.com>"
 
