@@ -33,6 +33,10 @@ on:
         description: '构建 PostgreSQL 18 (Trixie)'
         type: boolean
         default: false
+      build_postgres_18_no_tsdb:
+        description: '构建 PostgreSQL 18 (No-TSDB)'
+        type: boolean
+        default: false
       
       # === 通用参数 ===
       tag:
@@ -63,6 +67,10 @@ on:
         default: '17.9-trixie'
       postgres18_trixie_version:
         description: 'PostgreSQL 18 Trixie 版本'
+        required: false
+        default: '18.3-trixie'
+      postgres18_no_tsdb_version:
+        description: 'PostgreSQL 18 No-TSDB 版本'
         required: false
         default: '18.3-trixie'
 
@@ -96,6 +104,8 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_valkey }}" == "true" ]] && add_task "valkey" "./valkey" "valkey" "${{ inputs.valkey_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17_trixie }}" == "true" ]] && add_task "postgres-17-trixie" "./postgres-trixie-17" "postgres" "${{ inputs.postgres17_trixie_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_trixie }}" == "true" ]] && add_task "postgres-18-trixie" "./postgres-trixie-18" "postgres" "${{ inputs.postgres18_trixie_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_no_tsdb }}" == "true" ]] && add_task "postgres-18-no-tsdb" "./postgres-trixie-18-no-tsdb" "postgres-no-tsdb" "${{ inputs.postgres18_no_tsdb_version }}"
+
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
