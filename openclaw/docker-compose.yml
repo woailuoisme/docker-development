@@ -2,12 +2,12 @@ services:
   openclaw:
     image: ghcr.io/openclaw/openclaw:2026.3.2
     container_name: openclaw
-    restart: unless-stopped
+    restart: always
     ports:
       - "18790:18790"                      # webhook 端口，聊天软件连这个
     volumes:
-      - ~/.openclaw:/home/node/.openclaw   # 持久化配置、token、记忆等
       - /var/run/docker.sock:/var/run/docker.sock:ro   # 如果要用 sandbox 访问 host Docker（可选，安全起见可去掉）
+      - ${CONFIG_PATH}openclaw/config:/home/node/.openclaw   # 持久化配置、token、记忆等
     environment:
       - NODE_ENV=production
       # 加你的 LLM key 如果不想 onboarding 里填（可选）
@@ -19,3 +19,5 @@ services:
     #   interval: 30s
     #   timeout: 10s
     #   retries: 3
+    networks:
+      - frontend

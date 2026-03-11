@@ -37,6 +37,8 @@ include:
 #  - beszel/docker-compose.yml
 #  - beszel-agent/docker-compose.yml
 #  - docker-proxy/docker-compose.yml # Docker Socket 代理
+  - prunemate/docker-compose.yml
+#  - openclaw/docker-compose.yml
 
   # --- DATABASES & STORAGE ---
 #  - postgres-alpine-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
@@ -45,7 +47,7 @@ include:
   # - postgres17/docker-compose.yml # 备选版本
 #  - bytebase/docker-compose.yml
   - redis/docker-compose.yml        # 缓存
-  - etcd/docker-compose.yml        # 服务发现
+#  - etcd/docker-compose.yml        # 服务发现
 #  - valkey/docker-compose.yml        # 缓存
 #  - mysql8/docker-compose.yml       # MySQL 8.4
 #  - mongodb/docker-compose.yml      # MongoDB
@@ -94,7 +96,7 @@ include:
   # --- MONITORING & WEBSITES ---
   # - beszel/docker-compose.yml       # 服务器监控 Hub
   # - beszel-agent/docker-compose.yml # 服务器监控 Agent
-  - glances/docker-compose.yml
+#  - glances/docker-compose.yml
   # - docs/docker-compose.yml         # 项目文档
 #  - gitea/docker-compose.yml
 #  - wordpress/docker-compose.yml

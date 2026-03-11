@@ -1,0 +1,20 @@
+services:
+  prunemate:
+    image: anoniemerd/prunemate:1.3.3
+    container_name: prunemate
+    ports:
+      - "7676:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/var/log
+      - ./config:/config
+    environment:
+      - PRUNEMATE_TZ=Asia/shanghai # Change this to your desired timezone
+      - PRUNEMATE_TIME_24H=true #false for 12-Hour format (AM/PM)
+      # Optional: Enable authentication (generate hash with: docker run --rm anoniemerd/prunemate python prunemate.py --gen-hash "password")
+      # Admin123!
+      - PRUNEMATE_AUTH_USER=admin
+      - PRUNEMATE_AUTH_PASSWORD_HASH=c2NyeXB0OjMyNzY4Ojg6MSRrVk1neThSZ2VDNG5FVzNWJDVmNDYyYmJmNWQ0OWQzNWYxYjQxMjIzYjFmMWQ2YTVlOGU1YzIxMzg2NjZjYjQ1OWNhYzI4YTllYjc2NTU4ODAxNmUzNzcwMzk2YjE1NjgyZTY2MTVhMWMwZmJjMWU2NjBkMzg5OTJjZGMwMzk2YTIwY2QxNWY0YWViOTc5OTcx
+    restart: unless-stopped
+    networks:
+      - frontend

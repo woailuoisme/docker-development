@@ -1,0 +1,14 @@
+services:
+  dockge:
+    image: louislam/dockge:1.5.0
+    container_name: dockge
+    restart: always
+    ports:
+      - "5001:5001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data
+      - /opt/stacks:/opt/stacks
+    environment:
+      # 告诉 Dockge 你的 Stacks 存放目录
+      - DOCKGE_STACKS_DIRECTORY=/opt/stacks

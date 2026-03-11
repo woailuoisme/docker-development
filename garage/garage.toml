@@ -33,7 +33,7 @@ index = "index.html"
 api_bind_addr = "[::]:3903"
 admin_token = "ss0nVNSi0ekemzCpbC2DryyP84eD6hd3UAiHXBF+hv8="
 metrics_token = "P4BlCZbsxl5q7x7oD+Jv9/OVT9amVQJ7A7LsbcXS27Y="
-metrics_require_token = true                   # 管理指标接口需要鉴权
+metrics_require_token = true
 
 [k2v_api]
 api_bind_addr = "[::]:3904"
