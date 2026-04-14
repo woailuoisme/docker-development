@@ -6,8 +6,8 @@ services:
       - "7676:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./logs:/var/log
-      - ./config:/config
+      - ${LOG_PATH}prunemate/logs:/var/log
+      - ${CONFIG_PATH}prunemate/config:/config
     environment:
       - PRUNEMATE_TZ=Asia/shanghai # Change this to your desired timezone
       - PRUNEMATE_TIME_24H=true #false for 12-Hour format (AM/PM)
