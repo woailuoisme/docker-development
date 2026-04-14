@@ -9,32 +9,32 @@ on:
         type: boolean
         default: false
       
-      build_php_fpm_trixie:
-        description: '构建 PHP-FPM-Trixie'
+      build_php_fpm:
+        description: '构建 PHP-FPM'
         type: boolean
         default: false
-      build_php_franken_trixie:
-        description: '构建 PHP-Franken-Trixie'
+      build_php_franken:
+        description: '构建 PHP-Franken'
         type: boolean
         default: false
-      build_php_horizon_trixie:
-        description: '构建 PHP-Horizon-Trixie'
+      build_php_horizon:
+        description: '构建 PHP-Horizon'
         type: boolean
         default: false
-      build_php_roadrunner_trixie:
-        description: '构建 PHP-RoadRunner-Trixie'
+      build_php_roadrunner:
+        description: '构建 PHP-RoadRunner'
         type: boolean
         default: false
-      build_php_reverb_trixie:
-        description: '构建 PHP-Reverb-Trixie'
+      build_php_reverb:
+        description: '构建 PHP-Reverb'
         type: boolean
         default: false
-      build_php_schedule_trixie:
-        description: '构建 PHP-Schedule-Trixie'
+      build_php_schedule:
+        description: '构建 PHP-Schedule'
         type: boolean
         default: false
-      build_php_worker_trixie:
-        description: '构建 PHP-Worker-Trixie'
+      build_php_worker:
+        description: '构建 PHP-Worker'
         type: boolean
         default: false
       
@@ -67,13 +67,13 @@ jobs:
           
           BUILD_ALL=${{ inputs.build_all }}
           
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_fpm_trixie }}" == "true" ]] && add_task "php-fpm-trixie" "./php-fpm-tirxie" "php-fpm-trixie" "fpm"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_franken_trixie }}" == "true" ]] && add_task "php-franken-trixie" "./php-franken-trixie" "php-franken-trixie" "franken"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_horizon_trixie }}" == "true" ]] && add_task "php-horizon-trixie" "./php-horizon-trixie" "php-horizon-trixie" "horizon"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_roadrunner_trixie }}" == "true" ]] && add_task "php-roadrunner-trixie" "./php-roadrunner-trixie" "php-roadrunner-trixie" "roadrunner"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_reverb_trixie }}" == "true" ]] && add_task "php-reverb-trixie" "./php-reverb-trixie" "php-reverb-trixie" "reverb"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_schedule_trixie }}" == "true" ]] && add_task "php-schedule-trixie" "./php-schedule-trixie" "php-schedule-trixie" "schedule"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_worker_trixie }}" == "true" ]] && add_task "php-worker-trixie" "./php-worker-trixie" "php-worker-trixie" "worker"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_fpm }}" == "true" ]] && add_task "php-fpm" "./php-fpm" "php-fpm" "fpm"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_franken }}" == "true" ]] && add_task "php-franken" "./php-franken" "php-franken" "franken"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_horizon }}" == "true" ]] && add_task "php-horizon" "./php-horizon" "php-horizon" "horizon"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_roadrunner }}" == "true" ]] && add_task "php-roadrunner" "./php-roadrunner" "php-roadrunner" "roadrunner"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_reverb }}" == "true" ]] && add_task "php-reverb" "./php-reverb" "php-reverb" "reverb"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_schedule }}" == "true" ]] && add_task "php-schedule" "./php-schedule" "php-schedule" "schedule"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_worker }}" == "true" ]] && add_task "php-worker" "./php-worker" "php-worker" "worker"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 

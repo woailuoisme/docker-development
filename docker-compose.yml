@@ -38,7 +38,7 @@ include:
 #  - beszel-agent/docker-compose.yml
 #  - docker-proxy/docker-compose.yml # Docker Socket 代理
 #  - prunemate/docker-compose.yml
-  - openclaw/docker-compose.yml
+  # - openclaw/docker-compose.yml
 #  - pocketbase/docker-compose.yml
 
   # --- DATABASES & STORAGE ---
@@ -73,12 +73,12 @@ include:
 #  - php-reverb/docker-compose.yml     # Laravel Reverb
 
   # --- PHP RUNTIME (Laravel/Octane) trixie ---
-  - php-fpm-tirxie/docker-compose.yml      # 标准 FPM
-  - php-roadrunner-trixie/docker-compose.yml # RoadRunner 引擎
-  - php-horizon-trixie/docker-compose.yml    # 队列监控
-  - php-schedule-trixie/docker-compose.yml   # 调度任务
-  - php-franken-trixie/docker-compose.yml    # FrankenPHP 引擎
-#  - php-reverb-trixie/docker-compose.yml     # Laravel Reverb
+  - php-fpm/docker-compose.yml      # 标准 FPM
+  - php-roadrunner/docker-compose.yml # RoadRunner 引擎
+  - php-horizon/docker-compose.yml    # 队列监控
+  - php-schedule/docker-compose.yml   # 调度任务
+  # - php-franken/docker-compose.yml    # FrankenPHP 引擎
+#  - php-reverb/docker-compose.yml     # Laravel Reverb
 #  - homepage/docker-compose.yml      # 仪表盘
 #  - gotify/docker-compose.yml       # 通知推送 (Gotify)
 #  - ntfy/docker-compose.yml         # 通知推送 (Ntfy)
