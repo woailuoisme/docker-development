@@ -13,4 +13,3 @@ CMD ["/usr/local/bin/startup.sh"]
 
 HEALTHCHECK --interval=60s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8888/health || exit 1
-

@@ -1,0 +1,15 @@
+services:
+  filebrowser:
+    image: filebrowser/filebrowser:v2.61.2
+    container_name: filebrowser
+    restart: always
+    ports:
+      - "18880:80"
+    environment:
+      - TZ=Asia/Shanghai
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${DATA_PATH}filebrowser/files:/srv
+      - ${DATA_PATH}filebrowser/database:/database
+      - ${CONFIG_PATH}filebrowser/config:/config

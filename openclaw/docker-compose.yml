@@ -1,23 +1,21 @@
 services:
   openclaw:
-    image: ghcr.io/openclaw/openclaw:2026.3.2
-    container_name: openclaw
-    restart: always
+    image: ghcr.io/openclaw/openclaw:2026.4.11-slim
+    container_name: openclaw-gateway
+    restart: unless-stopped
     ports:
-      - "18790:18790"                      # webhook 端口，聊天软件连这个
+      - "18789:18789" # Web 管理界面
+      - "18790:18790" # 插件服务端口
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro   # 如果要用 sandbox 访问 host Docker（可选，安全起见可去掉）
-      - ${CONFIG_PATH}openclaw/config:/home/node/.openclaw   # 持久化配置、token、记忆等
+      - ./data:/root/.openclaw   # 存储 API Key、插件和聊天记录
+      - /var/run/docker.sock:/var/run/docker.sock # 允许 Agent 运行代码沙箱
     environment:
-      - NODE_ENV=production
-      # 加你的 LLM key 如果不想 onboarding 里填（可选）
-      # - ANTHROPIC_API_KEY=sk-xxx
-      # - OPENAI_API_KEY=sk-xxx
-    # command: ["gateway"]                 # 默认就是跑 gateway，可不写
-    # healthcheck:                         # 可选，加健康检查
-    #   test: ["CMD", "curl", "-f", "http://localhost:18790/health"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
-    networks:
-      - frontend
+      - TZ=Asia/Shanghai
+      # 如果你需要通过宿主机的代理软件科学上网，请设置：
+      # - HTTP_PROXY=http://host.docker.internal:7890
+      # - HTTPS_PROXY=http://host.docker.internal:7890
+    # 针对 Apple Silicon M2 的性能优化
+    deploy:
+      resources:
+        limits:
+          memory: 4G

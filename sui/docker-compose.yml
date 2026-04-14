@@ -1,0 +1,15 @@
+services:
+  s-ui:
+    image: alireza7/s-ui:1.4.0
+    container_name: s-ui
+    volumes:
+      - ${DATA_PATH}sui/db/:/app/db
+      - ${DATA_PATH}sui/cert/:/app/cert
+    tty: true
+    restart: always
+    entrypoint: "./entrypoint.sh"
+    ports:
+      - "2095:2095"
+      - "2096:2096"
+    networks:
+      - backend

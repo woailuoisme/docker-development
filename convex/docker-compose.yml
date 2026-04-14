@@ -1,0 +1,130 @@
+services:
+  # --- 1. 后端引擎 (Convex Backend) ---
+  backend:
+    image: ghcr.io/get-convex/convex-backend:${REV:-latest} # 建议锁定具体版本号
+    container_name: convex-backend
+    restart: unless-stopped
+    stop_grace_period: 20s
+    stop_signal: SIGINT
+    # 安全加固：强制仅绑定 127.0.0.1，防止外部网络绕过 Caddy 访问后台端口
+    ports:
+      - "127.0.0.1:${PORT:-3210}:3210"            # 后端主 API 端口 (HTTP/WebSocket 流量入口)
+      - "127.0.0.1:${SITE_PROXY_PORT:-3211}:3211" # 站点代理端口 (用于托管静态资源或作为反向代理)
+    volumes:
+      - ${DATA_PATH:-./data/}convex:/convex/data
+    networks:
+      - convex_net
+    
+    # 针对 2C4G 的资源约束
+    deploy:
+      resources:
+        limits:
+          cpus: '1.2'      # 预留部分 CPU 给宿主机
+          memory: 1800M    # 确保后端不会撑爆 4G 内存
+          
+    environment:
+      # --- [并发与性能控制] 针对 2C4G 调优 ---
+      - APPLICATION_MAX_CONCURRENT_MUTATIONS=${APPLICATION_MAX_CONCURRENT_MUTATIONS:-8}   # 限制高负载写入并发
+      - APPLICATION_MAX_CONCURRENT_NODE_ACTIONS=${APPLICATION_MAX_CONCURRENT_NODE_ACTIONS:-8} # 限制 Node Action 进程数
+      - APPLICATION_MAX_CONCURRENT_QUERIES=${APPLICATION_MAX_CONCURRENT_QUERIES:-16}      # 限制查询并发量
+      - APPLICATION_MAX_CONCURRENT_V8_ACTIONS=${APPLICATION_MAX_CONCURRENT_V8_ACTIONS:-8}   # 限制 V8 隔离区数量
+      - ACTIONS_USER_TIMEOUT_SECS=${ACTIONS_USER_TIMEOUT_SECS:-30}                         # 全局 Action 超时时间
+      - HTTP_SERVER_TIMEOUT_SECONDS=${HTTP_SERVER_TIMEOUT_SECONDS:-60}                      # 网络连接超时
+
+      # --- [数据库连接] ---
+      - DATABASE_URL=${DATABASE_URL:-postgres://convex:convex_password@postgres:5432/convex} # 数据库连接字符串
+      - POSTGRES_URL=${POSTGRES_URL:-postgres://convex:convex_password@postgres:5432/postgres} # 管理数据库连接串
+      - INSTANCE_NAME=${INSTANCE_NAME:-convex-prod}                                        # Convex 部署实例名
+      - INSTANCE_SECRET=${INSTANCE_SECRET:-convex_secret_key_12345}                        # 部署管理秘钥
+
+      # --- [S3 兼容存储配置] 指向 MinIO ---
+      - S3_ENDPOINT_URL=${S3_ENDPOINT_URL:-http://minio:9000}                              # S3 服务 API 地点
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-admin}                                      # S3 ID
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-minio_password}                     # S3 KEY
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_S3_FORCE_PATH_STYLE=${AWS_S3_FORCE_PATH_STYLE:-true}                          # MinIO 等自建 S3 必需
+      
+      # 存储桶(Bucket)定义
+      - S3_STORAGE_FILES_BUCKET=${S3_STORAGE_FILES_BUCKET:-convex-files}                   # 通用文件桶
+      - S3_STORAGE_MODULES_BUCKET=${S3_STORAGE_MODULES_BUCKET:-convex-modules}             # 业务模块代码桶
+      - S3_STORAGE_SEARCH_BUCKET=${S3_STORAGE_SEARCH_BUCKET:-convex-search}               # 搜索索引桶
+      - S3_STORAGE_EXPORTS_BUCKET=${S3_STORAGE_EXPORTS_BUCKET:-convex-exports}             # 导出快照桶
+      - S3_STORAGE_SNAPSHOT_IMPORTS_BUCKET=${S3_STORAGE_SNAPSHOT_IMPORTS_BUCKET:-convex-snapshots} # 导入镜像桶
+
+      # --- [域名与入口配置] ---
+      - CONVEX_CLOUD_ORIGIN=${CONVEX_CLOUD_ORIGIN:-https://api.yourdomain.com}                  # 后端 API 源 (须修正为生产域名)
+      - CONVEX_SITE_ORIGIN=${CONVEX_SITE_ORIGIN:-https://site.yourdomain.com}                   # 代理站点源 (须修正为生产域名)
+
+      # --- [系统安全与可观测性] ---
+      - REDACT_LOGS_TO_CLIENT=${REDACT_LOGS_TO_CLIENT:-true}                               # 客户端日志脱敏(安全开关)
+      - RUST_LOG=${RUST_LOG:-warn}                                                         # 生产环境建议减少 info 日志
+      - DISABLE_METRICS_ENDPOINT=${DISABLE_METRICS_ENDPOINT:-false}                        # 开启 Prometheus 监控接口
+      - DOCUMENT_RETENTION_DELAY=${DOCUMENT_RETENTION_DELAY:-172800}                       # 数据清理保留时间(秒)
+      - DO_NOT_REQUIRE_SSL=${DO_NOT_REQUIRE_SSL:-false}                                    # 生产环境必须强制 SSL
+      - DISABLE_BEACON=${DISABLE_BEACON:-true}                                             # 禁用远程诊断追踪
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3210/version || exit 1"]
+      interval: 45s
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # --- 4. 管理面板 (Convex Dashboard) ---
+  dashboard:
+    image: ghcr.io/get-convex/convex-dashboard:${REV:-latest}
+    container_name: convex-dashboard
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${DASHBOARD_PORT:-6791}:6791"
+    environment:
+      - NEXT_PUBLIC_DEPLOYMENT_URL=${NEXT_PUBLIC_DEPLOYMENT_URL:-https://api.yourdomain.com}
+      - NEXT_PUBLIC_LOAD_MONACO_INTERNALLY=true
+    networks:
+      - convex_net
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "1"
+
+  # --- 5. 反向代理网关 (Caddy 2) ---
+  caddy:
+    image: caddy:2-alpine # 注：Caddy 目前稳定版本为 2.8.x，此处使用 2-alpine 自动拉取最新的 2.x 版本
+    container_name: convex-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./data/caddy_data:/data     # Caddy 自动申请的 HTTPS 证书和配置持久化
+      - ./data/caddy_config:/config
+    networks:
+      - convex_net
+    depends_on:
+      backend:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 200M # Caddy 是用 Go 写的，非常轻量，预留 200MB 即可
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# =======================================================
+# 自定义网络：确保 Caddy 能通过容器名精确解析后端各服务
+# =======================================================
+networks:
+  convex_net:
+    driver: bridge

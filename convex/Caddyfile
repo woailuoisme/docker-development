@@ -1,0 +1,52 @@
+# =========================================================================
+# Convex - 生产环境 Caddy 配置
+# 请将 api.yourdomain.com 等域名替换为您实际的域名
+# Caddy 会自动为您申请和续签 Let's Encrypt / ZeroSSL 的 HTTPS 证书
+# =========================================================================
+
+# 1. Convex Dashboard (可视化管理面板)
+# 用途：
+#  - 提供开发者友好的 Web GUI 界面
+#  - 实时查看和修改数据库 (Data) 记录
+#  - 查阅云函数执行日志 (Logs) 和定时任务状态 (Functions)
+# 注意：生产环境中，强烈建议使用 Caddy 的 basicauth 增加一层基础认证，防止控制台公开暴露
+dashboard.yourdomain.com {
+    # 转发请求至 convex-dashboard 容器的 6791 端口
+    reverse_proxy convex-dashboard:6791
+}
+
+# 2. Convex Backend API (主数据引擎与实时通讯服务)
+# 用途：
+#  - 接受客户端 SDK (React/Vue/Flutter等) 发起的 WebSocket 核心连接
+#  - 负责处理所有的 Queries (实时数据查询/订阅)、Mutations (数据写入) 和 Actions
+# 对应客户端环境变量（如：`NEXT_PUBLIC_CONVEX_URL` 或 `VITE_CONVEX_URL`）
+api.yourdomain.com {
+    # 转发请求至 convex-backend 容器的主服务端口 3210
+    reverse_proxy convex-backend:3210
+}
+
+# 3. Convex Site (HTTP Actions / 静态托管 / Webhooks)
+# 用途：
+#  - 对外提供标准的 HTTP/REST API 接口
+#  - 接收第三方服务的 Webhook 回调（如 Stripe 支付、Clerk 登录等）
+#  - 下载/访问业务中存储的资源文件
+# 对应 Convex 配置中的 `CONVEX_SITE_URL` 变量
+site.yourdomain.com {
+    # 转发请求至 docker-compose.yml 中定义的 convex-backend 容器的 3211 端口
+    # 注意: 如果你的业​​务仅通过 Convex SDK 读写数据，不涉及第三方标准 HTTP 请求，此路由可不配置。
+    reverse_proxy convex-backend:3211
+}
+
+# =========================================================================
+# 可选：如果你没有域名，只想通过 IP 测试，可以解开下面的注释
+# 注意：没有域名无法自动申请 HTTPS 证书
+# =========================================================================
+# :80 {
+#     handle /dashboard/* {
+#         uri strip_prefix /dashboard
+#         reverse_proxy convex-dashboard:6791
+#     }
+#     handle /* {
+#         reverse_proxy convex-backend:3210
+#     }
+# }
