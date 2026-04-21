@@ -3,9 +3,9 @@ services:
     build:
       context: .
       args:
-        - GARAGE_VERSION=v2.2.0
+        - GARAGE_VERSION=v2.3.0
     container_name: garage
-    restart: unless-stopped
+    restart: always
     ports:
      - "3900:3900"
      - "3901:3901"
@@ -14,13 +14,13 @@ services:
     volumes:
       - ${CONFIG_PATH}garage/garage.toml:/etc/garage.toml:ro
       - ${DATA_PATH}garage:/tmp
-    depends_on:
-      - garage-webui
+    environment:
+      - GARAGE_DEFAULT_ACCESS_KEY=GKfd16f76e81fb861a868a01b9b19452ad
+      - GARAGE_DEFAULT_SECRET_KEY=18d5eda476ff7fb88f0bec38eae3a5e468020ae6dfc610defe2f3f72a65c4339
+      - GARAGE_DEFAULT_BUCKET=default-bucket
+      - RUST_LOG=garage=info
     networks:
       - backend
-    # 可选：调试日志
-    # environment:
-    #   - RUST_LOG=garage=debug,garage_api=trace
 
   garage-webui:
     image: khairul169/garage-webui:1.1.0
@@ -33,5 +33,11 @@ services:
     environment:
       S3_ENDPOINT_URL: "http://garage:3900"
       API_BASE_URL: "http://garage:3903"
+    depends_on:
+      - garage
     networks:
       - backend
+
+networks:
+  backend:
+    external: true

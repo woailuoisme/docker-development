@@ -1,13 +1,13 @@
-ARG GARAGE_VERSION=v2.2.0
-FROM dxflrs/garage:${GARAGE_VERSION} AS garage
+ARG GARAGE_VERSION=v2.3.0
+FROM dxflrs/garage:${GARAGE_VERSION}
 
-FROM alpine:3.23
-
-COPY --from=garage /garage /garage
-COPY --chmod=755 init.sh /init.sh
+# Copy configuration (optional as it's often mounted, but good for self-contained image)
 COPY garage.toml /etc/garage.toml
 
+# Healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=20s \
-  CMD /garage status >/dev/null 2>&1 || exit 1
+  CMD ["/garage", "-c", "/etc/garage.toml", "status"]
 
-ENTRYPOINT ["/init.sh"]
+# Default command
+ENTRYPOINT ["/garage"]
+CMD ["server", "--single-node", "--default-bucket"]
