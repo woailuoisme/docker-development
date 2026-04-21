@@ -4,6 +4,7 @@
 -- =============================================================================
 
 -- 核心扩展
+CREATE EXTENSION IF NOT EXISTS timescaledb;
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS pgvector;
 CREATE EXTENSION IF NOT EXISTS pg_cron;
@@ -27,6 +28,7 @@ BEGIN
     RAISE NOTICE '=============================================================================';
     RAISE NOTICE '已启用扩展：';
     RAISE NOTICE '  核心扩展：';
+    RAISE NOTICE '    - timescaledb (时序数据)';
     RAISE NOTICE '    - postgis (地理空间)';
     RAISE NOTICE '    - pgvector (向量搜索)';
     RAISE NOTICE '    - pg_cron (定时任务)';
