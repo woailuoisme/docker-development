@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: valkey_server
+    container_name: valkey
     restart: always
     environment:
       - VALKEY_PASSWORD=${REDIS_PASSWORD}

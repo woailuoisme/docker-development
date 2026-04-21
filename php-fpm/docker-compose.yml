@@ -25,4 +25,4 @@ services:
       - redis
       - postgres
       - meilisearch
-      - minio
+#      - minio

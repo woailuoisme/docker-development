@@ -1,4 +1,4 @@
-ARG ARCANE_VERSION=v1.15.3
+ARG ARCANE_VERSION=v1.17.4
 FROM ghcr.io/getarcaneapp/arcane:${ARCANE_VERSION}
 
 # ============================================

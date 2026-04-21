@@ -1,4 +1,4 @@
-ARG AUTHELIA_VERSION=4.39
+ARG AUTHELIA_VERSION=4.39.19
 FROM authelia/authelia:${AUTHELIA_VERSION}
 
 LABEL maintainer="seaside <531773730@qq.com>"

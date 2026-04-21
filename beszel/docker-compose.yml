@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - BESZEL_VERSION=0.18.4
+        - BESZEL_VERSION=0.18.7
     # 默认用户名: ailuoga166@gmail.com 密码: ailuoga166@gmail.com
     environment:
       - USER_EMAIL=${BESZEL_USER_EMAIL:-ailuoga166@gmail.com}

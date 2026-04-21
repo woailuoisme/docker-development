@@ -1,4 +1,4 @@
-ARG BESZEL_VERSION=0.18.4
+ARG BESZEL_VERSION=0.18.7
 FROM henrygd/beszel:${BESZEL_VERSION}
 
 # ============================================

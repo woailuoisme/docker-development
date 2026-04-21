@@ -1,5 +1,6 @@
 ARG PHP_VERSION=8.5
 FROM jiaoio/php${PHP_VERSION}-dev:roadrunner-alpine
+#FROM jiaoio/php${PHP_VERSION}:roadrunner-alpine
 
 ARG CHANGE_SOURCE=true
 

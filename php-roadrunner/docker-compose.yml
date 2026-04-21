@@ -22,7 +22,7 @@ services:
     depends_on:
       - redis
       - postgres
-      - minio
+#      - minio
       - meilisearch
       - php-horizon
       - php-schedule

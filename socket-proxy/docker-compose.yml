@@ -3,11 +3,11 @@ services:
     build:
       context: .
       args:
-        - SOCKET_PROXY_VERSION=${SOCKET_PROXY_VERSION:-3.2.13}
+        - SOCKET_PROXY_VERSION=${SOCKET_PROXY_VERSION:-3.2.15}
     container_name: docker-socket-proxy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    restart: unless-stopped
+    restart: always
     ports:
       - "42375:2375"
     # 安全配置：防止容器提权，增强生产环境安全性

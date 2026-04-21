@@ -7,13 +7,12 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - ARCANE_VERSION=v1.15.3
+        - ARCANE_VERSION=v1.17.4
     ports:
       - '3552:3552'
     volumes:
 #      - /var/run/docker.sock:/var/run/docker.sock
       - ${DATA_PATH}arcane:/app/data
-      - ${CONFIG_PATH}arcane/projects:/app/data/projects
     restart: unless-stopped
     environment:
       - DOCKER_HOST=tcp://docker-socket-proxy:2375

@@ -1,0 +1,13 @@
+services:
+  version-checker:
+    image: postgres:18.3-trixie
+    container_name: version-checker
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        apt-get update && \
+        apt-get install -y --no-install-recommends ca-certificates curl gnupg lsb-release && \
+        curl -fSsL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg && \
+        echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt trixie-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+        apt-get update && \
+        apt-cache madison postgresql-18-postgis-3 postgresql-18-pgvector postgresql-18-timescaledb postgresql-18-cron
