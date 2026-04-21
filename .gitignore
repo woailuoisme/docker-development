@@ -16,6 +16,9 @@
 .idea
 .vscode
 .DS_Store
+.claude
+.agents
+.agent
 **/.DS_Store
 
 cloudflare.ini
