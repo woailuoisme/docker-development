@@ -20,9 +20,9 @@ services:
       - backend
       - frontend
     depends_on:
-      - redis
+      - valkey
       - postgres
-#      - minio
+      - garage
       - meilisearch
       - php-horizon
       - php-schedule

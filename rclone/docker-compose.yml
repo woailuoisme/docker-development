@@ -1,0 +1,19 @@
+services:
+  rclone:
+    image: rclone/rclone:latest
+    container_name: garage-rclone
+    restart: "no"
+    entrypoint: ["rclone"]
+    command: ["version"]
+    volumes:
+      - ./rclone.docker.conf:/config/rclone.conf:ro
+    networks:
+      - backend
+
+    # For local file sync, add a bind mount at run time:
+    #   docker compose -f garage/docker-compose.rclone.yml run --rm \
+    #     -v "$PWD":/work -w /work rclone sync ./data garage:my-bucket/
+
+networks:
+  backend:
+    external: true
