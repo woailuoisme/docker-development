@@ -6,6 +6,8 @@ services:
       HOMEPAGE_ALLOWED_HOSTS: "home.${SITE_ADDRESS}"
       HOMEPAGE_VAR_SITE_ADDRESS: ${SITE_ADDRESS}
       HOMEPAGE_VAR_DOMAIN: ${SITE_ADDRESS}
+    extra_hosts:
+      - host.docker.internal:host-gateway
     ports:
       - "33000:3000"
     volumes:

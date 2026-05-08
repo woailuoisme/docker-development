@@ -9,8 +9,8 @@ Usage:
   to-remote.sh <copy|sync|cp|sy> <ali-oss|ali|r2|cloudflare-r2> <source> <bucket>
 
 Examples:
-  to-remote.sh copy ali-oss garage:default-bucket default-bucket
-  to-remote.sh sync r2 garage:default-bucket default-bucket
+  to-remote.sh copy ali-oss garage:default default
+  to-remote.sh sync r2 garage:default default
 EOF
   exit 1
 fi

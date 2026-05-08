@@ -1,0 +1,9 @@
+services:
+  pdf:
+    image: gotenberg/gotenberg:8.31.0
+    container_name: pdf
+    restart: unless-stopped
+    ports:
+      - "3200:3000"
+    networks:
+      - backend

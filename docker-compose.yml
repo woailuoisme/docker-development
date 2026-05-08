@@ -20,6 +20,7 @@ include:
   # --- CORE & SECURITY ---
   - dnsmasq/docker-compose.yml      # DNS 服务
   - caddy/docker-compose.yml        # 网关渲染与反代
+#  - traefik/docker-compose.yml      # 通用反代
 #  - caddy-simple/docker-compose.yml        # 网关渲染与反代
 #  - nginx-base/docker-compose.yml
 #  - nginx/docker-compose.yml
@@ -85,7 +86,7 @@ include:
 #  - centrifugo/docker-compose.yml   # 实时消息
 #  - wud/docker-compose.yml          # 镜像更新提醒
 #  - mosquitto/docker-compose.yml    # MQTT 代理
-
+#  - gotenberg/docker-compose.yml
   # --- IOT & VISUALIZATION ---
 #  - simulators/docker-compose.yml
 #  - mosquitto/docker-compose.yml
@@ -94,6 +95,8 @@ include:
   # - influxdb/docker-compose.yml      # 时序数据库
   # - influxdb-ui/docker-compose.yml   # InfluxDB 管理界面
 #  - node-red/docker-compose.yml      # 流程编排
+#  - dokploy/docker-compose.yml
+  - mailpit/docker-composer.yml
 
   # --- MONITORING & WEBSITES ---
   # - beszel/docker-compose.yml       # 服务器监控 Hub

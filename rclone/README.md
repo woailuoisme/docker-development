@@ -19,26 +19,26 @@
 ## 用法
 
 ```bash
-bash rclone/rclone.sh ls garage:default-bucket
-bash rclone/rclone.sh copy ./local-file garage:default-bucket/
-bash rclone/rclone.sh sync ./local-dir garage:default-bucket/backup/
-bash rclone/rclone.sh delete garage:default-bucket/old-file.txt
+bash rclone/rclone.sh ls garage:default
+bash rclone/rclone.sh copy ./local-file garage:default/
+bash rclone/rclone.sh sync ./local-dir garage:default/backup/
+bash rclone/rclone.sh delete garage:default/old-file.txt
 ```
 
 ## 目标云同步
 
 ```bash
-bash rclone/to-remote.sh copy ali-oss garage:default-bucket default-bucket
-bash rclone/to-remote.sh copy r2 garage:default-bucket default-bucket
-bash rclone/to-remote.sh sync ali-oss garage:default-bucket default-bucket
-bash rclone/to-remote.sh sync r2 garage:default-bucket default-bucket
+bash rclone/to-remote.sh copy ali-oss garage:default default
+bash rclone/to-remote.sh copy r2 garage:default default
+bash rclone/to-remote.sh sync ali-oss garage:default default
+bash rclone/to-remote.sh sync r2 garage:default default
 ```
 
 短写也支持：
 
 ```bash
-bash rclone/to-remote.sh cp ali garage:default-bucket default-bucket
-bash rclone/to-remote.sh sy r2 garage:default-bucket default-bucket
+bash rclone/to-remote.sh cp ali garage:default default
+bash rclone/to-remote.sh sy r2 garage:default default
 ```
 
 可用别名：

@@ -1,0 +1,27 @@
+services:
+  dokploy:
+    image: dokploy/dokploy:latest
+    restart: always
+    init: true
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      PORT: ${PORT:-3000}
+      ADVERTISE_ADDR: ${ADVERTISE_ADDR:-host.docker.internal}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/dokploy
+      REDIS_HOST: redis://:${REDIS_PASSWORD:-redis}@reids:6379/3
+      TZ: ${TZ:-Etc/UTC}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/localtime:/etc/localtime:ro
+      - ${DATA_PATH}dokploy:/etc/dokploy
+      - ${DATA_PATH}dokploy-docker:/root/.docker
+    depends_on:
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+    ports:
+      - "3300:3000"
+    networks:
+      - backend
