@@ -1,0 +1,10 @@
+services:
+  draw:
+    image: jgraph/drawio
+    container_name: drawio
+    restart: unless-stopped
+    ports:
+      - "10080:8080"
+      - "8443:8443"
+    networks:
+      - backend

@@ -32,7 +32,7 @@ include:
   - authelia/docker-compose.yml     # 鉴权
 #  - go-access/docker-compose.yml    # 日志分析
   - dozzle/docker-compose.yml
-  - socket-proxy/docker-compose.yml
+  - docker-socket-proxy/docker-compose.yml
 #  - arcane/docker-compose.yml
 #  - 3xui/docker-compose.yml
 #  - beszel/docker-compose.yml

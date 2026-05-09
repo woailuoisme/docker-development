@@ -1,0 +1,9 @@
+services:
+    ssh:
+      image: niruix/sshwifty:latest
+      container_name: ssh
+      restart: always
+      ports:
+        - "8182:8182"
+      networks:
+        - backend
