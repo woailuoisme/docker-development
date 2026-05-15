@@ -5,7 +5,7 @@ networks:
 services:
   # 数据库服务
   db:
-    image: postgres:18-alpine
+    image: postgres:18.4-alpine
     restart: always
     env_file: .env
     environment:

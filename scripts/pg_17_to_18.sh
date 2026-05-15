@@ -227,7 +227,7 @@ if [ -f "docker-compose.yml" ]; then
             DOCKER_CMD="$DOCKER_CMD --network $NETWORK_NAME"
         fi
         
-        DOCKER_CMD="$DOCKER_CMD -p 5432:5432 -d postgres:18"
+        DOCKER_CMD="$DOCKER_CMD -p 5432:5432 -d postgres:18.4"
         
         eval $DOCKER_CMD || error_exit "容器启动失败"
     fi
@@ -237,7 +237,7 @@ else
         -v $(pwd)/$NEW_DATA_DIR:/var/lib/postgresql/data \
         ${POSTGRES_PASSWORD:+-e POSTGRES_PASSWORD=$POSTGRES_PASSWORD} \
         -p 5432:5432 \
-        -d postgres:18 || error_exit "容器启动失败"
+        -d postgres:18.4 || error_exit "容器启动失败"
 fi
 
 log_success "PostgreSQL 18 容器已启动"

@@ -1,7 +1,6 @@
 {
 	import snippets/global-log.conf
-	#	import snippets/acme.conf
-	#	import snippets/mosquitto.conf
+	import snippets/dns.conf
 }
 
 import sites/*

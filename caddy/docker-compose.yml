@@ -5,10 +5,7 @@ services:
     container_name: caddy
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
-      - AWS_ACCESS_KEY_ID=${ALIYUN_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${ALIYUN_ACCESS_KEY_SECRET}
-      - ALIYUN_ACCESS_KEY_ID=${ALIYUN_ACCESS_KEY_ID}
-      - ALIYUN_ACCESS_KEY_SECRET=${ALIYUN_ACCESS_KEY_SECRET}
+      - CF_API_TOKEN=${CF_API_TOKEN}
     ports:
       - "80:80"
       - "443:443"

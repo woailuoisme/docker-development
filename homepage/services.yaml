@@ -88,7 +88,7 @@
 - 数据存储:
     - PostgreSQL:
         icon: postgres
-        description: 关系型数据库 (v17.6)
+        description: 关系型数据库 (v18.4)
         server: my-docker
         container: postgres
 

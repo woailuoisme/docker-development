@@ -3,6 +3,7 @@ services:
     image: jiaoio/caddy:latest
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
+      - CF_API_TOKEN=${CF_API_TOKEN}
       - AWS_ACCESS_KEY_ID=${ALIYUN_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${ALIYUN_ACCESS_KEY_SECRET}
       - ALIYUN_ACCESS_KEY_ID=${ALIYUN_ACCESS_KEY_ID}

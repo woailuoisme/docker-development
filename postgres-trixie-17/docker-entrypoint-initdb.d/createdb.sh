@@ -2,16 +2,16 @@
 
 # PostgreSQL 扩展说明：
 # 1. postgis (核心地理信息系统驱动):
-#    对应安装包：apt: postgresql-18-postgis-3
+#    对应安装包：apt: postgresql-17-postgis-3
 #    底层依赖库：libgeos-c1v5, libproj25, libgdal32
 #    作用：支持地理空间对象（点、线、面），引入 GEOMETRY 和 GEOGRAPHY 类型。
 #
 # 2. postgis_topology (拓扑地理):
-#    对应安装包：apt: postgresql-18-postgis-3 (已包含)
+#    对应安装包：apt: postgresql-17-postgis-3 (已包含)
 #    作用：维护地理对象间的共享关系（边、面连接），防止缝隙或重叠。
 #
 # 3. postgis_raster (栅格数据/影像):
-#    对应安装包：apt: postgresql-18-postgis-3 (已包含)
+#    对应安装包：apt: postgresql-17-postgis-3 (已包含)
 #    作用：支持在数据库中存储与查询像素矩阵数据（如 TIFF, JPG）。
 #
 # 4. fuzzystrmatch (模糊字符串匹配):
@@ -23,15 +23,15 @@
 #    作用：提供多种算法生成通用唯一识别码。
 #
 # 6. vector (向量数据库):
-#    对应安装包：apt: postgresql-18-pgvector
+#    对应安装包：apt: postgresql-17-pgvector
 #    作用：支持高维向量存储与相似度检索，用于 AI 语义搜索。
 #
 # 7. timescaledb (时序数据库):
-#    对应安装包：apt: postgresql-18-timescaledb
+#    对应安装包：apt: postgresql-17-timescaledb
 #    作用：通过超表自动分区，优化时间序列数据的存储与查询。
 #
 # 8. pg_cron (定时任务):
-#    对应安装包：apt: postgresql-18-cron
+#    对应安装包：apt: postgresql-17-cron
 #    作用：在数据库内部通过 cron 语法调度 SQL 任务。
 #
 # 9. ai (pgai):
@@ -74,12 +74,12 @@ EOSQL
 # 为 lunchbox 数据库启用扩展
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "lunchbox" <<-EOSQL
     CREATE EXTENSION IF NOT EXISTS "uuid-ossp";      -- 提供 UUID 生成功能
-    CREATE EXTENSION IF NOT EXISTS "vector";         -- 对应 apt: postgresql-18-pgvector (向量检索)
-    CREATE EXTENSION IF NOT EXISTS "postgis";        -- 对应 apt: postgresql-18-postgis-3 (地理空间支持)
+    CREATE EXTENSION IF NOT EXISTS "vector";         -- 对应 apt: postgresql-17-pgvector (向量检索)
+    CREATE EXTENSION IF NOT EXISTS "postgis";        -- 对应 apt: postgresql-17-postgis-3 (地理空间支持)
     CREATE EXTENSION IF NOT EXISTS "postgis_topology";-- 依赖 postgis (拓扑地理支持)
     CREATE EXTENSION IF NOT EXISTS "postgis_raster";  -- 依赖 postgis (栅格数据支持)
     CREATE EXTENSION IF NOT EXISTS "fuzzystrmatch";  -- 提供模糊字符串匹配算法
-    CREATE EXTENSION IF NOT EXISTS "timescaledb";    -- 对应 apt: postgresql-18-timescaledb-2 (时序数据库支持)
+    CREATE EXTENSION IF NOT EXISTS "timescaledb";    -- 对应 apt: postgresql-17-timescaledb-2 (时序数据库支持)
 EOSQL
 #
 ## 创建 shop 数据库

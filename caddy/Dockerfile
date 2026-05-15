@@ -5,8 +5,8 @@ FROM jiaoio/caddy-base:${CADDY_BASE_VERSION}
 COPY sites /etc/caddy/sites
 COPY snippets /etc/caddy/snippets
 COPY templates /etc/caddy/templates
-COPY startup.sh /usr/local/bin/startup.sh
 COPY Caddyfile /etc/caddy/Caddyfile
+COPY startup.sh /usr/local/bin/startup.sh
 RUN chmod +x /usr/local/bin/startup.sh
 
 CMD ["/usr/local/bin/startup.sh"]

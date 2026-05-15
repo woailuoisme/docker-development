@@ -1,6 +1,6 @@
 services:
   version-checker:
-    image: postgres:18.3-trixie
+    image: postgres:18.4-trixie
     container_name: version-checker
     entrypoint: ["sh", "-c"]
     command:
