@@ -1,0 +1,9 @@
+services:
+  wifi-densepose:
+    image: ruvnet/wifi-densepose:latest
+    container_name: wifi-densepose
+    restart: unless-stopped
+    ports:
+      - "3110:3000"
+    networks:
+      - backend

@@ -32,6 +32,8 @@ include:
   - authelia/docker-compose.yml     # 鉴权
 #  - go-access/docker-compose.yml    # 日志分析
   - dozzle/docker-compose.yml
+#  - portainer/docker-compose.yml
+#  - portainer-agent/docker-compose.yml
   - docker-socket-proxy/docker-compose.yml
 #  - arcane/docker-compose.yml
   - 3xui/docker-compose.yml
@@ -106,3 +108,4 @@ include:
 #  - gitea/docker-compose.yml
 #  - wordpress/docker-compose.yml
 #  - librespeed/docker-compose.yml
+#  - wifi-densepose/docker-compose.yml

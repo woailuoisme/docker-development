@@ -1,4 +1,4 @@
-ARG CADDY_BASE_VERSION=2.11.2
+ARG CADDY_BASE_VERSION=2.11.3
 FROM jiaoio/caddy-base:${CADDY_BASE_VERSION}
 #FROM ccr.ccs.tencentyun.com/jiaoio/caddy-base:latest
 

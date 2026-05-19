@@ -1,0 +1,14 @@
+services:
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:2026.5.0
+    container_name: cloudflare-tunnel
+    restart: always
+    command:
+      - tunnel
+      - --no-autoupdate
+      - run
+      - --token
+      - ${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN is required}
+    networks:
+      - backend
+      - frontend
