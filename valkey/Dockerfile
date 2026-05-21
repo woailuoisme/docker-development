@@ -1,4 +1,4 @@
-ARG VALKEY_VERSION=9.0.4-trixie
+ARG VALKEY_VERSION=9.1-alpine3.23
 FROM valkey/valkey:${VALKEY_VERSION}
 
 # 设置时区并准备目录

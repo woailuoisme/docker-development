@@ -1,10 +1,7 @@
 services:
   postgres:
     container_name: postgres
-    build:
-      context: .
-      args:
-        - POSTGRES_VERSION=${POSTGRES_VERSION:-18.4-trixie}
+    image: jiaoio/postgres:18.4-alpine3.23
     restart: always
     ports:
       - "45432:5432"
@@ -14,7 +11,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - ${DATA_PATH}postgres18:/var/lib/postgresql
-      - ${CONFIG_PATH}postgres-trixie-18/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ${CONFIG_PATH}postgres-alpine-18/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     networks:
       - backend
       - frontend

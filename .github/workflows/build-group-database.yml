@@ -38,6 +38,11 @@ on:
         type: boolean
         default: false
       
+      build_postgres_18_alpine:
+        description: '构建 PostgreSQL 18 (Alpine)'
+        type: boolean
+        default: false
+      
       # === 版本参数 ===
       mysql_version:
         description: 'MySQL 版本'
@@ -99,6 +104,7 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17_trixie }}" == "true" ]] && add_task "postgres-17-trixie" "./postgres-trixie-17" "postgres" "${{ inputs.postgres17_trixie_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_trixie }}" == "true" ]] && add_task "postgres-18-trixie" "./postgres-trixie-18" "postgres" "${{ inputs.postgres18_trixie_version }}"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_no_tsdb }}" == "true" ]] && add_task "postgres-18-no-tsdb" "./postgres-trixie-18-no-tsdb" "postgres-no-tsdb" "${{ inputs.postgres18_no_tsdb_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_alpine }}" == "true" ]] && add_task "postgres-18-alpine" "./postgres-alpine-18" "postgres" "${{ inputs.postgres18_alpine_version }}"
 
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
