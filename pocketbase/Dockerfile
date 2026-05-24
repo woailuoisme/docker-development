@@ -17,7 +17,7 @@ RUN if [ "$(uname -m)" = "x86_64" ]; then \
     else \
     ARCH="arm64"; \
     fi && \
-    wget https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_${ARCH}.zip -O /tmp/pb.zip && \
+    wget -q "https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_${ARCH}.zip" -O /tmp/pb.zip && \
     unzip /tmp/pb.zip -d /pb/ && \
     rm /tmp/pb.zip
 

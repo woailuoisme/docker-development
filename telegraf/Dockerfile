@@ -21,8 +21,8 @@ RUN mkdir -p /etc/telegraf/telegraf.d
 COPY telegraf.d/ /etc/telegraf/telegraf.d/
 
 # 为所有 .toml 文件创建 .conf 软链接（--config-directory 只识别 .conf 文件）
-RUN cd /etc/telegraf/telegraf.d && \
-    for f in *.toml; do \
+WORKDIR /etc/telegraf/telegraf.d
+RUN for f in *.toml; do \
     ln -s "$f" "${f%.toml}.conf"; \
     done
 

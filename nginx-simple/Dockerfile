@@ -40,7 +40,7 @@ RUN set -x ; \
     deluser www-data 2>/dev/null || true ; \
     delgroup www-data 2>/dev/null || true ; \
     groupadd -g ${WWWUSER} www-data ; \
-    useradd -u ${WWWGROUP} -g www-data -s /bin/bash -d /var/www/html www-data && \
+    useradd -l -u ${WWWGROUP} -g www-data -s /bin/bash -d /var/www/html www-data && \
     mkdir -p /run /var/run && \
     chown -R www-data:www-data /run /var/run && \
     chmod 755 /run /var/run && \

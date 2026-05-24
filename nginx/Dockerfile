@@ -42,7 +42,7 @@ RUN set -x ; \
     deluser www-data 2>/dev/null || true ; \
     delgroup www-data 2>/dev/null || true ; \
     groupadd -g ${WWWUSER} www-data ; \
-    useradd -u ${WWWGROUP} -g www-data -s /bin/bash -d /var/www/html www-data
+    useradd -l -u ${WWWGROUP} -g www-data -s /bin/bash -d /var/www/html www-data
 
 # 确保 /run 和 /var/run 目录对 www-data 用户可写
 RUN mkdir -p /run /var/run && \

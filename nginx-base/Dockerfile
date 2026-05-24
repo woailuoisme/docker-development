@@ -15,17 +15,20 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 # 2. 下载源码并编译模块 (Zstd + Brotli + Headers-More)
 RUN NGINX_PURE_VERSION=${NGINX_VERSION%-*} && \
-    wget -qO- http://nginx.org/download/nginx-${NGINX_PURE_VERSION}.tar.gz | tar xz && \
-    ln -s nginx-${NGINX_PURE_VERSION} nginx-src && \
+    wget -qO- "http://nginx.org/download/nginx-${NGINX_PURE_VERSION}.tar.gz" | tar xz && \
+    ln -s "nginx-${NGINX_PURE_VERSION}" nginx-src && \
     git clone --depth 1 https://github.com/tokers/zstd-nginx-module.git && \
     git clone --depth 1 --recursive https://github.com/google/ngx_brotli.git && \
-    git clone --depth 1 https://github.com/openresty/headers-more-nginx-module.git && \
-    cd nginx-src && \
+    git clone --depth 1 https://github.com/openresty/headers-more-nginx-module.git
+
+WORKDIR /usr/src/nginx-src
+
+RUN set -eu; \
     ./configure --with-compat \
     --add-dynamic-module=../zstd-nginx-module \
     --add-dynamic-module=../ngx_brotli \
     --add-dynamic-module=../headers-more-nginx-module && \
-    make -j$(nproc) modules
+    make -j"$(nproc)" modules
 
 # 最终运行时镜像
 FROM nginx:${NGINX_VERSION}
