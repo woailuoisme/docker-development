@@ -12,11 +12,26 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # 加载环境变量
-# shellcheck disable=SC2046
+load_env() {
+	local env_file="$1"
+	if [ -f "$env_file" ]; then
+		while IFS= read -r line || [ -n "$line" ]; do
+			# 忽略注释和空行
+			case "$line" in
+				\#* | "" | [[:space:]]*) continue ;;
+			esac
+			# 仅加载与 Centrifugo 相关的环境变量
+			if echo "$line" | grep -q -E "CENTRIFUGO|SITE_ADDRESS|REDIS"; then
+				eval "export $line" 2> /dev/null || true
+			fi
+		done < "$env_file"
+	fi
+}
+
 if [ -f .env ]; then
-	export $(grep -v '^#' .env | xargs)
+	load_env .env
 elif [ -f ../.env ]; then
-	export $(grep -v '^#' ../.env | xargs)
+	load_env ../.env
 fi
 
 SITE_DOMAIN=${SITE_ADDRESS:-"test.local"}
@@ -73,9 +88,13 @@ fi
 
 # 6. 安全拦截测试: /metrics (监控指标)
 echo -e "\n${YELLOW}检查项 6: 验证 /metrics 是否已安全屏蔽 (防止公网指标外泄)...${NC}"
-METRICS_HTTP_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" "${PUSH_URL}/metrics" || echo "BLOCKED")
-if [ "$METRICS_HTTP_CODE" = "000" ] || [ "$METRICS_HTTP_CODE" = "403" ] || [ "$METRICS_HTTP_CODE" = "BLOCKED" ]; then
-	echo -e "${GREEN}✓ 安全防御正常: /metrics 已被 Caddy 成功拦截并阻断 (HTTP ${METRICS_HTTP_CODE})${NC}"
+set +e
+METRICS_HTTP_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" "${PUSH_URL}/metrics")
+CURL_EXIT_CODE=$?
+set -e
+
+if [ "$CURL_EXIT_CODE" -ne 0 ] || [ "$METRICS_HTTP_CODE" = "000" ] || [ "$METRICS_HTTP_CODE" = "403" ]; then
+	echo -e "${GREEN}✓ 安全防御正常: /metrics 已被 Caddy 成功拦截并阻断 (HTTP ${METRICS_HTTP_CODE:-000}, Exit ${CURL_EXIT_CODE})${NC}"
 else
 	echo -e "${RED}⚠ 安全警告: /metrics 暴露！任何公网用户都能拉取系统指标 (HTTP ${METRICS_HTTP_CODE})${NC}"
 fi

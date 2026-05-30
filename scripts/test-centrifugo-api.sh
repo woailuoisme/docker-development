@@ -12,11 +12,26 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # 加载环境变量
-# shellcheck disable=SC2046
+load_env() {
+	local env_file="$1"
+	if [ -f "$env_file" ]; then
+		while IFS= read -r line || [ -n "$line" ]; do
+			# 忽略注释和空行
+			case "$line" in
+				\#* | "" | [[:space:]]*) continue ;;
+			esac
+			# 仅加载与 Centrifugo 相关的环境变量
+			if echo "$line" | grep -q -E "CENTRIFUGO|SITE_ADDRESS|REDIS"; then
+				eval "export $line" 2> /dev/null || true
+			fi
+		done < "$env_file"
+	fi
+}
+
 if [ -f .env ]; then
-	export $(grep -v '^#' .env | grep -E "CENTRIFUGO|SITE_ADDRESS|REDIS" | xargs)
+	load_env .env
 elif [ -f ../.env ]; then
-	export $(grep -v '^#' ../.env | grep -E "CENTRIFUGO|SITE_ADDRESS|REDIS" | xargs)
+	load_env ../.env
 fi
 
 SITE_DOMAIN=${SITE_ADDRESS:-"test.local"}
