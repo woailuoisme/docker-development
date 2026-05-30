@@ -4,86 +4,58 @@
 # ============================================
 # 传输协议配置
 # ============================================
-# 启用 JSON 协议（默认是 Protobuf）
 websocket:
-    use_write_buffer_pool: true
+  use_write_buffer_pool: true
 
-# 单向 WebSocket 配置（使用纯 JSON）
 uni_websocket:
-    enabled: true
+  enabled: true
 
 http_stream:
-    enabled: true
+  enabled: true
 
 sse:
-    enabled: true
-# webtransport:
-#     enabled: true
-# ============================================
-# 全局安全与代理配置 (新增)
-# ============================================
-
-# 2. 代理配置 (如果你有后端授权需求，取消注释并修改地址)
-# proxy_subscribe_http_url: "http://your-backend-api/centrifugo/subscribe"
+  enabled: true
 
 # ============================================
-# 引擎配置 - 使用 Redis 支持多节点集群
+# 引擎配置 - 使用 Valkey (兼容 Redis 协议)
 # ============================================
 engine:
   type: redis
-#   engine:
-#     type: redis
-#     redis:
-#       use_cluster: true
-#       address: ["redis-node1:6379", "redis-node2:6379"]
+  redis:
+    # 具体的连接地址通过环境变量 CENTRIFUGO_ENGINE_REDIS_ADDRESS 动态注入
+    pool_size: 256
+    min_idle_conns: 10
+    dial_timeout: "5s"
+    read_timeout: "3s"
+    write_timeout: "3s"
 
 # ============================================
 # 客户端连接配置
 # ============================================
 client:
-  # 开发/测试环境：允许所有来源（CORS）
-  # 生产环境应该限制到具体域名
-#   allowed_origins:
-#     - "*"
-  # 允许匿名连接（开发/测试用）
-  # 生产环境应该移除此选项，使用 JWT 认证
+  # 生产环境默认禁止匿名连接，强制启用 JWT 校验
   allow_anonymous_connect_without_token: false
+  
+  # 跨域域名列表（允许从环境变量 CENTRIFUGO_CLIENT_ALLOWED_ORIGINS 传入 JSON 数组进行覆盖）
+  allowed_origins: []
 
   ping_interval: 30s
-
   pong_timeout: 8s
-  # 连接限制（每个节点）
   connection_limit: 10000
-  
-  # 每秒新连接速率限制
-#   connection_rate_limit: 100
-  
-  # 单用户最大连接数（每个节点）
   user_connection_limit: 10
-  
-  # 消息队列最大大小（字节）
   queue_max_size: 1048576  # 1MB
-  
-  # 等待 connect 帧的最大时间
   stale_close_delay: "10s"
 
 # ============================================
-# 管理后台配置
+# 管理后台与监控
 # ============================================
 admin:
   enabled: true
-  # 生产环境建议禁用或使用强密码
-  # enabled: false
+  # 密码和密钥将通过环境变量注入
 
-# ============================================
-# 健康检查
-# ============================================
 health:
   enabled: true
 
-# ============================================
-# Prometheus 监控
-# ============================================
 prometheus:
   enabled: true
 
@@ -91,51 +63,37 @@ prometheus:
 # 日志配置
 # ============================================
 log:
-    level: debug
+  level: info
+  format: json # 生产环境输出 JSON
+
 # ============================================
 # 通道命名空间配置
 # ============================================
 channel:
-  # 历史元数据 TTL
   history_meta_ttl: "720h"  # 30天
   
-  # 命名空间配置
   namespaces:
-    # 公共频道 - 允许客户端订阅和发布
     - name: public
-      # 在线状态
       presence: true
-      # 加入/离开事件
       join_leave: true
-      # 历史记录大小
       history_size: 100
-      # 历史记录 TTL
       history_ttl: "300s"
-      # 强制恢复
       force_recovery: true
-      # 允许订阅者发布
       allow_publish_for_subscriber: true
-      # 允许客户端订阅
       allow_subscribe_for_client: true
-      # 允许匿名客户端订阅（重要！）
-      allow_subscribe_for_anonymous: true
-      # 允许匿名客户端发布
-      allow_publish_for_anonymous: true
+      allow_subscribe_for_anonymous: false
+      allow_publish_for_anonymous: false
     
-    # 私有频道 - 需要服务端授权
     - name: private
       presence: true
       join_leave: true
       history_size: 100
       history_ttl: "300s"
       force_recovery: true
-      # 不允许客户端直接发布
       allow_publish_for_subscriber: false
-      # 不允许客户端直接订阅（需要 token）
       allow_subscribe_for_client: false
     
-    # 用户个人频道
-    - name: "user"
+    - name: user
       presence: false
       join_leave: false
       history_size: 50
@@ -144,8 +102,7 @@ channel:
       allow_publish_for_subscriber: false
       allow_subscribe_for_client: false
     
-    # 通知频道 - 只保留少量历史
-    - name: "notification"
+    - name: notification
       presence: false
       join_leave: false
       history_size: 10
@@ -153,5 +110,3 @@ channel:
       force_recovery: false
       allow_publish_for_subscriber: false
       allow_subscribe_for_client: true
-      # 允许匿名订阅通知
-      allow_subscribe_for_anonymous: true
