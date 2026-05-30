@@ -1,6 +1,6 @@
 {
 	import snippets/global-log.conf
-	import snippets/dns.conf
+	acme_dns cloudflare {env.CF_API_TOKEN}
 }
 
 import sites/*
@@ -9,11 +9,11 @@ import templates/*
 #import fpm-app fpm.{$SITE_ADDRESS} /var/www/lunchbox
 #import proxy-octane-app-auth dev.{$SITE_ADDRESS} php-roadrunner:8001
 #import fpm-app-auth rest.{$SITE_ADDRESS} /var/www/lunchbox
-import fpm-app-auth dev.{$SITE_ADDRESS} /var/www/lunchbox php-fpm:9000
+import fpm-app-auth dev.{$SITE_ADDRESS} /var/www/lunchbox/public php-fpm:9000
 import proxy-octane-app-auth rest.{$SITE_ADDRESS} php-roadrunner:8001
 #import proxy-octane-app-auth api.{$SITE_ADDRESS} php-franken:8001
 #import proxy-octane-app-auth prd.{$SITE_ADDRESS} roadrunner:8001
-#import wp wp.{$SITE_ADDRESS} /var/www/html wordpress:9000
+#import fpm-app wp.{$SITE_ADDRESS} /var/www/html wordpress:9000
 
 #import proxy-app auth.{$SITE_ADDRESS} authelia:9091
 #import proxy-app ws.{$SITE_ADDRESS} php-reverb:8080
@@ -48,12 +48,14 @@ import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
 # import proxy-app ssh.{$SITE_ADDRESS}  ssh:8182
 # import proxy-app app.{$SITE_ADDRESS}  chatNext:3000
 
-:8888 {
-	respond /health 200 {
-		body "OK"
+# 显式声明通配符主机名，让 Caddy 申请并复用 *.{$SITE_ADDRESS} 证书。
+# 未匹配到具体服务的子域名直接中止连接，避免暴露默认响应。
+*.{$SITE_ADDRESS}, http://localhost {
+	handle /health {
+		respond "OK" 200
 	}
-	respond /ready 200 {
-		body "Ready"
+	handle {
+		abort
 	}
 }
 

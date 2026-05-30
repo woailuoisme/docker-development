@@ -47,7 +47,7 @@ client:
 #     - "*"
   # 允许匿名连接（开发/测试用）
   # 生产环境应该移除此选项，使用 JWT 认证
-  allow_anonymous_connect_without_token: true
+  allow_anonymous_connect_without_token: false
 
   ping_interval: 30s
 

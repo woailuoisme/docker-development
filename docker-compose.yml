@@ -18,93 +18,93 @@ volumes:
 # 使用 Docker Compose V2 的 include 功能模块化配置
 include:
   # --- CORE & SECURITY ---
-  - dnsmasq/docker-compose.yml      # DNS 服务
-  - caddy/docker-compose.yml        # 网关渲染与反代
-#  - traefik/docker-compose.yml      # 通用反代
-#  - caddy-simple/docker-compose.yml        # 网关渲染与反代
-#  - nginx-base/docker-compose.yml
-#  - nginx/docker-compose.yml
-#  - nginx-simple/docker-compose.yml
-#  - openresty/docker-compose.yml
-#  - nginx-proxy-manager/docker-compose.yml
-#  - certbot/docker-compose.yml
-#  - acme/docker-compose.yml
-  - authelia/docker-compose.yml     # 鉴权
-#  - go-access/docker-compose.yml    # 日志分析
+  - dnsmasq/docker-compose.yml # DNS 服务
+  - caddy/docker-compose.yml # 网关渲染与反代
+  #  - traefik/docker-compose.yml      # 通用反代
+  #  - caddy-simple/docker-compose.yml        # 网关渲染与反代
+  #  - nginx-base/docker-compose.yml
+  #  - nginx/docker-compose.yml
+  #  - nginx-simple/docker-compose.yml
+  #  - openresty/docker-compose.yml
+  #  - nginx-proxy-manager/docker-compose.yml
+  #  - certbot/docker-compose.yml
+  #  - acme/docker-compose.yml
+  - authelia/docker-compose.yml # 鉴权
+  #  - go-access/docker-compose.yml    # 日志分析
   - dozzle/docker-compose.yml
-#  - portainer/docker-compose.yml
-#  - portainer-agent/docker-compose.yml
+  #  - portainer/docker-compose.yml
+  #  - portainer-agent/docker-compose.yml
   - docker-socket-proxy/docker-compose.yml
-#  - arcane/docker-compose.yml
-  - 3xui/docker-compose.yml
-#  - beszel/docker-compose.yml
-#  - beszel-agent/docker-compose.yml
-#  - docker-proxy/docker-compose.yml # Docker Socket 代理
-#  - prunemate/docker-compose.yml
+  #  - arcane/docker-compose.yml
+  # - 3xui/docker-compose.yml
+  #  - beszel/docker-compose.yml
+  #  - beszel-agent/docker-compose.yml
+  #  - docker-proxy/docker-compose.yml # Docker Socket 代理
+  #  - prunemate/docker-compose.yml
   # - openclaw/docker-compose.yml
-#  - pocketbase/docker-compose.yml
+  #  - pocketbase/docker-compose.yml
 
   # --- DATABASES & STORAGE ---
-#  - postgres-alpine-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
-  - postgres-trixie-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
-#  - postgres-trixie-18/docker-compose-prod.yml   # 默认数据库 PostgreSQL 18
+  #  - postgres-alpine-18/docker-compose.yml   # 默认数据库 PostgreSQL 18
+  - postgres-trixie-18/docker-compose.yml # 默认数据库 PostgreSQL 18
+  #  - postgres-trixie-18/docker-compose-prod.yml   # 默认数据库 PostgreSQL 18
   # - postgres17/docker-compose.yml # 备选版本
-#  - bytebase/docker-compose.yml
-  - redis/docker-compose.yml        # 缓存
-  - valkey/docker-compose.yml        # 缓存
-#  - etcd/docker-compose.yml        # 服务发现
-#  - mysql8/docker-compose.yml       # MySQL 8.4
-#  - mongodb/docker-compose.yml      # MongoDB
-#  - minio/docker-compose.yml        # 对象存储
-  - garage/docker-compose.yml       # 对象存储
-  - meilisearch/docker-compose.yml  # 全文检索
-#  - rustfs/docker-compose.yml        # 对象存储
-#  - rabbitmq/docker-compose.yml     # 消息队列
-#  - pgbouncer/docker-compose.yml    # PG 连接池
-#  - pgdog/docker-compose.yml
-#  - clickhouse/docker-compose.yml   # OLAP 数据库
-#  - influxdb/docker-compose.yml
-#  - influxdb-ui/docker-compose.yml
-#  - filebrowser/docker-compose.yml
+  #  - bytebase/docker-compose.yml
+  - redis/docker-compose.yml # 缓存
+  - valkey/docker-compose.yml # 缓存
+  #  - etcd/docker-compose.yml        # 服务发现
+  #  - mysql8/docker-compose.yml       # MySQL 8.4
+  #  - mongodb/docker-compose.yml      # MongoDB
+  #  - minio/docker-compose.yml        # 对象存储
+  - garage/docker-compose.yml # 对象存储
+  - meilisearch/docker-compose.yml # 全文检索
+  #  - rustfs/docker-compose.yml        # 对象存储
+  #  - rabbitmq/docker-compose.yml     # 消息队列
+  #  - pgbouncer/docker-compose.yml    # PG 连接池
+  #  - pgdog/docker-compose.yml
+  #  - clickhouse/docker-compose.yml   # OLAP 数据库
+  #  - influxdb/docker-compose.yml
+  #  - influxdb-ui/docker-compose.yml
+  #  - filebrowser/docker-compose.yml
 
   # --- PHP RUNTIME (Laravel/Octane) alpine ---
-#  - php-fpm/docker-compose.yml      # 标准 FPM
-#  - php-roadrunner/docker-compose.yml # RoadRunner 引擎
-#  - php-horizon/docker-compose.yml    # 队列监控
-#  - php-schedule/docker-compose.yml   # 调度任务
-#  - php-franken/docker-compose.yml    # FrankenPHP 引擎
-#  - php-reverb/docker-compose.yml     # Laravel Reverb
+  #  - php-fpm/docker-compose.yml      # 标准 FPM
+  #  - php-roadrunner/docker-compose.yml # RoadRunner 引擎
+  #  - php-horizon/docker-compose.yml    # 队列监控
+  #  - php-schedule/docker-compose.yml   # 调度任务
+  #  - php-franken/docker-compose.yml    # FrankenPHP 引擎
+  #  - php-reverb/docker-compose.yml     # Laravel Reverb
 
   # --- PHP RUNTIME (Laravel/Octane) trixie ---
-  - php-fpm/docker-compose.yml      # 标准 FPM
+  - php-fpm/docker-compose.yml # 标准 FPM
   - php-roadrunner/docker-compose.yml # RoadRunner 引擎
-  - php-horizon/docker-compose.yml    # 队列监控
-  - php-schedule/docker-compose.yml   # 调度任务
+  - php-horizon/docker-compose.yml # 队列监控
+  - php-schedule/docker-compose.yml # 调度任务
   # - php-franken/docker-compose.yml    # FrankenPHP 引擎
-#  - php-reverb/docker-compose.yml     # Laravel Reverb
-#  - homepage/docker-compose.yml      # 仪表盘
-#  - gotify/docker-compose.yml       # 通知推送 (Gotify)
-#  - ntfy/docker-compose.yml         # 通知推送 (Ntfy)
-#  - centrifugo/docker-compose.yml   # 实时消息
-#  - wud/docker-compose.yml          # 镜像更新提醒
-#  - mosquitto/docker-compose.yml    # MQTT 代理
-#  - gotenberg/docker-compose.yml
+  #  - php-reverb/docker-compose.yml     # Laravel Reverb
+  #  - homepage/docker-compose.yml      # 仪表盘
+  #  - gotify/docker-compose.yml       # 通知推送 (Gotify)
+  #  - ntfy/docker-compose.yml         # 通知推送 (Ntfy)
+  - centrifugo/docker-compose.yml   # 实时消息
+  #  - wud/docker-compose.yml          # 镜像更新提醒
+  #  - mosquitto/docker-compose.yml    # MQTT 代理
+  #  - gotenberg/docker-compose.yml
   # --- IOT & VISUALIZATION ---
-#  - simulators/docker-compose.yml
-#  - mosquitto/docker-compose.yml
-#  - telegraf/docker-compose.yml     # 数据采集
-#  - grafana/docker-compose.yml       # 数据可视化
+  #  - simulators/docker-compose.yml
+  #  - mosquitto/docker-compose.yml
+  #  - telegraf/docker-compose.yml     # 数据采集
+  #  - grafana/docker-compose.yml       # 数据可视化
   # - influxdb/docker-compose.yml      # 时序数据库
   # - influxdb-ui/docker-compose.yml   # InfluxDB 管理界面
-#  - node-red/docker-compose.yml      # 流程编排
-#  - dokploy/docker-compose.yml
+  #  - node-red/docker-compose.yml      # 流程编排
+  #  - dokploy/docker-compose.yml
   - mailpit/docker-composer.yml
 
   # --- MONITORING & WEBSITES ---
   # - beszel/docker-compose.yml       # 服务器监控 Hub
   # - beszel-agent/docker-compose.yml # 服务器监控 Agent
 #  - glances/docker-compose.yml
-  # - docs/docker-compose.yml         # 项目文档
+# - docs/docker-compose.yml         # 项目文档
 #  - gitea/docker-compose.yml
 #  - wordpress/docker-compose.yml
 #  - librespeed/docker-compose.yml

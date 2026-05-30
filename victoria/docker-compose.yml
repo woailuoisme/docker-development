@@ -1,0 +1,31 @@
+services:
+  victoria-metrics:
+    image: victoriametrics/victoria-metrics:v1.142.0
+    container_name: victoria-metrics
+    restart: unless-stopped
+    ports:
+      - "8428:8428"
+    command:
+      - "--storageDataPath=/storage"
+      - "--retentionPeriod=1"
+    volumes:
+      - vmdata:/storage
+    networks:
+      - monitor
+
+  vmagent:
+    image: victoriametrics/vmagent:v1.142.0
+    container_name: vmagent
+    restart: unless-stopped
+    depends_on:
+      - victoria-metrics
+    ports:
+      - "8429:8429"
+    command:
+      - "--promscrape.config=/etc/prometheus/prometheus.yml"
+      - "--remoteWrite.url=http://victoria-metrics:8428/api/v1/write"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - monitor
+
