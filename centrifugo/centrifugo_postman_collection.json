@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "a8f5647c-7d9a-4c28-98e3-9821d3f9b2d8",
 		"name": "Centrifugo v6 集成测试接口集",
-		"description": "用于本地开发和生产环境下测试 Go Fiber v3 后端接口及 Centrifugo HTTP API 接口的完整 Postman/Hoppscotch Collection。",
+		"description": "用于本地开发和生产环境下测试 Go Fiber v3 后端接口、Centrifugo HTTP API 以及 WebSocket/SSE 实时长连接测试的 Postman/Hoppscotch Collection。",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -262,6 +262,70 @@
 				}
 			],
 			"description": "直接对 Centrifugo 宿主机进行服务端 HTTP API 的主动调用。"
+		},
+		{
+			"name": "3. Centrifugo Real-time connections (长连接测试接口)",
+			"item": [
+				{
+					"name": "单向 WebSocket 订阅 (uni_websocket)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{centrifugo_ws_url}}/connection/uni_websocket?cf_connect=%7B%22subs%22%3A%7B%22public%3Achat_room_1%22%3A%7B%7D%7D%7D",
+							"host": [
+								"{{centrifugo_ws_url}}"
+							],
+							"path": [
+								"connection",
+								"uni_websocket"
+							],
+							"query": [
+								{
+									"key": "cf_connect",
+									"value": "%7B%22subs%22%3A%7B%22public%3Achat_room_1%22%3A%7B%7D%7D%7D",
+									"description": "URL 编码后的连接参数：{\"subs\":{\"public:chat_room_1\":{}}}"
+								}
+							]
+						},
+						"description": "Postman 导入后，可将此项作为 WebSocket 类型请求运行（Postman 有专用的 WebSocket Tab），或是在 Hoppscotch 中使用 WebSocket 客户端直连。"
+					},
+					"response": []
+				},
+				{
+					"name": "单向 SSE 实时监听 (uni_sse)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "text/event-stream",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{centrifugo_url}}/connection/uni_sse?cf_connect=%7B%22channels%22%3A%5B%22public%3Achat_room_1%22%5D%7D",
+							"host": [
+								"{{centrifugo_url}}"
+							],
+							"path": [
+								"connection",
+								"uni_sse"
+							],
+							"query": [
+								{
+									"key": "cf_connect",
+									"value": "%7B%22channels%22%3A%5B%22public%3Achat_room_1%22%5D%7D",
+									"description": "URL 编码后的订阅频道载荷：{\"channels\":[\"public:chat_room_1\"]}"
+								}
+							]
+						},
+						"description": "使用标准的 HTTP GET 请求调用 Centrifugo 的 EventSource 单向推送接口。在 Postman/Hoppscotch 中发起请求后，响应体会保持连接，以 EventStream 流式实时渲染输出接收到的服务端数据帧。"
+					},
+					"response": []
+				}
+			],
+			"description": "包含 WebSocket 以及 SSE 实时长连接端点。导入后可利用客户端相应的实时网络模块调试。"
 		}
 	],
 	"event": [
@@ -293,6 +357,11 @@
 		{
 			"key": "centrifugo_url",
 			"value": "https://push.test.local",
+			"type": "string"
+		},
+		{
+			"key": "centrifugo_ws_url",
+			"value": "wss://push.test.local",
 			"type": "string"
 		},
 		{
