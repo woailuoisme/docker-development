@@ -1,4 +1,4 @@
-# Centrifugo v6 生产级配置
+# Centrifugo v6 统一基础配置
 # 参考: https://centrifugal.dev/docs/server/configuration
 
 # ============================================
@@ -17,26 +17,24 @@ sse:
   enabled: true
 
 # ============================================
-# 引擎配置 - 使用 Valkey (兼容 Redis 协议)
+# 引擎配置 - 默认在 config 中声明 redis
+# 具体的 engine 类型和 redis address 由环境变量动态覆盖
 # ============================================
-engine:
-  type: redis
-  redis:
-    # 具体的连接地址通过环境变量 CENTRIFUGO_ENGINE_REDIS_ADDRESS 动态注入
-    pool_size: 256
-    min_idle_conns: 10
-    dial_timeout: "5s"
-    read_timeout: "3s"
-    write_timeout: "3s"
+engine: redis
+engine_redis:
+  # 具体的连接地址通过环境变量 CENTRIFUGO_ENGINE_REDIS_ADDRESS 动态注入
+  # v6 默认使用 Rueidis 客户端进行连接复用，无须配置 pool_size
+  connect_timeout: "1s"
+  io_timeout: "4s"
 
 # ============================================
 # 客户端连接配置
 # ============================================
 client:
-  # 生产环境默认禁止匿名连接，强制启用 JWT 校验
+  # 默认禁止匿名连接，安全至上；开发环境通过环境变量覆盖为 true
   allow_anonymous_connect_without_token: false
   
-  # 跨域域名列表（允许从环境变量 CENTRIFUGO_CLIENT_ALLOWED_ORIGINS 传入 JSON 数组进行覆盖）
+  # 跨域列表默认空，由环境变量覆盖
   allowed_origins: []
 
   ping_interval: 30s
@@ -51,7 +49,6 @@ client:
 # ============================================
 admin:
   enabled: true
-  # 密码和密钥将通过环境变量注入
 
 health:
   enabled: true
@@ -63,8 +60,7 @@ prometheus:
 # 日志配置
 # ============================================
 log:
-  level: info
-  format: json # 生产环境输出 JSON
+  level: info  # 日志级别由环境变量 CENTRIFUGO_LOG_LEVEL 覆盖
 
 # ============================================
 # 通道命名空间配置
