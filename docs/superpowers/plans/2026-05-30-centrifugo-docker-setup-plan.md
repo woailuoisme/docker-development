@@ -1,16 +1,16 @@
-# Centrifugo Dockerfile 与最佳实践配置实现计划
+# Centrifugo Dockerfile 与最佳实践单文件配置实现计划
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 在 `centrifugo/` 文件夹下创建自定义 Dockerfile 并优化 `config.yaml` / `config-dev.yaml` / `docker-compose.yml` 使其满足生产级安全、时区、性能调优和健康检查的最佳实践。
+**Goal:** 在 `centrifugo/` 文件夹下创建自定义 Dockerfile，删除冗余的 `config-dev.yaml`，并优化 `config.yaml` / `docker-compose.yml` 使其满足生产级安全、时区、性能调优和健康检查的最佳实践，彻底消除 v6 废弃配置导致的日志告警。
 
-**Architecture:** 基于官方 `centrifugo/centrifugo:6.8.1` (Alpine 底层) 轻量定制时区与权限目录。通过 `config.yaml` 定义协议与命名空间结构，动态凭证与细节配置使用 `CENTRIFUGO_` 前缀的环境变量在 `docker-compose.yml` 中进行注入与覆盖，实现开发文本日志/生产 JSON 日志的分离及非 root 容器运行安全。
+**Architecture:** 基于官方 `centrifugo/centrifugo:v6.8.1` (Alpine 底层) 定制时区与权限目录。统一使用 `config.yaml` 维护核心业务协议和通道命名空间（Namespaces）。环境差异（如引擎类型、匿名连接许可、日志级别）以及动态凭证完全通过 Docker Compose 的环境变量在容器启动时覆盖。
 
 **Tech Stack:** Centrifugo v6, Docker, Docker Compose, Valkey/Redis, Shell
 
 ---
 
-### Task 1: 创建 Centrifugo Dockerfile
+### Task 1: 创建 Centrifugo Dockerfile (只拷贝 config.yaml)
 
 **Files:**
 - Create: `centrifugo/Dockerfile`
@@ -19,7 +19,7 @@
   在 `centrifugo/Dockerfile` 中输入以下内容：
   ```dockerfile
   # 锁定 Centrifugo 版本
-  ARG CENTRIFUGO_VERSION=6.8.1
+  ARG CENTRIFUGO_VERSION=v6.8.1
   FROM centrifugo/centrifugo:${CENTRIFUGO_VERSION}
 
   # 临时切换到 root 账户配置系统环境
@@ -35,9 +35,8 @@
   RUN mkdir -p /centrifugo && \
       chown -R centrifugo:centrifugo /centrifugo
 
-  # 复制默认配置文件到容器中
+  # 仅复制单配置文件 config.yaml 到容器中
   COPY --chown=centrifugo:centrifugo config.yaml /centrifugo/config.yaml
-  COPY --chown=centrifugo:centrifugo config-dev.yaml /centrifugo/config-dev.yaml
 
   # 恢复使用官方非 root 用户 centrifugo (UID 1001)
   USER centrifugo
@@ -53,7 +52,7 @@
 
 - [ ] **Step 2: 使用 Hadolint 进行 Dockerfile 静态语法检查**
   运行：`rtk hadolint centrifugo/Dockerfile`
-  预期输出：没有严重语法或安全警告（如有，根据 .hadolint.yaml 优化）。
+  预期输出：没有严重语法或安全警告。
 
 - [ ] **Step 3: 提交修改**
   运行：
@@ -64,15 +63,16 @@
 
 ---
 
-### Task 2: 优化生产环境配置 `config.yaml`
+### Task 2: 编写统一的配置文件 `config.yaml` 并在 Git 中删除 `config-dev.yaml`
 
 **Files:**
 - Modify: `centrifugo/config.yaml`
+- Delete: `centrifugo/config-dev.yaml`
 
-- [ ] **Step 1: 写入 config.yaml 生产最佳实践配置**
-  修改 `centrifugo/config.yaml` 的内容为：
+- [ ] **Step 1: 写入 config.yaml 统一配置**
+  修改 `centrifugo/config.yaml`，去除 v6 废弃 Redis pool/timeout/log_format 配置以消除警告：
   ```yaml
-  # Centrifugo v6 生产级配置
+  # Centrifugo v6 统一基础配置
   # 参考: https://centrifugal.dev/docs/server/configuration
 
   # ============================================
@@ -91,26 +91,24 @@
     enabled: true
 
   # ============================================
-  # 引擎配置 - 使用 Valkey (兼容 Redis 协议)
+  # 引擎配置 - 默认在 config 中声明 redis
+  # 具体的 engine 类型和 redis address 由环境变量动态覆盖
   # ============================================
-  engine:
-    type: redis
-    redis:
-      # 具体的连接地址通过环境变量 CENTRIFUGO_ENGINE_REDIS_ADDRESS 动态注入
-      pool_size: 256
-      min_idle_conns: 10
-      dial_timeout: "5s"
-      read_timeout: "3s"
-      write_timeout: "3s"
+  engine: redis
+  engine_redis:
+    # 具体的连接地址通过环境变量 CENTRIFUGO_ENGINE_REDIS_ADDRESS 动态注入
+    # v6 默认使用 Rueidis 客户端进行连接复用，无须配置 pool_size
+    connect_timeout: "1s"
+    io_timeout: "4s"
 
   # ============================================
   # 客户端连接配置
   # ============================================
   client:
-    # 生产环境默认禁止匿名连接，强制启用 JWT 校验
+    # 默认禁止匿名连接，安全至上；开发环境通过环境变量覆盖为 true
     allow_anonymous_connect_without_token: false
     
-    # 跨域域名列表（允许从环境变量 CENTRIFUGO_CLIENT_ALLOWED_ORIGINS 传入 JSON 数组进行覆盖）
+    # 跨域列表默认空，由环境变量覆盖
     allowed_origins: []
 
     ping_interval: 30s
@@ -125,7 +123,6 @@
   # ============================================
   admin:
     enabled: true
-    # 密码和密钥将通过环境变量注入
 
   health:
     enabled: true
@@ -137,8 +134,7 @@
   # 日志配置
   # ============================================
   log:
-    level: info
-    format: json # 生产环境输出 JSON
+    level: info  # 日志级别由环境变量 CENTRIFUGO_LOG_LEVEL 覆盖
 
   # ============================================
   # 通道命名空间配置
@@ -186,116 +182,20 @@
         allow_subscribe_for_client: true
   ```
 
-- [ ] **Step 2: 提交修改**
+- [ ] **Step 2: 用 Git 删除 config-dev.yaml**
+  运行：`rtk git rm centrifugo/config-dev.yaml`
+  预期输出：成功从仓库中删除。
+
+- [ ] **Step 3: 提交配置修改**
   运行：
   ```bash
   rtk git add centrifugo/config.yaml
-  rtk git commit -m "chore(centrifugo): optimize config.yaml with production best practices"
+  rtk git commit -m "chore(centrifugo): unify configuration into config.yaml and delete config-dev.yaml"
   ```
 
 ---
 
-### Task 3: 优化开发环境配置 `config-dev.yaml`
-
-**Files:**
-- Modify: `centrifugo/config-dev.yaml`
-
-- [ ] **Step 1: 写入 config-dev.yaml 开发环境配置**
-  修改 `centrifugo/config-dev.yaml` 的内容为：
-  ```yaml
-  # Centrifugo v6 开发环境配置
-  # 用于本地开发和测试
-
-  # ============================================
-  # 传输协议配置
-  # ============================================
-  websocket:
-    use_write_buffer_pool: true
-
-  uni_websocket:
-    enabled: true
-
-  http_stream:
-    enabled: true
-
-  sse:
-    enabled: true
-
-  # ============================================
-  # 引擎配置 - 开发环境使用内存引擎
-  # ============================================
-  engine:
-    type: memory
-
-  # ============================================
-  # 客户端连接配置
-  # ============================================
-  client:
-    # 开发环境：允许所有来源
-    allowed_origins:
-      - "*"
-    
-    # 允许匿名连接（不需要 JWT token）
-    allow_anonymous_connect_without_token: true
-
-    ping_interval: 30s
-    pong_timeout: 8s
-    connection_limit: 1000
-    user_connection_limit: 100
-
-  # ============================================
-  # 管理后台与监控
-  # ============================================
-  admin:
-    enabled: true
-
-  health:
-    enabled: true
-
-  prometheus:
-    enabled: true
-
-  # ============================================
-  # 日志配置
-  # ============================================
-  log:
-    level: "debug"  # 开发环境使用 debug 级别
-    format: "text"   # 开发环境使用文本格式，便于查看
-
-  # ============================================
-  # 通道命名空间配置
-  # ============================================
-  channel:
-    namespaces:
-      - name: public
-        presence: true
-        join_leave: true
-        history_size: 10
-        history_ttl: "300s"
-        force_recovery: true
-        allow_publish_for_subscriber: true
-        allow_subscribe_for_client: true
-      
-      - name: private
-        presence: true
-        join_leave: true
-        history_size: 10
-        history_ttl: "300s"
-        force_recovery: true
-        allow_publish_for_subscriber: false
-        allow_subscribe_for_client: false
-  ```
-
-- [ ] **Step 2: 提交修改**
-  运行：
-  ```bash
-  rtk git add centrifugo/config-dev.yaml
-  rtk git commit -m "chore(centrifugo): simplify config-dev.yaml for local development"
-  ```
-
----
-
-### Task 4: 更新 Docker Compose 配置 `docker-compose.yml`
+### Task 3: 更新 Docker Compose 配置 `docker-compose.yml` 并支持环境覆盖
 
 **Files:**
 - Modify: `centrifugo/docker-compose.yml`
@@ -309,20 +209,27 @@
         context: .
         dockerfile: Dockerfile
         args:
-          CENTRIFUGO_VERSION: 6.8.1
+          CENTRIFUGO_VERSION: v6.8.1
       container_name: centrifugo
       command: centrifugo -c /centrifugo/config.yaml
       volumes:
         - ${CONFIG_PATH}centrifugo:/centrifugo
       environment:
+        # 默认使用 redis 引擎，但可以在开发环境的 .env 中通过 CENTRIFUGO_ENGINE 设定为 memory
+        - CENTRIFUGO_ENGINE=${CENTRIFUGO_ENGINE:-redis}
+        # 基础秘钥与凭证
         - CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY=${CENTRIFUGO_TOKEN_HMAC_SECRET_KEY}
         - CENTRIFUGO_HTTP_API_KEY=${CENTRIFUGO_API_KEY}
         - CENTRIFUGO_ADMIN_PASSWORD=${CENTRIFUGO_ADMIN_PASSWORD}
         - CENTRIFUGO_ADMIN_SECRET=${CENTRIFUGO_ADMIN_SECRET}
+        # Redis 引擎的 Valkey 连接地址
         - CENTRIFUGO_ENGINE_REDIS_ADDRESS=redis://:${REDIS_PASSWORD}@valkey:6379/2
-        - CENTRIFUGO_CLIENT_ALLOWED_ORIGINS=["*"]
-        - CENTRIFUGO_LOG_LEVEL=info
-        - CENTRIFUGO_LOG_FORMAT=json
+        # CORS 允许的域：从 .env 中的 CENTRIFUGO_ALLOWED_ORIGINS 映射为 JSON 格式数组
+        - CENTRIFUGO_CLIENT_ALLOWED_ORIGINS=["${CENTRIFUGO_ALLOWED_ORIGINS:-*}"]
+        # 日志等级：允许通过环境变量修改
+        - CENTRIFUGO_LOG_LEVEL=${CENTRIFUGO_LOG_LEVEL:-info}
+        # 匿名连接控制：开发环境默认为 true，生产环境可在 .env 中重写为 false
+        - CENTRIFUGO_CLIENT_ALLOW_ANONYMOUS_CONNECT_WITHOUT_TOKEN=${CENTRIFUGO_ALLOW_ANONYMOUS_CONNECT_WITHOUT_TOKEN:-false}
       ulimits:
         nofile:
           soft: 65536
@@ -344,12 +251,12 @@
   运行：
   ```bash
   rtk git add centrifugo/docker-compose.yml
-  rtk git commit -m "feat(centrifugo): integrate custom Dockerfile build in docker-compose.yml"
+  rtk git commit -m "feat(centrifugo): configure compose file to use environment-based overrides for single-config setup"
   ```
 
 ---
 
-### Task 5: 验证服务构建与启动状态
+### Task 4: 验证单文件服务构建与启动状态 (彻底消除日志报警)
 
 - [ ] **Step 1: 构建本地镜像**
   运行：`rtk docker compose build centrifugo`
@@ -361,7 +268,7 @@
 
 - [ ] **Step 3: 检查时区一致性**
   运行：`rtk docker exec centrifugo date`
-  预期输出：输出当前系统时间，带 CST（中国标准时间）时区标识。
+  预期输出：输出当前系统时间，带 CST 时区标识。
 
 - [ ] **Step 4: 检查健康状况**
   运行：`rtk docker inspect --format='{{json .State.Health}}' centrifugo`
@@ -369,11 +276,11 @@
 
 - [ ] **Step 5: 验证 HTTP 健康接口返回**
   运行：`rtk docker exec centrifugo wget -qO- http://localhost:8000/health`
-  预期输出：`OK`，或者 HTTP 状态码 200。
+  预期输出：`{}`, 说明返回了 200。
 
-- [ ] **Step 6: 查看 JSON 格式日志**
-  运行：`rtk docker compose logs centrifugo --tail 20`
-  预期输出：每一条日志均以 JSON 格式输出，例如包含 `"level":"info"`, `"message":"..."` 字段。
+- [ ] **Step 6: 查看 JSON 格式日志 (验证警告完全消除)**
+  运行：`rtk proxy docker compose logs centrifugo`
+  预期输出：没有任何 `"level":"warn"` 的 `unknown key` 报错。只输出 info 日志，表示完美集成。
 
 - [ ] **Step 7: 停止测试容器并清理环境**
   运行：`rtk docker compose down`
