@@ -10,8 +10,8 @@ services:
     volumes:
       - ${CONFIG_PATH}centrifugo:/centrifugo
     environment:
-      # 默认使用 redis 引擎，但可以在开发环境的 .env 中通过 CENTRIFUGO_ENGINE 设定为 memory
-      - CENTRIFUGO_ENGINE=${CENTRIFUGO_ENGINE:-redis}
+      # 默认使用 redis 引擎，但可以在开发环境的 .env 中通过 CENTRIFUGO_ENGINE_TYPE 设定为 memory
+      - CENTRIFUGO_ENGINE_TYPE=${CENTRIFUGO_ENGINE_TYPE:-redis}
       # 基础秘钥与凭证
       - CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY=${CENTRIFUGO_TOKEN_HMAC_SECRET_KEY}
       - CENTRIFUGO_HTTP_API_KEY=${CENTRIFUGO_API_KEY}
