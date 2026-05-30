@@ -95,21 +95,23 @@ else
 	echo -e "${RED}✗ 管理后台访问异常: ${PUSH_URL}/admin/ (HTTP ${ADMIN_HTTP_CODE})${NC}"
 fi
 
-# 7. 服务端 API 推送测试 (HTTP API)
-echo -e "\n${YELLOW}[7/7] 发送 HTTP API 推送测试指令...${NC}"
-API_PAYLOAD='{"method":"publish","params":{"channel":"public:test","data":{"message":"Hello from shell test script!","timestamp":"'$(date "+%Y-%m-%d %H:%M:%S")'"}}}'
-API_RESPONSE=$(curl -k -s -X POST "${PUSH_URL}/api" \
-	-H "Content-Type: application/json" \
-	-H "Authorization: apikey ${API_KEY}" \
-	-d "${API_PAYLOAD}")
+# 7. 服务端 API 推送测试 (HTTP API) - 覆盖所有四个命名空间
+echo -e "\n${YELLOW}[7/7] 发送 HTTP API 推送测试指令 (覆盖所有命名空间)...${NC}"
+for NS in "public" "private" "user" "notification"; do
+	CHANNEL="${NS}:test_channel"
+	echo -e "正在向命名空间 [${NS}] (${CHANNEL}) 推送测试数据..."
+	API_PAYLOAD='{"method":"publish","params":{"channel":"'"${CHANNEL}"'","data":{"message":"Hello to namespace '"${NS}"'!","timestamp":"'$(date "+%Y-%m-%d %H:%M:%S")'"}}}'
+	API_RESPONSE=$(curl -k -s -X POST "${PUSH_URL}/api" \
+		-H "Content-Type: application/json" \
+		-H "Authorization: apikey ${API_KEY}" \
+		-d "${API_PAYLOAD}")
 
-if echo "$API_RESPONSE" | grep -q "result" || echo "$API_RESPONSE" | grep -q -E "ok|{}"; then
-	echo -e "${GREEN}✓ 消息成功推送至 Centrifugo API。${NC}"
-	echo -e "接口响应: ${API_RESPONSE}"
-else
-	echo -e "${RED}✗ 消息推送失败。${NC}"
-	echo -e "接口响应: ${API_RESPONSE}"
-fi
+	if echo "$API_RESPONSE" | grep -q "result" || echo "$API_RESPONSE" | grep -q -E "ok|{}"; then
+		echo -e "  ${GREEN}✓ 命名空间 [${NS}] 推送成功。${NC}"
+	else
+		echo -e "  ${RED}✗ 命名空间 [${NS}] 推送失败。响应: ${API_RESPONSE}${NC}"
+	fi
+done
 
 # 8. 单向 SSE (Unidirectional SSE) 握手流测试
 echo -e "\n${YELLOW}[可选测试] 尝试发起单向 SSE 连接并接收第一条推送...${NC}"
