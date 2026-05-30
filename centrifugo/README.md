@@ -1,208 +1,147 @@
-# Centrifugo v6 配置说明
+# Centrifugo v6 容器化部署与使用指南
 
-## 配置文件
+本项目对 Centrifugo 进行了生产级容器化优化。采用**单配置文件 + 环境变量动态覆盖**的架构模式，消除了开发与生产环境的多配置文件冗余，并实现了统一的时区管理与非 root 运行时安全。
 
-- `config.yaml` - 生产环境配置（使用 Redis engine）
-- `config-dev.yaml` - 开发环境配置（使用 memory engine）
+---
 
-## 环境切换
+## 1. 架构组件
 
-### 开发环境
+*   **Dockerfile**：基于官方 `centrifugo/centrifugo:v6.8.1` 镜像进行轻量级定制，添加了 `Asia/Shanghai` 时区支持、非 root 用户（`centrifugo`）安全限制和内置的 `/health` 健康检查。
+*   **config.yaml**：统一的事实源配置文件，管理核心传输协议和通道命名空间（Namespaces）。
+*   **docker-compose.yml**：通过环境变量在容器启动时动态调整配置，划分开发与生产行为。
+
+---
+
+## 2. 运行与环境切换
+
+所有差异化配置全部由环境变量控制，避免了重复修改配置文件。
+
+### A. 开发环境 (Memory 内存引擎)
+开发环境无需依赖 Valkey/Redis，使用单机内存引擎即可。
+
+**在 `.env` 或启动命令中设置以下环境变量**：
+```env
+# 覆盖引擎类型为 memory 内存引擎
+CENTRIFUGO_ENGINE_TYPE=memory
+
+# 允许匿名连接，方便本地调试
+CENTRIFUGO_CLIENT_ALLOW_ANONYMOUS_CONNECT_WITHOUT_TOKEN=true
+
+# 允许所有跨域请求
+CENTRIFUGO_ALLOWED_ORIGINS=*
+
+# 开启 Debug 日志级别
+CENTRIFUGO_LOG_LEVEL=debug
+```
+
+**启动服务**：
 ```bash
-# 使用开发配置启动
-docker run -v ./centrifugo:/centrifugo centrifugo/centrifugo:v6 \
-  centrifugo -c /centrifugo/config-dev.yaml
+docker compose up -d centrifugo
 ```
 
-### 生产环境
+---
+
+### B. 生产环境 (Valkey 分布式引擎)
+生产环境使用 Valkey 引擎支持多节点集群与状态持久化。
+
+**在生产环境 `.env` 中配置**：
+```env
+# 使用 redis 引擎（兼容 Valkey）
+CENTRIFUGO_ENGINE_TYPE=redis
+
+# 生产环境强制 JWT 认证，禁用匿名连接
+CENTRIFUGO_CLIENT_ALLOW_ANONYMOUS_CONNECT_WITHOUT_TOKEN=false
+
+# 限制 CORS 跨域源（支持填写具体的可信域名，格式如 ["https://yourdomain.com"]）
+CENTRIFUGO_ALLOWED_ORIGINS=https://push.yourdomain.com
+
+# 锁定 info 级别日志
+CENTRIFUGO_LOG_LEVEL=info
+
+# 敏感密钥凭证 (确保为强随机密钥)
+CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=your-production-jwt-secret-key
+CENTRIFUGO_API_KEY=your-production-http-api-key
+CENTRIFUGO_ADMIN_PASSWORD=your-admin-password
+CENTRIFUGO_ADMIN_SECRET=your-admin-secret
+```
+
+**启动服务**：
 ```bash
-# 使用生产配置启动（需要 Redis）
-docker run -v ./centrifugo:/centrifugo centrifugo/centrifugo:v6 \
-  centrifugo -c /centrifugo/config.yaml
+docker compose up -d valkey centrifugo
 ```
 
-## 生产环境配置要点
+---
 
-### 1. 引擎配置
-- ✅ 使用 Redis engine 支持多节点集群
-- ✅ 配置 Redis 连接池和超时
-- ✅ 启用 presence_user_mapping 优化性能
+## 3. 核心环境变量映射
 
-### 2. 安全配置
-- ✅ 限制 `allowed_origins` 到具体域名
-- ✅ 使用强密码和密钥
-- ✅ 启用 JWT 认证（移除 `allow_anonymous_connect_without_token`）
-- ✅ 配置 TLS/SSL
+Centrifugo 支持以 `CENTRIFUGO_` 为前缀的环境变量，自动映射合并到 `config.yaml` 对应配置中：
 
-### 3. 性能优化
-- ✅ 设置合理的连接限制
-- ✅ 配置速率限制
-- ✅ 调整历史记录大小和 TTL
-- ✅ 增加文件描述符限制（ulimit）
+| 环境变量 | 对应 YAML 配置项 | 描述 |
+| :--- | :--- | :--- |
+| `CENTRIFUGO_ENGINE_TYPE` | `engine.type` | 引擎类型，可选 `redis` / `memory` |
+| `CENTRIFUGO_ENGINE_REDIS_ADDRESS` | `engine.redis.address` | Valkey/Redis 连接地址 |
+| `CENTRIFUGO_CLIENT_ALLOW_ANONYMOUS_CONNECT_WITHOUT_TOKEN` | `client.allow_anonymous_connect_without_token` | 是否允许匿名连接（安全控制） |
+| `CENTRIFUGO_CLIENT_ALLOWED_ORIGINS` | `client.allowed_origins` | CORS 域名数组格式，例如 `["https://a.com"]` |
+| `CENTRIFUGO_LOG_LEVEL` | `log.level` | 日志级别：`debug` / `info` / `warn` / `error` |
 
-### 4. 监控和日志
-- ✅ 启用 Prometheus metrics
-- ✅ 配置健康检查端点
-- ✅ 设置适当的日志级别（info）
+---
 
-### 5. 高可用部署
-- ✅ 部署多个 Centrifugo 节点
-- ✅ 使用 Redis Sentinel 或 Redis Cluster
-- ✅ 配置负载均衡器（Nginx/Caddy）
+## 4. 命名空间最佳实践
 
-## JWT 认证配置
+配置文件中预设了四个命名空间，满足常见业务场景：
 
-生产环境应该启用 JWT 认证：
+1.  **`public` (公共频道)**：
+    *   允许客户端订阅和发布。
+    *   适用于聊天室、在线广播等。
+2.  **`private` (私有频道)**：
+    *   必须提供订阅 Token（JWT）才能订阅。
+    *   不允许客户端直接发布（只允许后端服务通过 HTTP API 推送）。
+    *   适用于单对单聊天、私密数据推送。
+3.  **`user` (用户个人频道)**：
+    *   用户专属消息通道，自动校验用户 ID。
+    *   适用于个人系统通知、红点提醒。
+4.  **`notification` (通知频道)**：
+    *   轻量级的通知通道，不强制要求恢复历史，保留较短的 TTL。
 
-```yaml
-client:
-  # 移除匿名连接
-  # allow_anonymous_connect_without_token: false
-  
-  # JWT 配置
-  token:
-    hmac_secret_key: "your-secret-key"
-    # 或使用 RSA
-    # rsa_public_key: "path/to/public.pem"
+---
+
+## 5. 健康检查与监控
+
+### 健康检查
+Dockerfile 已经内置了健康检查命令，每 10 秒自动运行一次：
+```bash
+# 容器内检查命令
+wget -qO- http://localhost:8000/health
+```
+在宿主机上，可通过以下命令查看容器状态：
+```bash
+docker compose ps centrifugo
+# 状态应显示为 (healthy)
 ```
 
-## 通道命名空间最佳实践
-
-### public:* - 公共频道
-- 允许客户端订阅和发布
-- 适用于聊天室、公告等
-
-### private:* - 私有频道
-- 需要订阅 token
-- 服务端控制访问权限
-
-### user:{userId} - 用户个人频道
-- 用户专属通知
-- 不需要历史记录
-
-### notification:* - 通知频道
-- 短期通知
-- 较小的历史记录
-
-## 性能调优建议
-
-### Redis 配置
-```yaml
-engine:
-  redis:
-    # 连接池大小
-    pool_size: 256
-    # 最小空闲连接
-    min_idle_conns: 10
-    # 连接超时
-    dial_timeout: "5s"
-    # 读写超时
-    read_timeout: "3s"
-    write_timeout: "3s"
+### Prometheus 监控指标
+监控端口默认为 `8000`，获取指标的端点为：
+```http
+http://localhost:8000/metrics
 ```
 
-### 连接限制
-```yaml
-client:
-  # 每个节点最大连接数
-  connection_limit: 10000
-  # 每秒新连接速率
-  connection_rate_limit: 100
-  # 单用户最大连接数
-  user_connection_limit: 10
-```
+---
 
-## 监控指标
-
-访问 Prometheus metrics：
-```
-http://localhost:8500/metrics
-```
-
-关键指标：
-- `centrifugo_node_num_clients` - 当前连接数
-- `centrifugo_node_num_channels` - 活跃频道数
-- `centrifugo_node_num_users` - 在线用户数
-- `centrifugo_transport_messages_sent` - 发送消息数
-- `centrifugo_transport_messages_received` - 接收消息数
-
-## 健康检查
+## 6. 日志格式与收集
+在 Centrifugo v6 中，标准输出日志默认输出为**结构化的 JSON 格式**（不再需要配置 `log.format`），以便无缝对接本项目中的 Loki / Vector / ELK 日志收集系统。
 
 ```bash
-# 健康检查
-curl http://localhost:8500/health
-
-# 返回 200 表示健康
+# 查看实时日志
+docker compose logs centrifugo -f
 ```
 
-## 管理后台
+---
 
-访问：`https://push.yourdomain.com/admin/`
+## 7. 常见问题排查
 
-生产环境建议：
-- 使用强密码
-- 通过防火墙限制访问
-- 或完全禁用管理后台
-
-## 负载均衡配置
-
-### Nginx 示例
-```nginx
-upstream centrifugo {
-    ip_hash;  # WebSocket 需要会话保持
-    server centrifugo1:8000;
-    server centrifugo2:8000;
-    server centrifugo3:8000;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name push.yourdomain.com;
-    
-    location / {
-        proxy_pass http://centrifugo;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### Caddy 示例
-```caddyfile
-push.yourdomain.com {
-    reverse_proxy centrifugo1:8000 centrifugo2:8000 centrifugo3:8000 {
-        lb_policy ip_hash
-        header_up X-Real-IP {remote_host}
-    }
-}
-```
-
-## 故障排查
-
-### 连接失败
-1. 检查 CORS 配置
-2. 检查 JWT token 是否有效
-3. 查看 Centrifugo 日志
-
-### 性能问题
-1. 检查 Redis 性能
-2. 增加 Centrifugo 节点
-3. 调整连接限制
-4. 优化历史记录配置
-
-### 消息丢失
-1. 检查 `force_recovery` 配置
-2. 增加 `history_size`
-3. 延长 `history_ttl`
-
-## 参考文档
-
-- [官方文档](https://centrifugal.dev/docs/server/configuration)
-- [JWT 认证](https://centrifugal.dev/docs/server/authentication)
-- [引擎和扩展](https://centrifugal.dev/docs/server/engines)
-- [性能调优](https://centrifugal.dev/docs/server/performance)
+1.  **连接失败 (CORS 错误)**
+    *   检查宿主机环境的 `.env` 中 `CENTRIFUGO_ALLOWED_ORIGINS` 的设置。本地开发建议为 `*`。
+2.  **日志警告 `unknown var in environment`**
+    *   不要使用旧版的废弃环境变量（例如 `CENTRIFUGO_LOG_FORMAT`、`CENTRIFUGO_REDIS_POOL` 等）。请严格对照本文档的环境变量映射表进行配置。
+3.  **时区不对**
+    *   由于我们使用的是自定义 Dockerfile 构建，在更新过 `config.yaml` 或基础配置后，请运行 `docker compose build centrifugo --no-cache` 重新构建镜像以应用时区和配置更新。
