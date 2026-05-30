@@ -72,7 +72,64 @@ docker compose up -d valkey centrifugo
 
 ---
 
-## 3. 核心环境变量映射
+## 3. Caddy 反向代理配置与访问入口
+
+本项目通过 Caddy 作为统一网关。若要启用 Centrifugo 的外网/本地域名访问，请在项目的 `caddy/Caddyfile` 中配置代理。
+
+### A. Caddyfile 配置示例
+
+#### 方案一：标准全域名反代（开发/测试）
+直接反代整个 `push.{$SITE_ADDRESS}` 域名到 Centrifugo 的 `8000` 端口：
+```caddyfile
+import proxy-app push.{$SITE_ADDRESS} centrifugo:8000
+```
+> [!NOTE]
+> 项目的 `proxy-app` 模板会自动配置 WebSocket 支持，并禁用了响应缓冲（`flush_interval -1`），这对于 SSE 和 HTTP Stream 传输的流式推送非常关键。
+
+#### 方案二：安全隔离反代（推荐生产环境）
+为了防止敏感的监控指标（`/metrics`）和服务器 API（`/api`）被公开暴露，可以在 Caddy 层拦截或限制这些敏感路径的远程访问，仅允许内网网段访问：
+```caddyfile
+push.{$SITE_ADDRESS} {
+	# 限制仅内网网段可以访问 /metrics 和 /api
+	@internal_only {
+		path /metrics /api
+		not remote_ip 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1
+	}
+	respond @internal_only "Forbidden" 403
+
+	# 使用 proxy-app 模板反代所有其余请求（如长连接和 /admin）
+	import templates/proxy-app.conf push.{$SITE_ADDRESS} centrifugo:8000
+}
+```
+
+---
+
+### B. 各层级接口访问入口汇总
+
+通过 Caddy 代理后，可采用以下地址访问 Centrifugo 的对应功能（以 `test.local` 域名为例）：
+
+1.  **客户端 WebSocket 连接 (双向通信)**
+    *   URL：`wss://push.test.local/connection/websocket`
+    *   适用：使用标准 Centrifugo 客户端 SDK 的浏览器或 App 客户端。
+2.  **客户端 SSE 连接 (EventSource 双向通信)**
+    *   URL：`https://push.test.local/connection/sse`
+    *   适用：防火墙拦截 WebSocket 时的首选备用双向协议。
+3.  **单向推送连接 (Unidirectional SSE / EventSource)**
+    *   URL：`https://push.test.local/connection/uni_sse`
+    *   适用：前端使用浏览器原生 `EventSource` 直连，只收消息不发消息的极简接入场景。
+4.  **管理后台 (Web Admin Dashboard)**
+    *   URL：`https://push.test.local/admin/`
+    *   安全：访问需要输入宿主机环境 `.env` 中定义的 `CENTRIFUGO_ADMIN_PASSWORD`。
+5.  **服务端 HTTP API (上行推送)**
+    *   URL：`https://push.test.local/api` (外部) 或 `http://centrifugo:8000/api` (Docker 网络内通信)
+    *   安全：请求头中须包含 `Authorization: apikey <CENTRIFUGO_API_KEY>`。
+6.  **健康检查与监控**
+    *   健康检查：`https://push.test.local/health` (返回 HTTP 200 `{}`)
+    *   Prometheus 指标：`https://push.test.local/metrics` (仅限内网 Prometheus 抓取)
+
+---
+
+## 4. 核心环境变量映射
 
 Centrifugo 支持以 `CENTRIFUGO_` 为前缀的环境变量，自动映射合并到 `config.yaml` 对应配置中：
 
