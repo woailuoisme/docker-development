@@ -16,6 +16,9 @@ http_stream:
 sse:
   enabled: true
 
+uni_sse:
+  enabled: true
+
 # ============================================
 # 引擎配置 - 使用 Valkey (兼容 Redis 协议)
 # ============================================
@@ -69,6 +72,8 @@ channel:
   history_meta_ttl: "720h"  # 30天
   
   namespaces:
+    # public 公开命名空间：主要用于大厅、群聊或广播等场景。
+    # 允许客户端直接发布和订阅。开启 history_size 与 recovery 用于防止移动端弱网重连导致消息丢失。
     - name: public
       presence: true
       join_leave: true
@@ -80,6 +85,9 @@ channel:
       allow_subscribe_for_anonymous: false
       allow_publish_for_anonymous: false
     
+    # private 私有命名空间：用于点对点通信、系统通知或敏感业务。
+    # 强制校验订阅 Token，不允许客户端直接订阅（须由后端发放 Token）。
+    # 禁用客户端直接 publish，确保所有上行数据必须流经后端接口校验以保障系统完整性。
     - name: private
       presence: true
       join_leave: true
@@ -89,6 +97,8 @@ channel:
       allow_publish_for_subscriber: false
       allow_subscribe_for_client: false
     
+    # user 用户个人频道命名空间：用于推送个人特定的推送及提醒。
+    # 禁用 presence 与 join_leave（个人频道无须了解其他用户的上下线状态），以极大降低高并发下的内存与网络开销。
     - name: user
       presence: false
       join_leave: false
@@ -98,6 +108,8 @@ channel:
       allow_publish_for_subscriber: false
       allow_subscribe_for_client: false
     
+    # notification 实时通知命名空间：用于吞吐量高、非核心、时效性强的通知推送。
+    # 减少 history 占用并关闭强制恢复（force_recovery），以减轻 Valkey/Redis 内存缓存的持久化与网络同步压力。
     - name: notification
       presence: false
       join_leave: false
