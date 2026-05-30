@@ -1,221 +1,196 @@
-# Centrifugo v6 容器化部署与使用指南
+# Centrifugo v6 生产环境部署与使用指南
 
-本项目对 Centrifugo 进行了生产级容器化优化。采用**单配置文件 + 环境变量动态覆盖**的架构模式，消除了开发与生产环境的多配置文件冗余，并实现了统一的时区管理与非 root 运行时安全。
-
----
-
-## 1. 架构组件
-
-*   **Dockerfile**：基于官方 `centrifugo/centrifugo:v6.8.1` 镜像进行轻量级定制，添加了 `Asia/Shanghai` 时区支持、非 root 用户（`centrifugo`）安全限制和内置的 `/health` 健康检查。
-*   **config.yaml**：统一的事实源配置文件，管理核心传输协议和通道命名空间（Namespaces）。
-*   **docker-compose.yml**：通过环境变量在容器启动时动态调整配置，划分开发与生产行为。
+本项目对 Centrifugo 进行了生产级容器化与架构优化。本指南专注于**生产环境**的各个维度进行详细说明，包含集群部署、安全隔离、网关反代、长连接协议及监控日志体系。
 
 ---
 
-## 2. 运行与环境切换
+## 1. 生产环境架构设计
 
-所有差异化配置全部由环境变量控制，避免了重复修改配置文件。
+在生产环境下，Centrifugo 采用**自定义 Dockerfile + Valkey 分布式引擎**的运行模式，以确保高可用性、非 root 容器安全性以及完善的网关拦截机制。
 
-### A. 开发环境 (Memory 内存引擎)
-开发环境无需依赖 Valkey/Redis，使用单机内存引擎即可。
+*   **安全加固镜像 (Dockerfile)**：基于官方 `centrifugo/centrifugo:v6.8.1` 镜像定制。
+    - 时区锁定为 `Asia/Shanghai`，保证内部日志和业务数据的时序一致性。
+    - 强制使用非 root 用户 `centrifugo`（UID 1001）运行进程，遵循最小特权原则。
+    - 挂载健康检查：通过在容器内定期调用 `http://localhost:8000/health` 接口，结合 Docker daemon 实现自动化故障复位。
+*   **统一生产配置 (config.yaml)**：管理核心的协议启用状态以及高度细分且带有严密安全策略的通道命名空间（Namespaces）。
+*   **分布式存储引擎 (Valkey)**：生产环境下强依赖 Valkey 引擎（高度兼容 Redis 协议的云原生键值存储），支持多节点水平扩展（Cluster/Sentinel）及消息的断线重连补发（Recovery）。
 
-**在 `.env` 或启动命令中设置以下环境变量**：
+---
+
+## 2. 生产环境部署与运行
+
+### A. 环境变量配置 (生产环境)
+在生产环境的宿主机 `.env` 文件中，必须配置以下环境变量来覆盖容器的默认行为：
+
 ```env
-# 覆盖引擎类型为 memory 内存引擎
-CENTRIFUGO_ENGINE_TYPE=memory
-
-# 允许匿名连接，方便本地调试
-CENTRIFUGO_CLIENT_ALLOW_ANONYMOUS_CONNECT_WITHOUT_TOKEN=true
-
-# 允许所有跨域请求
-CENTRIFUGO_ALLOWED_ORIGINS=*
-
-# 开启 Debug 日志级别
-CENTRIFUGO_LOG_LEVEL=debug
-```
-
-**启动服务**：
-```bash
-docker compose up -d centrifugo
-```
-
----
-
-### B. 生产环境 (Valkey 分布式引擎)
-生产环境使用 Valkey 引擎支持多节点集群与状态持久化。
-
-**在生产环境 `.env` 中配置**：
-```env
-# 使用 redis 引擎（兼容 Valkey）
+# 核心引擎类型：指定使用 redis 引擎（在此项目中兼容对接 Valkey）
 CENTRIFUGO_ENGINE_TYPE=redis
 
-# 生产环境强制 JWT 认证，禁用匿名连接
+# 严格的客户端接入策略：生产环境强制开启 JWT 认证，绝对禁止匿名连接
 CENTRIFUGO_CLIENT_ALLOW_ANONYMOUS_CONNECT_WITHOUT_TOKEN=false
 
-# 限制 CORS 跨域源（支持填写具体的可信域名，格式如 ["https://yourdomain.com"]）
-CENTRIFUGO_ALLOWED_ORIGINS=https://push.yourdomain.com
+# 严格的 CORS 跨域源限制：必须显式配置为允许的可信业务域名，严禁使用通配符 "*"
+# 格式为 JSON 字符串数组，例如：["https://yourdomain.com", "https://app.yourdomain.com"]
+CENTRIFUGO_ALLOWED_ORIGINS=["https://yourdomain.com"]
 
-# 锁定 info 级别日志
+# 生产日志级别控制：锁死为 info 级别，既保证关键事件可追溯，又防止过量 Debug 日志撑爆磁盘
 CENTRIFUGO_LOG_LEVEL=info
 
-# 敏感密钥凭证 (确保为强随机密钥)
-CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=your-production-jwt-secret-key
-CENTRIFUGO_API_KEY=your-production-http-api-key
-CENTRIFUGO_ADMIN_PASSWORD=your-admin-password
-CENTRIFUGO_ADMIN_SECRET=your-admin-secret
+# 生产环境核心安全密钥（必须使用强随机算法生成，避免泄露）
+# 1. 客户端 Token (JWT) 校验密钥
+CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=prod-super-secure-jwt-hmac-secret-key-change-me
+# 2. 服务端调用 HTTP API 的鉴权 API KEY
+CENTRIFUGO_API_KEY=prod-super-secure-http-api-key-change-me
+# 3. 管理控制台 (Admin UI) 登录密码及加密 Secret
+CENTRIFUGO_ADMIN_PASSWORD=prod-strong-admin-password-change-me
+CENTRIFUGO_ADMIN_SECRET=prod-strong-admin-token-secret-change-me
 ```
 
-**启动服务**：
+### B. 服务启动
+在定义好上述生产环境变量后，使用 Docker Compose 在后台拉起服务：
 ```bash
+# 启动包含 Valkey 在内的生产环境服务
 docker compose up -d valkey centrifugo
 ```
 
 ---
 
-## 3. Caddy 反向代理配置与访问入口
+## 3. Caddy 反向代理与安全隔离 (Caddyfile)
 
-本项目通过 Caddy 作为统一网关。若要启用 Centrifugo 的外网/本地域名访问，请在项目的 `caddy/Caddyfile` 中配置代理。
+生产环境中，Centrifugo 不能直接将 `8000` 端口暴露到公网。必须通过网关（如 Caddy）进行统一反向代理，并实施**路径级安全隔离防御**。
 
-### A. Caddyfile 配置示例
+### A. 安全反代配置示例 (Caddyfile)
+在生产环境中，`/metrics` 和 `/api` 端点通常是内部组件或服务器内部通信专用的，对外必须进行拦截阻断，以防系统数据外泄和接口滥用。
 
-#### 方案一：标准全域名反代（开发/测试）
-直接反代整个 `push.{$SITE_ADDRESS}` 域名到 Centrifugo 的 `8000` 端口：
 ```caddyfile
-import proxy-app push.{$SITE_ADDRESS} centrifugo:8000
-```
-> [!NOTE]
-> 项目的 `proxy-app` 模板会自动配置 WebSocket 支持，并禁用了响应缓冲（`flush_interval -1`），这对于 SSE 和 HTTP Stream 传输的流式推送非常关键。
-
-#### 方案二：安全隔离反代（推荐生产环境）
-为了防止敏感的监控指标（`/metrics`）和服务器 API（`/api`）被公开暴露，可以在 Caddy 层拦截或限制这些敏感路径的远程访问，仅允许内网网段访问：
-```caddyfile
+# 生产环境 Caddy 网关反代配置
 push.{$SITE_ADDRESS} {
-	# 限制仅内网网段可以访问 /metrics 和 /api
-	@internal_only {
-		path /metrics /api
-		not remote_ip 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1
-	}
-	respond @internal_only "Forbidden" 403
+	import ../snippets/request-log.conf
+	import ../snippets/security.conf
+	import ../snippets/waf.conf
+	encode zstd gzip
 
-	# 使用 proxy-app 模板反代所有其余请求（如长连接和 /admin）
-	import templates/proxy-app.conf push.{$SITE_ADDRESS} centrifugo:8000
+	# 1. 安全策略：强行拦截公网对监控指标 /metrics 的直接请求
+	@blocked_endpoints {
+		path /metrics
+	}
+	handle @blocked_endpoints {
+		abort
+	}
+
+	# 2. 安全策略：限制敏感的后端 API 推送入口 /api 仅允许特定内网 IP 或本地访问
+	@internal_only {
+		path /api
+		not remote_ip 127.0.0.1 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+	}
+	handle @internal_only {
+		respond "Forbidden: Internal Network Only" 403
+	}
+
+	# 3. 核心代理：反代所有剩余合法流量（包含连接端点 /connection/*，管理后台 /admin 等）
+	handle {
+		reverse_proxy centrifugo:8000 {
+			header_up X-Accel-Buffering "no"
+			# 禁用响应缓冲以保证 WebSocket / SSE / HTTP Stream 实时推送的低延迟
+			flush_interval -1
+		}
+	}
 }
 ```
 
----
+### B. 生产环境访问入口汇总
+基于上述反代策略，外部客户端与内部服务端与 Centrifugo 交互时的统一接入点如下：
 
-### B. 各层级接口访问入口汇总
-
-通过 Caddy 代理后，可采用以下地址访问 Centrifugo 的对应功能（以 `test.local` 域名为例）：
-
-1.  **客户端 WebSocket 连接 (双向通信)**
-    *   URL：`wss://push.test.local/connection/websocket`
-    *   适用：使用标准 Centrifugo 客户端 SDK 的浏览器或 App 客户端。
-2.  **客户端 SSE 连接 (EventSource 双向通信)**
-    *   URL：`https://push.test.local/connection/sse`
-    *   适用：防火墙拦截 WebSocket 时的首选备用双向协议。
-3.  **单向推送连接 (Unidirectional SSE / EventSource)**
-    *   URL：`https://push.test.local/connection/uni_sse`
-    *   适用：前端使用浏览器原生 `EventSource` 直连，只收消息不发消息的极简接入场景。
-4.  **管理后台 (Web Admin Dashboard)**
-    *   URL：`https://push.test.local/admin/`
-    *   安全：访问需要输入宿主机环境 `.env` 中定义的 `CENTRIFUGO_ADMIN_PASSWORD`。
-5.  **服务端 HTTP API (上行推送)**
-    *   URL：`https://push.test.local/api` (外部) 或 `http://centrifugo:8000/api` (Docker 网络内通信)
-    *   安全：请求头中须包含 `Authorization: apikey <CENTRIFUGO_API_KEY>`。
-6.  **健康检查与监控**
-    *   健康检查：`https://push.test.local/health` (返回 HTTP 200 `{}`)
-    *   Prometheus 指标：`https://push.test.local/metrics` (仅限内网 Prometheus 抓取)
+1.  **客户端 WebSocket 接入**
+    *   **公网 URL**：`wss://push.yourdomain.com/connection/websocket`
+    *   **说明**：用于双向长连接，客户端库 SDK 首选。
+2.  **客户端 SSE (Server-Sent Events) 双向接入**
+    *   **公网 URL**：`https://push.yourdomain.com/connection/sse`
+    *   **说明**：适用于严格防火墙环境下拦截了 WebSocket 时的降级双向长连接。
+3.  **单向推送长连接 (Unidirectional SSE / EventSource)**
+    *   **公网 URL**：`https://push.yourdomain.com/connection/uni_sse`
+    *   **说明**：用于前端利用浏览器原生 `EventSource` 直连，只需接收后端推送、无需向推送服务发送上行报文的极简开发场景。
+4.  **管理后台 Web 控制台 (Admin Dashboard)**
+    *   **公网 URL**：`https://push.yourdomain.com/admin/`
+    *   **安全**：已通过 `admin.handler_prefix: "/admin"` 挂载在该路径。访问需要输入 `.env` 中定义的 `CENTRIFUGO_ADMIN_PASSWORD` 强密码。
+5.  **服务端推送接口 (HTTP API)**
+    *   **Docker 内部 URL**：`http://centrifugo:8000/api` (微服务/后端容器间通信)
+    *   **公网限流 URL**：`https://push.yourdomain.com/api` (已加固，非内网 IP 访问会被拒绝)
+    *   **调用权限**：必须带上 HTTP Header `Authorization: apikey <CENTRIFUGO_API_KEY>`。
+6.  **服务状态监控 (Prometheus & Health)**
+    *   **容器监控指标**：`http://centrifugo:8000/metrics` (仅供内网 Prometheus 服务拉取指标)
+    *   **网关健康端点**：`https://push.yourdomain.com/health` (对外公开返回 `{}`, 供自动化拨测)
 
 ---
 
-## 4. 核心环境变量映射
+## 4. 生产环境命名空间最佳实践
 
-Centrifugo 支持以 `CENTRIFUGO_` 为前缀的环境变量，自动映射合并到 `config.yaml` 对应配置中：
+在生产环境的 `config.yaml` 中，各命名空间采用不同的安全策略与资源限制，以提升服务器承载力：
 
-| 环境变量 | 对应 YAML 配置项 | 描述 |
-| :--- | :--- | :--- |
-| `CENTRIFUGO_ENGINE_TYPE` | `engine.type` | 引擎类型，可选 `redis` / `memory` |
-| `CENTRIFUGO_ENGINE_REDIS_ADDRESS` | `engine.redis.address` | Valkey/Redis 连接地址 |
-| `CENTRIFUGO_CLIENT_ALLOW_ANONYMOUS_CONNECT_WITHOUT_TOKEN` | `client.allow_anonymous_connect_without_token` | 是否允许匿名连接（安全控制） |
-| `CENTRIFUGO_CLIENT_ALLOWED_ORIGINS` | `client.allowed_origins` | CORS 域名数组格式，例如 `["https://a.com"]` |
-| `CENTRIFUGO_LOG_LEVEL` | `log.level` | 日志级别：`debug` / `info` / `warn` / `error` |
-
----
-
-## 4. 命名空间最佳实践
-
-配置文件中预设了四个命名空间，满足常见业务场景。设计与配置要点如下：
-
-1.  **`public` (公开频道)**：
-    *   **适用场景**：聊天室、大厅、公开广播等。
-    *   **配置特性**：允许客户端直接发布和订阅（`allow_publish_for_subscriber: true`）。
-    *   **可靠性保证**：开启历史记录并设置大小为 100 且强制恢复（`force_recovery: true`），防止客户端在移动端弱网状态重连时丢失未送达的历史消息。
-    *   **安全要求**：开发环境允许匿名订阅；生产环境建议禁用匿名，通过环境变量要求 Token 认证。
-2.  **`private` (私有频道)**：
-    *   **适用场景**：单对单聊天、私密数据推送。
-    *   **配置特性**：禁用客户端直接发布（`allow_publish_for_subscriber: false`），必须由后端接口经过业务校验后再使用 HTTP API 推送。
-    *   **安全要求**：禁用客户端直接订阅（`allow_subscribe_for_client: false`），订阅时必须向后端请求签发的订阅 Token（JWT）进行授权。
-3.  **`user` (用户个人频道)**：
-    *   **适用场景**：用户专属消息通道，例如红点提醒、个人系统通知。
-    *   **配置特性**：禁用 `presence` 和 `join_leave` 统计（个人专属频道不需要监听其他人在不在状态），极大节省并发下的内存和 CPU 资源。开启恢复保证（`force_recovery: true`）确保通知必达。
-4.  **`notification` (通知频道)**：
-    *   **适用场景**：全局非关键实时广播（如系统维护通知、实时滚动公告）。
-    *   **配置特性**：高吞吐低敏感。缩短历史 TTL（`60s`）并关闭强制恢复以极大减轻 Valkey/Redis 内存缓存的持久化与网络同步压力。
+1.  **`public` (公开频道)**
+    *   **场景**：大厅广播、全局消息流。
+    *   **设计原则**：启用消息缓存与历史恢复 (`force_recovery: true`，历史长度 100)，防止客户端因网络波动重连时出现消息断档；虽然是公开频道，但生产环境下依然需要客户端拥有 Token 认证后才允许建立连接。
+2.  **`private` (私密频道)**
+    *   **场景**：单对单业务交互、隐私系统消息推送。
+    *   **设计原则**：**绝对禁止**客户端直接往此频道发布消息 (`allow_publish_for_subscriber: false`)，所有上行消息必须先由客户端发给后端接口进行权限校验，再由后端 API 推送给 Centrifugo；同时**严格校验订阅 Token**，客户端订阅此频道前必须先从后端服务器获取专用 JWT 订阅凭证。
+3.  **`user` (用户个人专属频道)**
+    *   **场景**：个人提醒、红点消息。
+    *   **设计原则**：为极致降低高并发下的内存消耗和 Valkey 开销，**完全禁用** `presence`（在线人数统计）与 `join_leave`（上下线通知），因为个人频道仅有一个在线实体，无须了解其他人的上下线状态。开启 `force_recovery` 保证消息必达。
+4.  **`notification` (非核心广播通道)**
+    *   **场景**：运维公告、滚屏跑马灯。
+    *   **设计原则**：此频道吞吐量高、非关键。因此缩短历史 TTL 为 `60s`，且**关闭强制恢复机制**，大幅减少 Valkey/Redis 内存驻留压力和网络同步负载。
 
 ---
 
-## 5. SSE 与 Unidirectional SSE (单向推送) 使用指南
+## 5. 生产环境客户端安全认证与连接方式
 
-除了传统的 WebSocket，本项目还开启了 **SSE (Server-Sent Events)** 支持。尤其是 **Unidirectional SSE (单向推送)**，允许前端直接使用浏览器原生的 `EventSource` API 与 Centrifugo 通信，而无需加载专用的 JavaScript SDK，极大地简化了客户端代码。
+生产环境中禁用了一切匿名通道，客户端连接时必须使用 JWT Token 进行安全认证。
 
-### 客户端接入说明：
-
-#### A. 浏览器原生 EventSource 接入 (Unidirectional SSE)
-客户端仅需向 `/connection/uni_sse` 发起 `GET` 请求。因为 `EventSource` 无法自定义 Header，连接时的认证 Token 或需要订阅的频道需通过 `cf_connect` 网址查询参数传递（传入转义的 JSON 字符串）：
+### A. Unidirectional SSE (浏览器原生 EventSource) 连接
+由于原生 `EventSource` 不支持在初始化时自定义 Request Header，所有的认证参数（JWT Token）和订阅频道信息必须经过 URL 编码后通过 `cf_connect` 参数传递：
 
 ```javascript
-// 准备连接参数
+// 1. 准备连接载荷 (JWT 应该从您的业务后端获取)
 const connectParams = {
-  // 开发环境匿名连接需指定直接订阅的频道
-  channels: ["public:test"]
-  
-  // 生产环境需携带 JWT Token
-  // token: "YOUR_JWT_TOKEN"
+  token: "YOUR_JWT_TOKEN_FROM_BACKEND",
+  channels: ["public:announcements"]
 };
 
-// 拼接连接 URL
-const url = new URL("http://localhost:8000/connection/uni_sse");
-url.searchParams.append("cf_connect", JSON.stringify(connectParams));
+// 2. 拼接连接地址，cf_connect 必须进行 URL 编码
+const connectUrl = new URL("https://push.yourdomain.com/connection/uni_sse");
+connectUrl.searchParams.append("cf_connect", JSON.stringify(connectParams));
 
-// 初始化 EventSource
-const eventSource = new EventSource(url);
+// 3. 发起原生 EventSource 连接
+const eventSource = new EventSource(connectUrl);
 
-// 监听服务器端推送的消息
 eventSource.onmessage = function(event) {
-  const message = JSON.parse(event.data);
-  console.log("收到推送数据：", message);
+  const payload = JSON.parse(event.data);
+  console.log("接收到来自命名空间的实时消息：", payload);
 };
 
 eventSource.onerror = function(err) {
-  console.error("SSE 连接出错：", err);
+  console.error("生产环境 SSE 链路异常：", err);
 };
 ```
 
-#### B. 使用 Centrifuge-JS SDK 接入 (Bidirectional SSE)
-如果希望通过 SSE 传输并使用 SDK 内置的频道订阅管理，可以在客户端初始化时指定 `transport` 为 `sse`：
+### B. 使用 SDK 的连接形式
+当使用 `centrifuge-js` 或其他语言官方 SDK 时，必须配置 Token 获取的回调函数，以防 Token 过期导致连接断开：
 
 ```javascript
 import { Centrifuge } from 'centrifuge';
 
-const centrifuge = new Centrifuge('http://localhost:8000/connection/sse', {
-  transport: 'sse',
-  token: 'YOUR_JWT_TOKEN' // 匿名连接在开发环境可省略
+const centrifuge = new Centrifuge('https://push.yourdomain.com/connection/websocket', {
+  // 设置动态 Token 获取机制，防止由于生产环境 Token 默认 1 小时过期引发的断连
+  getToken: async function(ctx) {
+    const res = await fetch("/api/get-centrifugo-token");
+    const data = await res.json();
+    return data.token; 
+  }
 });
 
-const sub = centrifuge.newSubscription('public:test');
+const sub = centrifuge.newSubscription('private:user_123');
 sub.on('publication', function(ctx) {
-  console.log('收到 SDK 消息:', ctx.data);
+  console.log('接收到私有通道消息:', ctx.data);
 });
 
 sub.subscribe();
@@ -224,43 +199,27 @@ centrifuge.connect();
 
 ---
 
-## 6. 健康检查与监控
+## 6. 监控、日志与问题排查
 
-### 健康检查
-Dockerfile 已经内置了健康检查命令，每 10 秒自动运行一次：
+### A. 容器生存监控
+Dockerfile 内置了健康检测，每 10 秒发起一次对 `8000/health` 的诊断。
 ```bash
-# 容器内检查命令
-wget -qO- http://localhost:8000/health
-```
-在宿主机上，可通过以下命令查看容器状态：
-```bash
-docker compose ps centrifugo
-# 状态应显示为 (healthy)
+# 宿主机查看健康诊断细节
+docker inspect --format='{{json .State.Health}}' centrifugo
 ```
 
-### Prometheus 监控指标
-监控端口默认为 `8000`，获取指标的端点为：
-```http
-http://localhost:8000/metrics
-```
+### B. 结构化日志收集
+Centrifugo v6 默认将日志以结构化 JSON 格式输出至 stdout。容器日志将自动流向系统的日志聚合中心（如 Vector / Loki），在检索日志时：
+*   **连接断开排查**：重点检索关键字 `"level":"info"` 且 `"message":"client connection closed"`，通过 `reason`（如 `token expired` 或 `ping timeout`）了解断连根源。
+*   **Redis 引擎报警**：如果日志中出现 `"level":"warn"` 且包含 `redis` / `valkey`，应立即检查网络延时或 Valkey 连接数上限。
 
----
-
-## 7. 日志格式与收集
-在 Centrifugo v6 中，标准输出日志默认输出为**结构化的 JSON 格式**（不再需要配置 `log.format`），以便无缝对接本项目中的 Loki / Vector / ELK 日志收集系统。
-
-```bash
-# 查看实时日志
-docker compose logs centrifugo -f
-```
-
----
-
-## 8. 常见问题排查
-
-1.  **连接失败 (CORS 错误)**
-    *   检查宿主机环境的 `.env` 中 `CENTRIFUGO_ALLOWED_ORIGINS` 的设置。本地开发建议为 `*`。
-2.  **日志警告 `unknown var in environment`**
-    *   不要使用旧版的废弃环境变量（例如 `CENTRIFUGO_LOG_FORMAT`、`CENTRIFUGO_REDIS_POOL` 等）。请严格对照本文档的环境变量映射表进行配置。
-3.  **时区不对**
-    *   由于我们使用的是自定义 Dockerfile 构建，在更新过 `config.yaml` 或基础配置后，请运行 `docker compose build centrifugo --no-cache` 重新构建镜像以应用时区和配置更新。
+### C. 经典生产故障排查
+1.  **CORS 跨域连接被拒**
+    *   **现象**：浏览器控制台报 `origin not allowed`，连接断开。
+    *   **排查**：检查环境变量 `CENTRIFUGO_CLIENT_ALLOWED_ORIGINS`，确认当前的请求 Origin 是否精准包含在 JSON 数组中。
+2.  **`token expired` 报错**
+    *   **现象**：客户端频繁出现断线重连，服务器日志输出 `token expired`。
+    *   **排查**：在生产环境，由后端签发的 JWT 必须包含合理合规的 `exp` 声明。客户端必须实现 `getToken` 钩子，以便在 Token 即将过期时自动向后端请求续期，实现无感刷新连接。
+3.  **时区错乱问题**
+    *   **现象**：导出的历史消息和日志记录出现 8 小时时差。
+    *   **排查**：确保部署时使用的是由自定义 Dockerfile 编译的 `centrifugo` 本地镜像，而非直接拉取的官方裸镜像。重新构建命令：`docker compose build --no-cache centrifugo`。
