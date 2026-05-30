@@ -1,0 +1,304 @@
+{
+	"info": {
+		"_postman_id": "a8f5647c-7d9a-4c28-98e3-9821d3f9b2d8",
+		"name": "Centrifugo v6 集成测试接口集",
+		"description": "用于本地开发和生产环境下测试 Go Fiber v3 后端接口及 Centrifugo HTTP API 接口的完整 Postman/Hoppscotch Collection。",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Fiber Backend API (应用服务器接口)",
+			"item": [
+				{
+					"name": "获取客户端长连接 Connection Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{fiber_url}}/api/centrifugo/connect-token",
+							"host": [
+								"{{fiber_url}}"
+							],
+							"path": [
+								"api",
+								"centrifugo",
+								"connect-token"
+							]
+						},
+						"description": "客户端（WebSocket / SSE）在建立物理长连接前，向 Go Fiber 后端请求 JWT 鉴权 Token。"
+					},
+					"response": []
+				},
+				{
+					"name": "获取私有通道 Subscription Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"channel\": \"private:secure_chat_1\",\n    \"client\": \"94747a82-fbc2-4e4b-bb99-317414df9abf\"\n}"
+						},
+						"url": {
+							"raw": "{{fiber_url}}/api/centrifugo/subscribe-token",
+							"host": [
+								"{{fiber_url}}"
+							],
+							"path": [
+								"api",
+								"centrifugo",
+								"subscribe-token"
+							]
+						},
+						"description": "客户端尝试订阅私有频道（private:*）时，前端 SDK 会自动请求此接口获取通道订阅 JWT 凭证。"
+					},
+					"response": []
+				},
+				{
+					"name": "通过 Go 后端推送消息 (Publish)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"namespace\": \"public\",\n    \"channel_id\": \"chat_room_1\",\n    \"message\": {\n        \"text\": \"来自 Go 后端的一条测试消息！\",\n        \"status\": \"success\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{fiber_url}}/api/centrifugo/publish",
+							"host": [
+								"{{fiber_url}}"
+							],
+							"path": [
+								"api",
+								"centrifugo",
+								"publish"
+							]
+						},
+						"description": "Go 后端接收到业务请求后，通过集成 gocent SDK 推送消息至 Centrifugo 指定频道。"
+					},
+					"response": []
+				}
+			],
+			"description": "对接 Go Fiber v3 编写的鉴权与推送中转服务。"
+		},
+		{
+			"name": "2. Centrifugo Direct API (直连 HTTP 服务端 API)",
+			"item": [
+				{
+					"name": "Publish (向指定频道推送消息)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "apikey {{centrifugo_api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"method\": \"publish\",\n    \"params\": {\n        \"channel\": \"public:chat_room_1\",\n        \"data\": {\n            \"text\": \"从 Postman 直连 API 发送的广播消息\",\n            \"timestamp\": \"{{$timestamp}}\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{centrifugo_url}}/api",
+							"host": [
+								"{{centrifugo_url}}"
+							],
+							"path": [
+								"api"
+							]
+						},
+						"description": "直连 Centrifugo 服务端 API 向频道广播数据。请求头必须携带 `Authorization: apikey {{centrifugo_api_key}}`。"
+					},
+					"response": []
+				},
+				{
+					"name": "Broadcast (向多个频道广播消息)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "apikey {{centrifugo_api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"method\": \"broadcast\",\n    \"params\": {\n        \"channels\": [\n            \"public:chat_room_1\",\n            \"notification:system_announce\"\n        ],\n        \"data\": {\n            \"text\": \"这是一条全局多频道的同步广播通知\",\n            \"timestamp\": \"{{$timestamp}}\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{centrifugo_url}}/api",
+							"host": [
+								"{{centrifugo_url}}"
+							],
+							"path": [
+								"api"
+							]
+						},
+						"description": "同时向多个频道进行消息群发。"
+					},
+					"response": []
+				},
+				{
+					"name": "Channels (获取活跃频道列表)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "apikey {{centrifugo_api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"method\": \"channels\",\n    \"params\": {\n        \"pattern\": \"public:*\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{centrifugo_url}}/api",
+							"host": [
+								"{{centrifugo_url}}"
+							],
+							"path": [
+								"api"
+							]
+						},
+						"description": "查询当前有哪些命名空间下包含活跃客户端订阅的频道。"
+					},
+					"response": []
+				},
+				{
+					"name": "Presence (查询通道当前在线人员列表)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "apikey {{centrifugo_api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"method\": \"presence\",\n    \"params\": {\n        \"channel\": \"public:chat_room_1\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{centrifugo_url}}/api",
+							"host": [
+								"{{centrifugo_url}}"
+							],
+							"path": [
+								"api"
+							]
+						},
+						"description": "获取指定频道当前在线的全部客户端实例及连接元数据（前提是该频道命名空间启用了 `presence: true`）。"
+					},
+					"response": []
+				},
+				{
+					"name": "History (获取通道在 Valkey 中的消息历史记录)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "apikey {{centrifugo_api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"method\": \"history\",\n    \"params\": {\n        \"channel\": \"public:chat_room_1\",\n        \"limit\": 20\n    }\n}"
+						},
+						"url": {
+							"raw": "{{centrifugo_url}}/api",
+							"host": [
+								"{{centrifugo_url}}"
+							],
+							"path": [
+								"api"
+							]
+						},
+						"description": "查询保存在后端 Valkey 中、该通道内最新推送的历史消息（仅在对应命名空间配置 `history_size` 大于 0 时生效）。"
+					},
+					"response": []
+				}
+			],
+			"description": "直接对 Centrifugo 宿主机进行服务端 HTTP API 的主动调用。"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "fiber_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "centrifugo_url",
+			"value": "https://push.test.local",
+			"type": "string"
+		},
+		{
+			"key": "centrifugo_api_key",
+			"value": "aef5a17a-fdeb-48aa-b2c1-d490c62ff950",
+			"type": "string"
+		}
+	]
+}
