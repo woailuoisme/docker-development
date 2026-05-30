@@ -17,15 +17,15 @@ sse:
   enabled: true
 
 # ============================================
-# 引擎配置 - 默认在 config 中声明 redis
-# 具体的 engine 类型和 redis address 由环境变量动态覆盖
+# 引擎配置 - 使用 Valkey (兼容 Redis 协议)
 # ============================================
-engine: redis
-engine_redis:
-  # 具体的连接地址通过环境变量 CENTRIFUGO_ENGINE_REDIS_ADDRESS 动态注入
-  # v6 默认使用 Rueidis 客户端进行连接复用，无须配置 pool_size
-  connect_timeout: "1s"
-  io_timeout: "4s"
+engine:
+  type: redis
+  redis:
+    # 具体的连接地址通过环境变量 CENTRIFUGO_ENGINE_REDIS_ADDRESS 动态注入
+    # v6 默认使用 Rueidis 客户端进行连接复用，无须配置 pool_size
+    connect_timeout: "1s"
+    io_timeout: "4s"
 
 # ============================================
 # 客户端连接配置
