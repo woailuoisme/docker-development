@@ -15,9 +15,8 @@ RUN apk add --no-cache tzdata && \
 RUN mkdir -p /centrifugo && \
     chown -R centrifugo:centrifugo /centrifugo
 
-# 复制默认配置文件到容器中
+# 仅复制单配置文件 config.yaml 到容器中
 COPY --chown=centrifugo:centrifugo config.yaml /centrifugo/config.yaml
-COPY --chown=centrifugo:centrifugo config-dev.yaml /centrifugo/config-dev.yaml
 
 # 恢复使用官方非 root 用户 centrifugo (UID 1001)
 USER centrifugo
