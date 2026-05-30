@@ -1,5 +1,5 @@
 # 锁定 Centrifugo 版本
-ARG CENTRIFUGO_VERSION=6.8.1
+ARG CENTRIFUGO_VERSION=v6.8.1
 FROM centrifugo/centrifugo:${CENTRIFUGO_VERSION}
 
 # 临时切换到 root 账户配置系统环境
