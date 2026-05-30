@@ -1,6 +1,6 @@
-# Centrifugo v6 Go Fiber 框架集成与客户端长连接接入指南
+# Centrifugo v6 Go Fiber v3 框架集成与客户端长连接接入指南
 
-本指南详细介绍了如何使用 **Go Fiber 框架** 搭建应用服务器，通过官方 HTTP API SDK（`gocent`）与 Centrifugo 交互，并在客户端实现 **WebSocket**、**SSE** 及 **Unidirectional SSE（原生 EventSource）** 接入。
+本指南详细介绍了如何使用 **Go Fiber v3 框架** 搭建应用服务器，通过官方 HTTP API SDK（`gocent`）与 Centrifugo 交互，并在客户端实现 **WebSocket**、**SSE** 及 **Unidirectional SSE（原生 EventSource）** 接入。
 
 ---
 
@@ -39,11 +39,11 @@ sequenceDiagram
 
 ## 2. 步骤一：安装 Go 后端依赖
 
-在您的 Go 项目目录下运行以下命令安装所需依赖包：
+在您的 Go 项目目录下运行以下命令安装所需依赖包（**要求 Go 1.25 或以上版本以支持 Fiber v3**）：
 
 ```bash
-# 安装 Fiber Web 框架
-go get github.com/gofiber/fiber/v2
+# 安装 Fiber v3 核心框架
+go get github.com/gofiber/fiber/v3
 
 # 安装 JWT 签发库 (Centrifugo v6 推荐使用 v5 版本)
 go get github.com/golang-jwt/jwt/v5
@@ -54,20 +54,26 @@ go get github.com/centrifugal/gocent/v2
 
 ---
 
-## 3. 步骤二：Go Fiber 服务端开发
+## 3. 步骤二：Go Fiber v3 服务端开发
 
-创建后端服务文件（如 `main.go`），实现连接鉴权、通道鉴权与消息推送 API：
+创建后端服务文件（如 `main.go`），实现连接鉴权、通道鉴权与消息推送 API。
+
+> [!NOTE]
+> Fiber v3 相比 v2 的重大变化：
+> - 处理器签名从 `c *fiber.Ctx` (指针) 改变为 `c fiber.Ctx` (值类型)。
+> - 统一采用 `c.Bind().Body(&struct)` 进行 Request Body 的绑定和解析。
 
 ```go
 package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"time"
 
 	"github.com/centrifugal/gocent/v2"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -92,7 +98,7 @@ func main() {
 
 	app := fiber.New()
 
-	// 2. 路由定义
+	// 2. 路由定义 (注意处理器签名为 fiber.Ctx 值类型)
 	// A. 签发客户端长连接 Token (WebSocket / SSE 共用)
 	app.Get("/api/centrifugo/connect-token", handleConnectToken)
 
@@ -108,7 +114,7 @@ func main() {
 // ============================================================================
 // 1. 签发长连接 JWT Token (用于 Websocket/SSE 握手)
 // ============================================================================
-func handleConnectToken(c *fiber.Ctx) error {
+func handleConnectToken(c fiber.Ctx) error {
 	// 模拟从 Session 或 Context 中获取当前登录用户的 UID
 	userID := "user_9958" 
 
@@ -138,14 +144,15 @@ func handleConnectToken(c *fiber.Ctx) error {
 // ============================================================================
 // 2. 签发私有频道 (private:*) 订阅 Token
 // ============================================================================
-func handleSubscribeToken(c *fiber.Ctx) error {
+func handleSubscribeToken(c fiber.Ctx) error {
 	type SubscribeRequest struct {
 		Channel string `json:"channel"` // 例如: "private:chat_room_1"
 		Client  string `json:"client"`  // 连接的 Client ID (由前端 SDK 自动获取并传给后端)
 	}
 
 	var req SubscribeRequest
-	if err := c.BodyParser(&req); err != nil {
+	// 使用 Fiber v3 推荐的 c.Bind().Body() 统一解析器
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "参数解析失败"})
 	}
 
@@ -177,7 +184,7 @@ func handleSubscribeToken(c *fiber.Ctx) error {
 // ============================================================================
 // 3. 后端推送消息到各种频道命名空间
 // ============================================================================
-func handlePublish(c *fiber.Ctx) error {
+func handlePublish(c fiber.Ctx) error {
 	type PublishRequest struct {
 		Namespace string                 `json:"namespace"` // "public" / "private" / "user" / "notification"
 		ChannelID string                 `json:"channel_id"`// 具体的业务通道 ID, 例如 "chat_room_1"
@@ -185,7 +192,8 @@ func handlePublish(c *fiber.Ctx) error {
 	}
 
 	var req PublishRequest
-	if err := c.BodyParser(&req); err != nil {
+	// 使用 Fiber v3 统一解析器
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "参数错误"})
 	}
 
@@ -198,13 +206,16 @@ func handlePublish(c *fiber.Ctx) error {
 	req.Message["sender"] = "fiber-backend-api"
 
 	// 序列化为字节流
-	dataBytes, _ := c.App().Config().JSONEncoder(req.Message)
+	dataBytes, err := json.Marshal(req.Message)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "JSON 序列化失败"})
+	}
 
 	// 调用 Centrifugo Go SDK 推送
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := centrifugoClient.Publish(ctx, fullChannel, dataBytes)
+	err = centrifugoClient.Publish(ctx, fullChannel, dataBytes)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "推送失败: " + err.Error(),
@@ -336,7 +347,7 @@ async function startNativeSSE() {
     const eventSource = new EventSource(sseUrl);
 
     eventSource.onmessage = function (event) {
-        // 收到的是 JSON 格式的推送帧
+        // 收到的是 JSON 格式 of 推送帧
         const message = JSON.parse(event.data);
         console.log("收到原生 SSE 消息：", message);
     };
