@@ -14,9 +14,9 @@ NC='\033[0m'
 # 加载环境变量
 # shellcheck disable=SC2046
 if [ -f .env ]; then
-	export $(grep -v '^#' .env | xargs)
+	export $(grep -v '^#' .env | grep -E "CENTRIFUGO|SITE_ADDRESS|REDIS" | xargs)
 elif [ -f ../.env ]; then
-	export $(grep -v '^#' ../.env | xargs)
+	export $(grep -v '^#' ../.env | grep -E "CENTRIFUGO|SITE_ADDRESS|REDIS" | xargs)
 fi
 
 SITE_DOMAIN=${SITE_ADDRESS:-"test.local"}
