@@ -70,13 +70,15 @@ if command -v websocat &> /dev/null; then
 	WS_ENCODED=$(echo -n "$WS_CONNECT_PARAMS" | jq -sRr @uri 2> /dev/null || python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.stdin.read()))" <<< "$WS_CONNECT_PARAMS")
 
 	set +e
-	WS_OUTPUT=$(timeout 3 websocat -n1 "${WS_URL}/connection/uni_websocket?cf_connect=${WS_ENCODED}" 2>&1)
+	WS_OUTPUT=$(timeout 3 websocat -k -n1 "${WS_URL}/connection/uni_websocket?cf_connect=${WS_ENCODED}" 2>&1)
+	WS_EXIT_CODE=$?
 	set -e
 
-	if [ $? -eq 124 ] || echo "$WS_OUTPUT" | grep -q -E "connect|uid"; then
+	if [ "$WS_EXIT_CODE" -eq 124 ] || echo "$WS_OUTPUT" | grep -q -E "connect|uid"; then
 		echo -e "${GREEN}✓ WebSocket (websocat) 握手升级成功，订阅通过。${NC}"
 	else
 		echo -e "${RED}✗ WebSocket 握手连接异常: ${WS_OUTPUT}${NC}"
+		exit 1
 	fi
 elif command -v wscat &> /dev/null; then
 	echo "发现 wscat 工具，开始测试 WebSocket..."
