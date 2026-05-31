@@ -6,8 +6,9 @@
 # ============================================================================
 
 # 管理员用户 - 完全访问权限
-# user admin
-# topic readwrite #
+user admin
+topic readwrite #
+topic readwrite $SYS/#
 
 # 普通用户 - 只读权限
 # user readonly
