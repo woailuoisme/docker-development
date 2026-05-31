@@ -23,8 +23,13 @@ import proxy-octane-app-auth rest.{$SITE_ADDRESS} php-roadrunner:8001
 import proxy-app mo.{$SITE_ADDRESS} minio:9001
 import proxy-app mos.{$SITE_ADDRESS} minio:9000
 
+# Garage S3 标准 API 访问点（支持标准对象操作及虚拟主机样式存储桶解析）
 import proxy-app s3.{$SITE_ADDRESS} garage:3900
+import proxy-app *.s3.{$SITE_ADDRESS} garage:3900
+# Garage S3 静态网页托管端点（直接渲染输出存储桶内的网页内容）
 import proxy-app s3.web.{$SITE_ADDRESS} garage:3902
+import proxy-app *.s3.web.{$SITE_ADDRESS} garage:3902
+# Garage 后台管理 Dashboard 页面（附带身份验证鉴权拦截层）
 import proxy-app-auth s3-admin.{$SITE_ADDRESS} garage-webui:3909
 
 #import proxy-app push.{$SITE_ADDRESS} centrifugo:8000

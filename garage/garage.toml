@@ -11,11 +11,13 @@ rpc_secret = "5368ea7003a35eebcaf25c618fab1c3ad1dbae01b8fc5d1fba4c737e5a955751"
 [s3_api]
 s3_region = "garage"
 api_bind_addr = "[::]:3900"
-root_domain = ".s3.garage.localhost"
+# 请将 yourdomain.com 替换为您的实际 SITE_ADDRESS 域名
+root_domain = ".s3.yourdomain.com"
 
 [s3_web]
 bind_addr = "[::]:3902"
-root_domain = ".web.garage.localhost"
+# 请将 yourdomain.com 替换为您的实际 SITE_ADDRESS 域名
+root_domain = ".s3.web.yourdomain.com"
 index = "index.html"
 
 [admin]

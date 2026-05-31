@@ -12,8 +12,7 @@ garage/
 ├── README.md               # 项目说明文档
 └── rclone/                 # Rclone 数据同步及管理工具集（子目录隔离）
     ├── docker-compose.yml  # Rclone 专属容器编排
-    ├── rclone.conf         # 宿主机客户端本地配置（直连 127.0.0.1:3900）
-    ├── rclone.docker.conf  # 容器间客户端同步配置（通过 backend 网络连接 garage:3900）
+    ├── rclone.conf         # 统一的 Rclone 配置文件（支持容器网络 garage 和宿主机本地 garage-local 远程源）
     ├── rclone.sh           # 简化版一键 Rclone 执行工具（支持 ls, delete, copy, sync）
     └── to-remote.sh        # 极简云备份同步脚本（支持一键冷备份至阿里云 OSS / Cloudflare R2）
 ```

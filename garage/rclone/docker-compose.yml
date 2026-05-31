@@ -6,7 +6,7 @@ services:
     entrypoint: ["rclone"]
     command: ["version"]
     volumes:
-      - ./rclone.docker.conf:/config/rclone.conf:ro
+      - ./rclone.conf:/config/rclone.conf:ro
     networks:
       - backend
 

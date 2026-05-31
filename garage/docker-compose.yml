@@ -8,10 +8,12 @@ services:
     restart: unless-stopped
     command: server --single-node --default-bucket
     ports:
-      - "3900:3900"
-      - "3901:3901"
-      - "3902:3902"
-      - "3903:3903"
+      # S3 API: 绑定 localhost 以防外部明文 HTTP 绕过反代，所有公网流量通过 Caddy/Nginx HTTPS 反向代理接入
+      - "127.0.0.1:3900:3900"
+      # RPC 端口: 集群内部通信使用。单节点 VPS 无需公网暴露，绑定 localhost 阻断扫描
+      - "127.0.0.1:3901:3901"
+      # Admin API: 节点管理与监控。为防敏感接口扫描和凭证泄露，绑定 localhost 限制外部访问
+      - "127.0.0.1:3903:3903"
     volumes:
       - ${CONFIG_PATH}garage/garage.toml:/etc/garage.toml:ro
       - ${DATA_PATH}garage:/var/lib/garage
@@ -30,7 +32,8 @@ services:
     volumes:
       - ${CONFIG_PATH}garage/garage.toml:/etc/garage.toml:ro
     ports:
-      - "3909:3909"
+      # WebUI 端口: 绑定 localhost 限制直接访问，统一通过反代服务器代理和鉴权
+      - "127.0.0.1:3909:3909"
     environment:
       S3_ENDPOINT_URL: "http://garage:3900"
       API_BASE_URL: "http://garage:3903"
