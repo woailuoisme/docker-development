@@ -11,15 +11,21 @@ services:
     volumes:
       - ${CONFIG_PATH}/mosquitto/config:/mosquitto/config
       - ${DATA_PATH}mosquitto/data:/mosquitto/data
-      - ${LOG_PATH}mosquitto/log:/mosquitto/log
     environment:
       - MQTT_USERNAME=${MQTT_USERNAME}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - MQTT_USERS=${MQTT_USERS}
       - MQTT_ALLOW_ANONYMOUS=${MQTT_ALLOW_ANONYMOUS:-false}
       - SITE_ADDRESS=${SITE_ADDRESS}
     networks:
       - backend
       - frontend
-#    depends_on:
-#      caddy:
-#        condition: service_started
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M

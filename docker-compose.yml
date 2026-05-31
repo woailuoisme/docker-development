@@ -87,7 +87,7 @@ include:
   #  - ntfy/docker-compose.yml         # 通知推送 (Ntfy)
   - centrifugo/docker-compose.yml   # 实时消息
   #  - wud/docker-compose.yml          # 镜像更新提醒
-  #  - mosquitto/docker-compose.yml    # MQTT 代理
+  - mosquitto/docker-compose.yml    # MQTT 代理
   #  - gotenberg/docker-compose.yml
   # --- IOT & VISUALIZATION ---
   #  - simulators/docker-compose.yml
@@ -99,6 +99,7 @@ include:
   #  - node-red/docker-compose.yml      # 流程编排
   #  - dokploy/docker-compose.yml
   - mailpit/docker-composer.yml
+  - asynqmon/docker-compose.yml
 
   # --- MONITORING & WEBSITES ---
   # - beszel/docker-compose.yml       # 服务器监控 Hub
