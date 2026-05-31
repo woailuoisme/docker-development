@@ -58,4 +58,3 @@ import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
 		abort
 	}
 }
-
