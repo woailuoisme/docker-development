@@ -1,0 +1,17 @@
+# ============================================================================
+# 生产环境默认访问控制列表 (ACL) 模板
+# ============================================================================
+
+# 管理员用户拥有对所有主题的完全访问权限
+user admin
+topic readwrite #
+topic readwrite $SYS/#
+
+# 示例设备用户权限隔离 (设备仅能读写自己的 telemetry 主题)
+# user device_01
+# topic readwrite device/device_01/telemetry
+# topic read device/device_01/command
+
+# 示例只读监控账户
+# user monitor
+# topic read $SYS/#

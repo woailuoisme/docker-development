@@ -12,7 +12,14 @@ RUN if [ "${CHANGE_SOURCE}" = "true" ]; then \
 
 ENV DEV=true
 
-COPY config/*.conf /mosquitto/config
+# 将配置复制到默认运行目录
+COPY config/*.conf /mosquitto/config/
+COPY config/acl.default /mosquitto/config/acl.default
+
+# 同时创建一份只读的备份模板，以防止宿主机空挂载遮蔽配置
+RUN mkdir -p /etc/mosquitto.templates && \
+    cp /mosquitto/config/mosquitto.conf /etc/mosquitto.templates/mosquitto.conf && \
+    cp /mosquitto/config/acl.default /etc/mosquitto.templates/acl
 
 COPY startup.sh /usr/local/bin/startup.sh
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh
