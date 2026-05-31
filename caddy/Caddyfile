@@ -59,29 +59,3 @@ import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
 	}
 }
 
-mqtt.{$SITE_ADDRESS} {
-	import snippets/request-log.conf
-	import snippets/security.conf
-	import snippets/waf.conf
-
-	encode zstd gzip
-
-	# 保留健康检查，用于网络探针检测
-	handle /health {
-		respond "OK" 200
-	}
-
-	# 代理所有其它流量（包括 WSS 连接请求）至 Mosquitto 的 9001 WebSockets 端口
-	handle {
-		reverse_proxy mosquitto:9001 {
-			header_up X-Accel-Buffering "no"
-			flush_interval -1
-			transport http {
-				dial_timeout 10s
-				response_header_timeout 30s
-				read_timeout 1h
-				write_timeout 1h
-			}
-		}
-	}
-}
