@@ -1,7 +1,9 @@
 #!/bin/bash
 # ============================================================================
-# test-mqtt.sh - Mosquitto MQTT Broker 连通性与协议集成测试脚本 (TCP & WSS)
-# 单一职责：提供一键式 Native TCP MQTT 5.0 消息流及 Caddy 网关 WSS 握手状态校验。
+# test-mqtt.sh - Mosquitto MQTT Broker 连通性与高可用集成测试 (TCP & WSS)
+# 测试范围：
+#   1. TCP MQTT 5.0 持久会话 (Session Expiry) + QoS 1 离线消息缓存与重连拉取
+#   2. Caddy 反代 WSS (WebSocket Secure) HTTP 101 握手升级验证
 # ============================================================================
 set -e
 
@@ -11,16 +13,28 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# 加载环境变量
+# 全局清理函数，确保任何异常退出时不残留后台进程
+cleanup() {
+	local exit_code=$?
+	# 清理宿主机后台 docker compose exec 进程
+	kill "$(jobs -p)" 2> /dev/null || true
+	# 清理可能残留在容器内的订阅客户端进程
+	docker compose exec -T mosquitto pkill -9 -f "test_sub_" 2> /dev/null || true
+	exit "$exit_code"
+}
+trap cleanup EXIT
+
+# 加载环境变量：纯 Bash 内置正则匹配，消除 fork 开销
 load_env() {
 	local env_file="$1"
 	if [ -f "$env_file" ]; then
 		while IFS= read -r line || [ -n "$line" ]; do
-			case "$line" in
-				\#* | "" | [[:space:]]*) continue ;;
-			esac
-			if echo "$line" | grep -q -E "MQTT|SITE_ADDRESS"; then
-				eval "export $line" 2> /dev/null || true
+			[[ "$line" =~ ^[[:space:]]*# ]] && continue
+			[[ -z "${line//[[:space:]]/}" ]] && continue
+			if [[ "$line" =~ ^(MQTT_|SITE_ADDRESS=) ]]; then
+				local key="${line%%=*}"
+				local val="${line#*=}"
+				export "$key"="$val"
 			fi
 		done < "$env_file"
 	fi
@@ -38,65 +52,68 @@ MQTT_PASS=${MQTT_PASSWORD:-"admin123!"}
 WSS_URL="https://mqtt.${SITE_DOMAIN}"
 
 echo -e "${BLUE}================================================================${NC}"
-echo -e "${BLUE}      Mosquitto MQTT Broker 连通性集成测试 (TCP & WSS)           ${NC}"
+echo -e "${BLUE}      Mosquitto MQTT 5.0 高可用与 Caddy WSS 握手集成测试         ${NC}"
 echo -e "${BLUE}================================================================${NC}"
 
-# 1. 验证 Native TCP MQTT 5.0
-echo -e "${YELLOW}【测试 1】正在通过容器内置客户端测试 TCP MQTT 5.0 协议...${NC}"
+# ============================================================
+# 测试 1：TCP MQTT 5.0 持久会话 (Session Expiry) + QoS 1 离线消息
+# 验证高可用核心特性：客户端断连后，Broker 为其缓存 QoS 1 消息，
+# 重连后自动推送，证明 Broker 具备离线消息持久化能力。
+# ============================================================
+echo -e "${YELLOW}【测试 1】验证 MQTT 5.0 持久会话与 QoS 1 离线消息缓存/重连拉取...${NC}"
 
-TEST_TOPIC="test/integration/$(date +%s)"
-TEST_MSG="Hello MQTT 5.0 from integration script"
+TEST_TOPIC="test/ha/$(date +%s)"
+TEST_MSG="HA-offline-message-$(date +%s)"
+# Client ID 前缀须与 cleanup 里 pkill 过滤条件一致
+CLIENT_ID="test_sub_ha_$(date +%s)"
 
-# 启动后台订阅进程（使用 -V 5 开启 MQTT 5.0，接收到 1 条消息后立即退出）
+# 步骤 A：建立持久会话（-c = Clean Start=false，-x 60 = Session Expiry 60s，-q 1 注册 QoS 1 订阅）
+# 必须用 -q 1 订阅，Broker 才会为该客户端缓存离线 QoS 1 消息
+timeout 5 docker compose exec -T mosquitto mosquitto_sub \
+	-h localhost -p 1883 \
+	-u "$MQTT_USER" -P "$MQTT_PASS" \
+	-t "$TEST_TOPIC" -q 1 \
+	-V 5 -i "$CLIENT_ID" -c -x 60 \
+	> /dev/null 2>&1 &
+sleep 1.5
+
+# 步骤 B：从容器内强杀订阅进程（SIGKILL），模拟客户端突然离线
+# SIGKILL 阻止客户端发送含 Session Expiry=0 的 DISCONNECT 报文，从而保留持久会话
+docker compose exec -T mosquitto pkill -9 -f "$CLIENT_ID" 2> /dev/null || true
+sleep 1.0
+
+# 步骤 C：在客户端离线时发布 QoS 1 消息，Broker 应缓存到该客户端的离线队列
+docker compose exec -T mosquitto mosquitto_pub \
+	-h localhost -p 1883 \
+	-u "$MQTT_USER" -P "$MQTT_PASS" \
+	-t "$TEST_TOPIC" -m "$TEST_MSG" -q 1 \
+	-V 5 -D publish user-property test_id "ha_integration_$(date +%s)"
+
+# 步骤 D：客户端重连，使用相同 Client ID 恢复持久会话，-C 1 接收 1 条消息后退出
 set +e
-docker compose exec -T mosquitto mosquitto_sub \
-	-h localhost \
-	-p 1883 \
-	-u "$MQTT_USER" \
-	-P "$MQTT_PASS" \
-	-t "$TEST_TOPIC" \
-	-V 5 \
-	-C 1 \
-	> /tmp/mqtt_test_sub.log 2>&1 &
-SUB_PID=$!
+SUB_RESULT=$(timeout 5 docker compose exec -T mosquitto mosquitto_sub \
+	-h localhost -p 1883 \
+	-u "$MQTT_USER" -P "$MQTT_PASS" \
+	-t "$TEST_TOPIC" -q 1 \
+	-V 5 -i "$CLIENT_ID" -c -C 1 2>&1)
 set -e
 
-# 等待订阅客户端就绪
-sleep 1.5
-
-# 使用 mosquitto_pub 发布消息（使用 -V 5 并携带 MQTT 5.0 特有的 User Properties 属性）
-docker compose exec -T mosquitto mosquitto_pub \
-	-h localhost \
-	-p 1883 \
-	-u "$MQTT_USER" \
-	-P "$MQTT_PASS" \
-	-t "$TEST_TOPIC" \
-	-m "$TEST_MSG" \
-	-V 5 \
-	-D publish user-property test_id "integration_test_123"
-
-# 等待订阅者接收消息并退出
-sleep 1.5
-
-SUB_RESULT=$(cat /tmp/mqtt_test_sub.log)
-rm -f /tmp/mqtt_test_sub.log
-
 if echo "$SUB_RESULT" | grep -q "$TEST_MSG"; then
-	echo -e "${GREEN}✓ Native TCP MQTT 5.0 消息收发与 Properties 属性校验成功！${NC}"
+	echo -e "${GREEN}✓ MQTT 5.0 持久会话注册、QoS 1 离线缓存与重连拉取验证成功！${NC}"
 else
-	echo -e "${RED}✗ Native TCP MQTT 5.0 校验失败！${NC}"
-	echo -e "订阅器输出结果：\n$SUB_RESULT"
-	kill $SUB_PID 2> /dev/null || true
+	echo -e "${RED}✗ MQTT 5.0 高可用特性验证失败！${NC}"
+	echo -e "  订阅器输出：\n  $SUB_RESULT"
 	exit 1
 fi
 
-# 2. 验证 Caddy 代理的 WSS 握手升级
-echo -e "\n${YELLOW}【测试 2】正在通过 Caddy 验证 WSS (WebSocket SSL) 协议握手...${NC}"
+# ============================================================
+# 测试 2：Caddy 反代 WSS (WebSocket Secure) HTTP 101 握手
+# 强制 --http1.1：Mosquitto 不支持 RFC 8441 (HTTP/2 WebSocket)，
+# 默认 HTTP/2 协商会导致 Caddy 502；--max-time 3 防止连接建立后脚本卡死
+# ============================================================
+echo -e "\n${YELLOW}【测试 2】验证 Caddy 反代 WSS WebSocket 握手 (HTTP 101)...${NC}"
 
-# 发送合规的 WebSocket 升级请求，Sec-WebSocket-Protocol 必须声明为 mqtt
 set +e
-# 显式限制使用 HTTP/1.1，因为 Mosquitto 不支持基于 HTTP/2 的 WebSocket 握手 (RFC 8441)。
-# 增加 --max-time 3 以避免 curl 在成功建立 WebSocket 连接后无限期挂起。
 HTTP_CODE=$(curl -k -s --http1.1 --max-time 3 -o /dev/null -w "%{http_code}" \
 	-H "Upgrade: websocket" \
 	-H "Connection: Upgrade" \
@@ -108,12 +125,12 @@ HTTP_CODE=$(curl -k -s --http1.1 --max-time 3 -o /dev/null -w "%{http_code}" \
 set -e
 
 if [ "$HTTP_CODE" = "101" ]; then
-	echo -e "${GREEN}✓ WSS WebSocket HTTP 101 Switching Protocols 握手升级校验成功！${NC}"
-	echo -e "  外部加密 WSS 连入地址：${BLUE}wss://mqtt.${SITE_DOMAIN}/mqtt${NC}"
+	echo -e "${GREEN}✓ WSS WebSocket HTTP 101 Switching Protocols 握手升级成功！${NC}"
+	echo -e "  外部加密 WSS 地址：${BLUE}wss://mqtt.${SITE_DOMAIN}/mqtt${NC}"
 else
-	echo -e "${RED}✗ WSS WebSocket 握手验证失败！HTTP 返回状态码: ${HTTP_CODE}${NC}"
-	echo -e "  请检查 Caddy 容器运行状态，以及 /etc/caddy/sites/mqtt.conf 配置是否正确。"
+	echo -e "${RED}✗ WSS 握手验证失败！HTTP 状态码: ${HTTP_CODE}${NC}"
+	echo -e "  请检查 Caddy 运行状态及 /etc/caddy/sites/mqtt.conf 配置。"
 	exit 1
 fi
 
-echo -e "\n${GREEN}✓ Mosquitto MQTT 5.0 (TCP) 与 WSS (Caddy WebSockets) 集成验证全部通过！${NC}"
+echo -e "\n${GREEN}✓ 全部测试通过：MQTT 5.0 高可用 (TCP QoS 1) 与 WSS (Caddy) 集成验证完毕！${NC}"
