@@ -1,9 +1,15 @@
 #!/bin/bash
 # ============================================================================
 # test-mqtt.sh - Mosquitto MQTT Broker 连通性与高可用集成测试 (TCP & WSS)
-# 测试范围：
-#   1. TCP MQTT 5.0 持久会话 (Session Expiry) + QoS 1 离线消息缓存与重连拉取
-#   2. Caddy 反代 WSS (WebSocket Secure) HTTP 101 握手升级验证
+#
+# 测试 1: TCP MQTT 5.0 持久会话 + QoS 1 离线消息
+#   A. mosquitto_sub -q 1 -c -x 60  → 建立持久会话并注册 QoS 1 订阅
+#   B. pkill -9 (容器内)             → 模拟客户端突然断线（不发 DISCONNECT）
+#   C. mosquitto_pub -q 1            → 发布离线消息，Broker 缓存至队列
+#   D. mosquitto_sub -q 1 -C 1       → 重连，自动拉取缓存消息
+#
+# 测试 2: Caddy WSS 握手
+#   curl --http1.1 --max-time 3      → HTTP 101 Switching Protocols
 # ============================================================================
 set -e
 
@@ -55,20 +61,16 @@ echo -e "${BLUE}================================================================
 echo -e "${BLUE}      Mosquitto MQTT 5.0 高可用与 Caddy WSS 握手集成测试         ${NC}"
 echo -e "${BLUE}================================================================${NC}"
 
-# ============================================================
-# 测试 1：TCP MQTT 5.0 持久会话 (Session Expiry) + QoS 1 离线消息
-# 验证高可用核心特性：客户端断连后，Broker 为其缓存 QoS 1 消息，
-# 重连后自动推送，证明 Broker 具备离线消息持久化能力。
-# ============================================================
-echo -e "${YELLOW}【测试 1】验证 MQTT 5.0 持久会话与 QoS 1 离线消息缓存/重连拉取...${NC}"
+# 测试 1: TCP MQTT 5.0 持久会话 + QoS 1 离线消息
+echo -e "${YELLOW}【测试 1】TCP MQTT 5.0 持久会话 + QoS 1 离线消息缓存/重连拉取...${NC}"
 
 TEST_TOPIC="test/ha/$(date +%s)"
 TEST_MSG="HA-offline-message-$(date +%s)"
-# Client ID 前缀须与 cleanup 里 pkill 过滤条件一致
+# Client ID 前缀须与 cleanup() 里 pkill 过滤条件保持一致
 CLIENT_ID="test_sub_ha_$(date +%s)"
 
-# 步骤 A：建立持久会话（-c = Clean Start=false，-x 60 = Session Expiry 60s，-q 1 注册 QoS 1 订阅）
-# 必须用 -q 1 订阅，Broker 才会为该客户端缓存离线 QoS 1 消息
+# A. mosquitto_sub -q 1 -c -x 60 → 建立持久会话并注册 QoS 1 订阅
+# -q 1：让 Broker 知道该订阅需要 QoS 1 缓存，缺省 QoS 0 不会触发离线队列
 timeout 5 docker compose exec -T mosquitto mosquitto_sub \
 	-h localhost -p 1883 \
 	-u "$MQTT_USER" -P "$MQTT_PASS" \
@@ -77,19 +79,19 @@ timeout 5 docker compose exec -T mosquitto mosquitto_sub \
 	> /dev/null 2>&1 &
 sleep 1.5
 
-# 步骤 B：从容器内强杀订阅进程（SIGKILL），模拟客户端突然离线
-# SIGKILL 阻止客户端发送含 Session Expiry=0 的 DISCONNECT 报文，从而保留持久会话
+# B. pkill -9 → 模拟客户端突发断线
+# SIGKILL 跳过正常断连握手，Broker 保留持久会话及其 QoS 1 离线队列
 docker compose exec -T mosquitto pkill -9 -f "$CLIENT_ID" 2> /dev/null || true
 sleep 1.0
 
-# 步骤 C：在客户端离线时发布 QoS 1 消息，Broker 应缓存到该客户端的离线队列
+# C. mosquitto_pub -q 1 → 发布离线消息，Broker 缓存至该客户端的离线队列
 docker compose exec -T mosquitto mosquitto_pub \
 	-h localhost -p 1883 \
 	-u "$MQTT_USER" -P "$MQTT_PASS" \
 	-t "$TEST_TOPIC" -m "$TEST_MSG" -q 1 \
 	-V 5 -D publish user-property test_id "ha_integration_$(date +%s)"
 
-# 步骤 D：客户端重连，使用相同 Client ID 恢复持久会话，-C 1 接收 1 条消息后退出
+# D. mosquitto_sub -q 1 -C 1 → 重连，恢复持久会话，自动拉取离线缓存消息
 set +e
 SUB_RESULT=$(timeout 5 docker compose exec -T mosquitto mosquitto_sub \
 	-h localhost -p 1883 \
@@ -106,11 +108,9 @@ else
 	exit 1
 fi
 
-# ============================================================
-# 测试 2：Caddy 反代 WSS (WebSocket Secure) HTTP 101 握手
-# 强制 --http1.1：Mosquitto 不支持 RFC 8441 (HTTP/2 WebSocket)，
-# 默认 HTTP/2 协商会导致 Caddy 502；--max-time 3 防止连接建立后脚本卡死
-# ============================================================
+# 测试 2: Caddy WSS 握手
+# --http1.1：Mosquitto 不支持 RFC 8441（HTTP/2 WebSocket），默认 HTTP/2 协商会让 Caddy 返回 502
+# --max-time 3：WebSocket 升级成功后 TCP 长连接会持续保持，需限时退出
 echo -e "\n${YELLOW}【测试 2】验证 Caddy 反代 WSS WebSocket 握手 (HTTP 101)...${NC}"
 
 set +e
