@@ -1,22 +1,45 @@
-# rclone
+# Garage S3 对象存储与备份同步服务
 
-这个目录保存 rclone 的通用配置和容器化调用方式。
+本目录包含基于 Garage (S3 兼容的高可用分布式存储) 的单节点最佳实践配置，以及配套的容器化 Rclone 客户端同步工具链。
 
-## 文件说明
+## 文件组织结构
 
-- `docker-compose.yml`：rclone 容器编排
-- `rclone.sh`：统一入口脚本，支持 `ls`、`copy`、`sync`、`delete`
-- `rclone.conf`：宿主机使用的 rclone 配置
-- `rclone.docker.conf`：Docker 容器内使用的 rclone 配置
-- `to-remote.sh`：把源复制或同步到 `ali-oss` / `cloudflare-r2`
+```text
+garage/
+├── docker-compose.yml      # Garage 核心服务及 WebUI 服务的容器编排定义
+├── Dockerfile              # 定制化的 Garage 运行镜像（去除了明文凭证硬编码，带健康检查）
+├── garage.toml             # 生产推荐配置：LMDB 数据库引擎、单副本、独立数据及元数据卷
+├── README.md               # 项目说明文档
+└── rclone/                 # Rclone 数据同步及管理工具集（子目录隔离）
+    ├── docker-compose.yml  # Rclone 专属容器编排
+    ├── rclone.conf         # 宿主机客户端本地配置（直连 127.0.0.1:3900）
+    ├── rclone.docker.conf  # 容器间客户端同步配置（通过 backend 网络连接 garage:3900）
+    ├── rclone.sh           # 简化版一键 Rclone 执行工具（支持 ls, delete, copy, sync）
+    └── to-remote.sh        # 极简云备份同步脚本（支持一键冷备份至阿里云 OSS / Cloudflare R2）
+```
 
-## 说明
+---
 
-- `rclone.conf` 的 `garage` remote 使用 `http://127.0.0.1:3900`
-- `rclone.docker.conf` 的 `garage` remote 使用 `http://garage:3900`
-- `ali-oss` 和 `cloudflare-r2` 已同步写入两份配置，除了 `garage` 以外的 remote 可以保持一致
+## 1. 启动 Garage 服务
 
-## 用法
+在项目根目录下直接使用 Docker Compose 启动 Garage 及其 Web 管理页面：
+
+```bash
+docker compose up -d
+```
+
+> **最佳实践优化说明**：
+> - 移除了 `Dockerfile` 内的 `COPY garage.toml`，避免敏感 token 烧录进镜像中。
+> - 元数据及对象存储卷统一映射在宿主机上，内部更改为 `/var/lib/garage` 标准持久化路径。
+> - `garage-webui` 的启动依赖于 `garage` 服务的 `service_healthy` 健康检查状态，确保启动顺序。
+
+---
+
+## 2. 客户端同步工具 (Rclone) 使用说明
+
+所有的 Rclone 操作均被封装，可以无需在宿主机安装 Rclone，通过容器自动调用。
+
+### 统一调用入口 `rclone.sh`
 
 ```bash
 bash rclone/rclone.sh ls garage:default
@@ -25,36 +48,35 @@ bash rclone/rclone.sh sync ./local-dir garage:default/backup/
 bash rclone/rclone.sh delete garage:default/old-file.txt
 ```
 
-## 目标云同步
+> **优化亮点**：
+> - 仅在进行 `copy` 和 `sync` 这类涉及本地文件传输的操作时，才会挂载当前工作目录，有效优化了 `ls` 和 `delete` 的执行效率和权限敏感性。
+
+---
+
+## 3. 云上冷备份与异地容灾
+
+使用 `to-remote.sh` 脚本可快速将本地 Garage 的 Bucket 中的数据备份至阿里云 OSS 或 Cloudflare R2。
+
+### 使用命令
 
 ```bash
+# 复制模式（追加备份）
 bash rclone/to-remote.sh copy ali-oss garage:default default
-bash rclone/to-remote.sh copy r2 garage:default default
+bash rclone/to-remote.sh cp r2 garage:default default
+
+# 同步模式（完全镜像同步，会删除云端多余文件）
 bash rclone/to-remote.sh sync ali-oss garage:default default
-bash rclone/to-remote.sh sync r2 garage:default default
-```
-
-短写也支持：
-
-```bash
-bash rclone/to-remote.sh cp ali garage:default default
 bash rclone/to-remote.sh sy r2 garage:default default
 ```
 
-可用别名：
+### 参数映射说明
+- **操作别名**：`copy` / `cp` （复制）、`sync` / `sy` （同步）。
+- **目标服务别名**：`ali-oss` / `ali` （阿里云 OSS）、`cloudflare-r2` / `r2` （Cloudflare R2）。
+- 所有别名转换及环境适配已在脚本内部自动映射完成，免除多重 Case 选择嵌套。
 
-- 操作：`copy` / `sync` / `cp` / `sy`
-- 目标：`ali-oss` / `ali` / `r2` / `cloudflare-r2`
+---
 
-## `copy` 和 `sync` 的区别
+## 4. `copy` 与 `sync` 的策略选择
 
-- 想备份、追加、保守操作，用 `copy`
-- 想做镜像、保持完全一致，用 `sync`
-
-## 容器版
-
-如果你想直接在 Docker 里运行 rclone，可以使用：
-
-```bash
-docker compose -f rclone/docker-compose.yml run --rm rclone lsd garage:
-```
+- **`copy`**：增量追加操作，安全且保守，云端已有文件不会受本地删除影响。
+- **`sync`**：镜像式同步，使目标 Bucket 与源路径完全保持一致，会删除目标端存在而源端已删除的文件。请谨慎使用。

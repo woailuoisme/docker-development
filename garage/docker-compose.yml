@@ -5,27 +5,28 @@ services:
       args:
         - GARAGE_VERSION=v2.3.0
     container_name: garage
-    restart: always
+    restart: unless-stopped
+    command: server --single-node --default-bucket
     ports:
-     - "3900:3900"
-     - "3901:3901"
-     - "3902:3902"
-     - "3903:3903"
+      - "3900:3900"
+      - "3901:3901"
+      - "3902:3902"
+      - "3903:3903"
     volumes:
       - ${CONFIG_PATH}garage/garage.toml:/etc/garage.toml:ro
-      - ${DATA_PATH}garage:/tmp
+      - ${DATA_PATH}garage:/var/lib/garage
     environment:
-      - GARAGE_DEFAULT_ACCESS_KEY=GKfd16f76e81fb861a868a01b9b19452ad
-      - GARAGE_DEFAULT_SECRET_KEY=18d5eda476ff7fb88f0bec38eae3a5e468020ae6dfc610defe2f3f72a65c4339
-      - GARAGE_DEFAULT_BUCKET=default
-      - RUST_LOG=garage=info
+      GARAGE_DEFAULT_ACCESS_KEY: GKfd16f76e81fb861a868a01b9b19452ad
+      GARAGE_DEFAULT_SECRET_KEY: 18d5eda476ff7fb88f0bec38eae3a5e468020ae6dfc610defe2f3f72a65c4339
+      GARAGE_DEFAULT_BUCKET: default
+      RUST_LOG: garage=info
     networks:
       - backend
 
   garage-webui:
     image: khairul169/garage-webui:1.1.0
     container_name: garage-webui
-    restart: always
+    restart: unless-stopped
     volumes:
       - ${CONFIG_PATH}garage/garage.toml:/etc/garage.toml:ro
     ports:
@@ -34,7 +35,8 @@ services:
       S3_ENDPOINT_URL: "http://garage:3900"
       API_BASE_URL: "http://garage:3903"
     depends_on:
-      - garage
+      garage:
+        condition: service_healthy
     networks:
       - backend
 

@@ -1,0 +1,15 @@
+services:
+  rclone:
+    image: rclone/rclone:1.74.2
+    container_name: rclone
+    restart: "no"
+    entrypoint: ["rclone"]
+    command: ["version"]
+    volumes:
+      - ./rclone.docker.conf:/config/rclone.conf:ro
+    networks:
+      - backend
+
+networks:
+  backend:
+    external: true

@@ -1,13 +1,12 @@
 ARG GARAGE_VERSION=v2.3.0
 FROM dxflrs/garage:${GARAGE_VERSION}
 
-# Copy configuration (optional as it's often mounted, but good for self-contained image)
-COPY garage.toml /etc/garage.toml
+# 移除 COPY garage.toml 以避免敏感凭证（如 admin_token / rpc_secret）泄露。
+# 配置文件在运行时通过 docker-compose 卷挂载到 /etc/garage.toml 即可。
 
-# Healthcheck
+# 容器健康检查：利用内置二进制直接查询本地节点状态
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=20s \
-  CMD ["/garage", "-c", "/etc/garage.toml", "status"]
+  CMD ["/garage", "status"]
 
-# Default command
 ENTRYPOINT ["/garage"]
-CMD ["server", "--single-node", "--default-bucket"]
+CMD ["server"]
