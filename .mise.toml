@@ -1,0 +1,11 @@
+[tools]
+just = "latest"
+fd = "latest"
+shellcheck = "latest"
+shfmt = "latest"
+hadolint = "latest"
+lefthook = "latest"
+kubectl = "latest"
+helm = "latest"
+yq = "latest"
+jq = "latest"
