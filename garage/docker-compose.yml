@@ -5,7 +5,7 @@ services:
       args:
         - GARAGE_VERSION=v2.3.0
     container_name: garage
-    restart: unless-stopped
+    restart: always
     command: server --single-node --default-bucket
     ports:
       # S3 API: 绑定 localhost 以防外部明文 HTTP 绕过反代，所有公网流量通过 Caddy/Nginx HTTPS 反向代理接入
@@ -28,7 +28,7 @@ services:
   garage-webui:
     image: khairul169/garage-webui:1.1.0
     container_name: garage-webui
-    restart: unless-stopped
+    restart: always
     volumes:
       - ${CONFIG_PATH}garage/garage.toml:/etc/garage.toml:ro
     ports:

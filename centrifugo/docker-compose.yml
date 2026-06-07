@@ -7,6 +7,8 @@ services:
         CENTRIFUGO_VERSION: v6.8.1
     container_name: centrifugo
     command: centrifugo -c /centrifugo/config.yaml
+    ports:
+      - "48000:8000"
     volumes:
       - ${CONFIG_PATH}centrifugo:/centrifugo
     environment:
