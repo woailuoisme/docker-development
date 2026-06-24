@@ -12,7 +12,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - ${DATA_PATH}postgres18:/var/lib/postgresql
-      - ${CONFIG_PATH}postgres-alpine-18/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ${CONFIG_PATH}postgres-18-alpine/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     networks:
       - backend
       - frontend
