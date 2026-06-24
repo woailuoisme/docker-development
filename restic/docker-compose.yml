@@ -1,0 +1,27 @@
+services:
+  restic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - ALPINE_VERSION=3.23
+        - SUPERCRONIC_VERSION=0.2.46
+    container_name: restic
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - RESTIC_REPOSITORY=${RESTIC_REPOSITORY:-/repo}
+      - RESTIC_PASSWORD=${RESTIC_PASSWORD:-changeme}
+      - BACKUP_SOURCE=${BACKUP_SOURCE:-/data}
+      - CRON_SCHEDULE=${CRON_SCHEDULE:-0 2 * * *}
+      - RESTIC_KEEP_DAILY=${RESTIC_KEEP_DAILY:-7}
+      - RESTIC_KEEP_WEEKLY=${RESTIC_KEEP_WEEKLY:-4}
+      - RESTIC_KEEP_MONTHLY=${RESTIC_KEEP_MONTHLY:-6}
+      - RUN_ON_STARTUP=${RUN_ON_STARTUP:-false}
+      - RESTORE_TARGET=${RESTORE_TARGET:-/restore}
+    volumes:
+      - ${DATA_PATH}restic/data:/data:ro
+      - ${DATA_PATH}restic/repo:/repo
+      - ${DATA_PATH}restic/restore:/restore
+    restart: unless-stopped
+    networks:
+      - backend
