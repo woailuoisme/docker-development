@@ -26,19 +26,6 @@ on:
         description: '构建 GoAccess'
         type: boolean
         default: false
-      # 版本参数
-      caddy_base_version:
-        description: 'Caddy 版本'
-        default: 'latest'
-      nginx_version:
-        description: 'Nginx 版本'
-        default: '1.29.5-trixie'
-      certbot_version:
-        description: 'Certbot 版本'
-        default: 'v5.2.2'
-      goaccess_version:
-        description: 'GoAccess 版本'
-        default: '1.10.1'
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio
@@ -54,15 +41,15 @@ jobs:
         run: |
           MATRIX_JSON='[]'
           add_task() {
-            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$1\", \"context\": \"$2\", \"image\": \"$3\", \"version\": \"$4\"}]")
+            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$1\", \"context\": \"$2\", \"image\": \"$3\"}]")
           }
           BUILD_ALL=${{ inputs.build_all }}
           
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_caddy }}" == "true" ]] && add_task "caddy" "./caddy" "caddy" "${{ inputs.caddy_base_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx_base }}" == "true" ]] && add_task "nginx-base" "./nginx-base" "nginx-base" "${{ inputs.nginx_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx }}" == "true" ]] && add_task "nginx" "./nginx" "nginx" "${{ inputs.nginx_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_certbot }}" == "true" ]] && add_task "certbot" "./certbot" "certbot" "${{ inputs.certbot_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_goaccess }}" == "true" ]] && add_task "goaccess" "./go-access" "goaccess" "${{ inputs.goaccess_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_caddy }}" == "true" ]] && add_task "caddy" "./caddy" "caddy"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx_base }}" == "true" ]] && add_task "nginx-base" "./nginx-base" "nginx-base"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx }}" == "true" ]] && add_task "nginx" "./nginx" "nginx"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_certbot }}" == "true" ]] && add_task "certbot" "./certbot" "certbot"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_goaccess }}" == "true" ]] && add_task "goaccess" "./go-access" "goaccess"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
@@ -75,23 +62,19 @@ jobs:
       matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
     name: Build ${{ matrix.name }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
       - run: |
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
           echo "${{ secrets.REDHAT_REGISTRY_TOKEN }}" | docker login quay.io -u "${{ secrets.REDHAT_REGISTRY_USERNAME }}" --password-stdin
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            CADDY_BASE_VERSION=${{ matrix.version }}
-            NGINX_VERSION=${{ matrix.version }}
-            CERTBOT_VERSION=${{ matrix.version }}
-            GOACCESS_VERSION=${{ matrix.version }}
             CHANGE_SOURCE=false
           tags: |
-            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}
-            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:latest
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:latest

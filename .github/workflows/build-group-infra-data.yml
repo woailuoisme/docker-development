@@ -30,25 +30,6 @@ on:
         description: '构建 Garage'
         type: boolean
         default: false
-      # 版本参数
-      minio_version:
-        description: 'MinIO 版本'
-        default: 'latest'
-      rabbitmq_version:
-        description: 'RabbitMQ 版本'
-        default: '4.2.4-management'
-      meili_version:
-        description: 'Meilisearch 版本'
-        default: 'v1.37.0'
-      pgbouncer_version:
-        description: 'PgBouncer 版本'
-        default: '1.25.1'
-      socket_proxy_version:
-        description: 'Socket Proxy 版本'
-        default: '3.2.13'
-      garage_version:
-        description: 'Garage 版本'
-        default: 'v2.2.0'
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio
@@ -64,16 +45,16 @@ jobs:
         run: |
           MATRIX_JSON='[]'
           add_task() {
-            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$1\", \"context\": \"$2\", \"image\": \"$3\", \"version\": \"$4\"}]")
+            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$1\", \"context\": \"$2\", \"image\": \"$3\"}]")
           }
           BUILD_ALL=${{ inputs.build_all }}
           
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_minio }}" == "true" ]] && add_task "minio" "./minio" "minio" "${{ inputs.minio_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_rabbitmq }}" == "true" ]] && add_task "rabbitmq" "./rabbitmq" "rabbitmq" "${{ inputs.rabbitmq_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_meilisearch }}" == "true" ]] && add_task "meilisearch" "./meilisearch" "meilisearch" "${{ inputs.meili_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgbouncer }}" == "true" ]] && add_task "pgbouncer" "./pgbouncer" "pgbouncer" "${{ inputs.pgbouncer_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_socket_proxy }}" == "true" ]] && add_task "socket-proxy" "./socket-proxy" "socket-proxy" "${{ inputs.socket_proxy_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_garage }}" == "true" ]] && add_task "garage" "./garage" "garage" "${{ inputs.garage_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_minio }}" == "true" ]] && add_task "minio" "./minio" "minio"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_rabbitmq }}" == "true" ]] && add_task "rabbitmq" "./rabbitmq" "rabbitmq"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_meilisearch }}" == "true" ]] && add_task "meilisearch" "./meilisearch" "meilisearch"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgbouncer }}" == "true" ]] && add_task "pgbouncer" "./pgbouncer" "pgbouncer"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_socket_proxy }}" == "true" ]] && add_task "socket-proxy" "./socket-proxy" "socket-proxy"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_garage }}" == "true" ]] && add_task "garage" "./garage" "garage"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
 
@@ -86,24 +67,19 @@ jobs:
       matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
     name: Build ${{ matrix.name }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
       - run: |
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
           echo "${{ secrets.REDHAT_REGISTRY_TOKEN }}" | docker login quay.io -u "${{ secrets.REDHAT_REGISTRY_USERNAME }}" --password-stdin
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            MINIO_VERSION=${{ matrix.version }}
-            RABBITMQ_VERSION=${{ matrix.version }}
-            MEILI_VERSION=${{ matrix.version }}
-            SOCKET_PROXY_VERSION=${{ matrix.version }}
-            GARAGE_VERSION=${{ matrix.version }}
             CHANGE_SOURCE=false
           tags: |
-            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}
-            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:latest
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:latest

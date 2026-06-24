@@ -43,35 +43,6 @@ on:
         type: boolean
         default: false
       
-      # === 版本参数 ===
-      mysql_version:
-        description: 'MySQL 版本'
-        required: false
-        default: '8.4.8'
-      mongo_version:
-        description: 'MongoDB 版本'
-        required: false
-        default: '8.2.5'
-      redis_version:
-        description: 'Redis 版本'
-        required: false
-        default: '8.6.1-trixie'
-      valkey_version:
-        description: 'Valkey 版本'
-        required: false
-        default: '9.0.3-trixie'
-      postgres17_trixie_version:
-        description: 'PostgreSQL 17 Trixie 版本'
-        required: false
-        default: '17.9-trixie'
-      postgres18_trixie_version:
-        description: 'PostgreSQL 18 Trixie 版本'
-        required: false
-        default: '18.3-trixie'
-      postgres18_no_tsdb_version:
-        description: 'PostgreSQL 18 No-TSDB 版本'
-        required: false
-        default: '18.3-trixie'
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio
@@ -91,20 +62,19 @@ jobs:
             local name=$1
             local context=$2
             local image=$3
-            local version=$4
-            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$name\", \"context\": \"$context\", \"image\": \"$image\", \"version\": \"$version\"}]")
+            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$name\", \"context\": \"$context\", \"image\": \"$image\"}]")
           }
           
           BUILD_ALL=${{ inputs.build_all }}
           
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mysql }}" == "true" ]] && add_task "mysql" "./mysql-8" "mysql" "${{ inputs.mysql_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mongodb }}" == "true" ]] && add_task "mongodb" "./mongodb" "mongodb" "${{ inputs.mongo_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_redis }}" == "true" ]] && add_task "redis" "./redis" "redis" "${{ inputs.redis_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_valkey }}" == "true" ]] && add_task "valkey" "./valkey" "valkey" "${{ inputs.valkey_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17_trixie }}" == "true" ]] && add_task "postgres-17-trixie" "./postgres-trixie-17" "postgres" "${{ inputs.postgres17_trixie_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_trixie }}" == "true" ]] && add_task "postgres-18-trixie" "./postgres-trixie-18" "postgres" "${{ inputs.postgres18_trixie_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_no_tsdb }}" == "true" ]] && add_task "postgres-18-no-tsdb" "./postgres-trixie-18-no-tsdb" "postgres-no-tsdb" "${{ inputs.postgres18_no_tsdb_version }}"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_alpine }}" == "true" ]] && add_task "postgres-18-alpine" "./postgres-alpine-18" "postgres" "${{ inputs.postgres18_alpine_version }}"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mysql }}" == "true" ]] && add_task "mysql" "./mysql-8" "mysql"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mongodb }}" == "true" ]] && add_task "mongodb" "./mongodb" "mongodb"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_redis }}" == "true" ]] && add_task "redis" "./redis" "redis"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_valkey }}" == "true" ]] && add_task "valkey" "./valkey" "valkey"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17_trixie }}" == "true" ]] && add_task "postgres-17-trixie" "./postgres-trixie-17" "postgres"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_trixie }}" == "true" ]] && add_task "postgres-18-trixie" "./postgres-18-trixie" "postgres"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_no_tsdb }}" == "true" ]] && add_task "postgres-18-no-tsdb" "./postgres-trixie-18-no-tsdb" "postgres-no-tsdb"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_alpine }}" == "true" ]] && add_task "postgres-18-alpine" "./postgres-18-alpine" "postgres"
 
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
@@ -121,13 +91,13 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to Registries
         run: |
@@ -135,18 +105,13 @@ jobs:
           echo "${{ secrets.REDHAT_REGISTRY_TOKEN }}" | docker login quay.io -u "${{ secrets.REDHAT_REGISTRY_USERNAME }}" --password-stdin
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-             MYSQL_VERSION=${{ matrix.version }}
-             MONGO_VERSION=${{ matrix.version }}
-             REDIS_VERSION=${{ matrix.version }}
-             VALKEY_VERSION=${{ matrix.version }}
-             POSTGRES_VERSION=${{ matrix.version }}
              CHANGE_SOURCE=false
           tags: |
-            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}
-            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:latest
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:latest
