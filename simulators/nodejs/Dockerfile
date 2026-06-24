@@ -8,8 +8,8 @@ COPY package.json bun.lock ./
 # 安装生产环境依赖
 RUN bun install --frozen-lockfile --production
 
-# 阶段 2: 最终运行镜像 (使用 Node.js 24-alpine3.23保持轻量)
-FROM node:24-alpine3.23 AS runner
+# 阶段 2: 最终运行镜像 (使用 Node.js 24-alpine3.24保持轻量)
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 # 仅从 builder 阶段拷贝生产环境依赖

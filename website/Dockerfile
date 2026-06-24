@@ -1,4 +1,4 @@
-FROM nginx:1.28.1-alpine3.23
+FROM nginx:1.31-alpine
 
 ARG TIMEZONE=Asia/Shanghai
 ARG CHANGE_SOURCE=true
