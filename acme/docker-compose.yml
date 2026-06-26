@@ -5,23 +5,19 @@ services:
       dockerfile: Dockerfile
     container_name: acme
     environment:
+      - TZ=Asia/Shanghai
+      - DOMAIN=${DOMAIN:-gaara.lol}
       - DNS_PROVIDER=${DNS_PROVIDER:-cloudflare}
-#      - DOMAIN=${DOMAIN:-haoxiaoguai.xyz}
-#      - DOMAIN=haoxiaoguai.xyz
-      - DOMAIN=gaara.lol
-      - EMAIL=${ACME_EMAIL:-admin@haoxiaoguai.xyz}
       # Cloudflare
       - CLOUDFLARE_API_TOKEN=${DNS_CLOUDFLARE_API_TOKEN:-}
       # Aliyun
       - ALIYUN_ACCESS_KEY_ID=${ALIYUN_ACCESS_KEY_ID:-}
       - ALIYUN_ACCESS_KEY_SECRET=${ALIYUN_ACCESS_KEY_SECRET:-}
       - ACME_DEBUG=${ACME_DEBUG:-0}
-      - TZ=Asia/Shanghai
     volumes:
-      - ${DATA_PATH:-../data/}acme:/acme.sh
-      # 将证书直接输出到 Nginx 的 SSL 目录
-      - ${CONFIG_PATH:-../}nginx-simple/ssl:/ssl
-    restart: unless-stopped
+      - ${DATA_PATH}acme:/acme.sh
+      - ${DATA_PATH}ssl:/ssl
+    restart: always
     networks:
       - backend
 

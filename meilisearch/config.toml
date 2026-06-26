@@ -1,60 +1,32 @@
-# ========================================
-# Meilisearch 配置 (2核 1GB 环境)
-# ========================================
+# ==============================================================================
+# Meilisearch v1.48 精简配置 (2核 1GB RAM, 本地开发/低负载测试环境最佳实践)
+# ==============================================================================
 
-# 数据库存储路径
+# 基础运行配置
 db_path = "/meili_data/data.ms"
-# 运行环境: production 或 development
 env = "development"
-# HTTP 监听地址
 http_addr = "0.0.0.0:7700"
-# 主密钥 (Master Key)，保护所有 API 路由
-# master_key = "YOUR_MASTER_KEY_VALUE"
 
-# 是否禁用匿名遥测数据收集
+# 安全与限流 (防 OOM 关键设置)
 no_analytics = true
-# 最大接受负载大小 (Payload) 
-http_payload_size_limit = "100 MB"
-# 日志级别: OFF, ERROR, WARN, INFO, DEBUG, TRACE
+# 限制单次上传大小，防止大 JSON 导致 Rust 内存瞬间暴涨导致 OOM
+http_payload_size_limit = "10 MB"
 log_level = "INFO"
 
-# 索引任务最大占用内存
-max_indexing_memory = "192 Mb"
-# 索引任务最大线程数
-max_indexing_threads = 2
+# 资源分配 (2核 1GB 稳定性微调)
+# 限制索引器最大内存，防止干扰查询服务或被系统 OOM-killer 强制杀死
+max_indexing_memory = "256 MiB"
+# 限制为 1 个线程，预留 1 个核心给 HTTP 搜索查询和系统服务，避免索引任务占满 CPU
+max_indexing_threads = 1
 
-## DUMPS (导出备份)
-# Dump 文件存储目录
+# 备份存储路径
 dump_dir = "/meili_data/dumps/"
-# 忽略无效的 Dump 文件路径
-ignore_missing_dump = false
-# 如果数据库已存在，是否忽略 Dump 导入
-ignore_dump_if_db_exists = false
-
-## SNAPSHOTS (快照备份)
-# 快照存储目录
 snapshot_dir = "/meili_data/snapshots/"
-# 自动快照间隔 (秒)，false 表示禁用
-schedule_snapshot = false
-# 忽略无效的快照路径
-ignore_missing_snapshot = false
-# 如果数据库已存在，是否忽略快照导入
-ignore_snapshot_if_db_exists = false
 
-## SSL 配置
-# 是否强制 SSL 认证
-ssl_require_auth = false
-# 是否开启 SSL 会话恢复
-ssl_resumption = false
-# 是否开启 SSL tickets
-ssl_tickets = false
-
-## 实验性功能 (Experimental)
-# 启用 Prometheus 监控指标 (/metrics)
-experimental_enable_metrics = false
-# 启用索引时降低内存占用的模式
-experimental_reduce_indexing_memory_usage = false
-# 最大批处理任务数
-experimental_max_number_of_batched_tasks = 50
-# 搜索请求队列大小，限制并发以减少内存占用
-experimental_search_queue_size = 500
+# 实验性功能 (针对低内存环境的极致优化)
+# 开启 LMDB MDB_WRITEMAP 写入模式，大幅降低索引时的物理内存消耗
+experimental_reduce_indexing_memory_usage = true
+# 限制并发批处理的任务数，防止短时间内积压大批任务导致内存超载
+experimental_max_number_of_batched_tasks = 10
+# 限制并发查询队列长度，避免瞬时搜索洪峰导致 OOM
+experimental_search_queue_size = 100

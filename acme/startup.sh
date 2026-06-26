@@ -1,14 +1,17 @@
 #!/bin/sh
 set -e
 
-# 颜色定义 (去除了未使用的 C_1)
+# 颜色定义
 C_R="\033[31m" C_G="\033[32m" C_Y="\033[33m" C_B="\033[34m" C_C="\033[36m" C_0="\033[0m"
 
-# 日志函数
-log_info() { printf "${C_C}[$(date '+%Y-%m-%d %H:%M:%S %z')]${C_0} ${C_B}[INFO]${C_0} %s\n" "$1"; }
-log_success() { printf "${C_C}[$(date '+%Y-%m-%d %H:%M:%S %z')]${C_0} ${C_G}[SUCCESS]${C_0} %s\n" "$1"; }
-log_warning() { printf "${C_C}[$(date '+%Y-%m-%d %H:%M:%S %z')]${C_0} ${C_Y}[WARNING]${C_0} %s\n" "$1"; }
-log_error() { printf "${C_C}[$(date '+%Y-%m-%d %H:%M:%S %z')]${C_0} ${C_R}[ERROR]${C_0} %s\n" "$1"; }
+# 日志输出函数
+log_msg() {
+	printf "${C_C}[$(date '+%Y-%m-%d %H:%M:%S %z')]${C_0} %s %s\n" "$1" "$2"
+}
+log_info() { log_msg "${C_B}[INFO]${C_0}" "$1"; }
+log_success() { log_msg "${C_G}[SUCCESS]${C_0}" "$1"; }
+log_warning() { log_msg "${C_Y}[WARNING]${C_0}" "$1"; }
+log_error() { log_msg "${C_R}[ERROR]${C_0}" "$1"; }
 
 # 降级到 crond 守护进程以保持容器存活，方便排查错误
 fallback_to_cron() {
@@ -17,7 +20,7 @@ fallback_to_cron() {
 }
 
 # 基础配置
-DNS_PROVIDER=${DNS_PROVIDER:-aliyun} # 可选值: aliyun, cloudflare
+DNS_PROVIDER=${DNS_PROVIDER:-cloudflare} # 可选值: aliyun, cloudflare
 DOMAIN=${DOMAIN:-haoxiaoguai.xyz}
 EMAIL=${EMAIL:-admin@haoxiaoguai.xyz}
 MAX_RETRIES=${MAX_RETRIES:-1} # 默认重试1次
@@ -45,6 +48,13 @@ log_info "-------------------------------------------------------"
 
 # 证书输出目录 (映射到 Nginx 的 SSL 目录)
 SSL_OUTPUT="/ssl/live/${DOMAIN}"
+
+# 清理指定域名配置和证书文件
+cleanup_domain() {
+	log_warning "Cleaning up domain config and directory for $DOMAIN..."
+	acme.sh --remove -d "$DOMAIN" > /dev/null 2>&1 || true
+	rm -rf "/acme.sh/${DOMAIN}_ecc" "/acme.sh/${DOMAIN}" || true
+}
 
 # 配置 DNS 凭据并检查必要变量
 setup_credentials() {
@@ -77,10 +87,6 @@ setup_credentials() {
 if [ ! -f "/acme.sh/account.conf" ]; then
 	log_info "Initializing acme.sh configuration..."
 
-	# 0. 尝试升级 acme.sh (确保功能完整)
-	log_info "Upgrading acme.sh to latest version..."
-	acme.sh --upgrade --auto-upgrade 0 || log_warning "Upgrade failed, continuing with current version."
-
 	# 1. 设置默认 CA 为 letsencrypt 并注册账号
 	log_info "Setting default CA to letsencrypt and registering account with email $EMAIL..."
 	acme.sh --set-default-ca --server letsencrypt
@@ -96,18 +102,15 @@ fi
 
 # 单次尝试申请与安装
 try_issue_and_install() {
-	# 1. 检查证书是否已管理 (存储结果以减少重复调用 acme.sh 的开销)
+	# 1. 检查证书是否已管理
 	is_managed=0
-	if acme.sh --list | grep -q "$DOMAIN"; then
-		is_managed=1
-	fi
+	acme.sh --list | grep -q "$DOMAIN" && is_managed=1
 
 	# 如果已管理但证书文件缺失，则强制清理以重新申请
 	if [ "$is_managed" -eq 1 ]; then
 		if [ ! -f "/acme.sh/${DOMAIN}_ecc/fullchain.cer" ] && [ ! -f "/acme.sh/${DOMAIN}/fullchain.cer" ]; then
 			log_warning "Certificate managed but files missing. Force removing..."
-			acme.sh --remove -d "$DOMAIN"
-			rm -rf "/acme.sh/${DOMAIN}_ecc" "/acme.sh/${DOMAIN}"
+			cleanup_domain
 			is_managed=0
 		else
 			log_success "Certificate for $DOMAIN already managed by acme.sh."
@@ -120,8 +123,10 @@ try_issue_and_install() {
 
 		# 根据 ACME_DEBUG 级别匹配调试参数
 		DEBUG_OPT=""
-		[ "$ACME_DEBUG" -eq 1 ] && DEBUG_OPT="--debug"
-		[ "$ACME_DEBUG" -eq 2 ] && DEBUG_OPT="--debug 2"
+		case "$ACME_DEBUG" in
+			1) DEBUG_OPT="--debug" ;;
+			2) DEBUG_OPT="--debug 2" ;;
+		esac
 
 		log_info "Executing: acme.sh --issue --dns $DNS_TYPE -d $DOMAIN -d *.$DOMAIN --server letsencrypt $DEBUG_OPT"
 
@@ -153,7 +158,7 @@ issue_and_install_with_retry() {
 	setup_credentials
 
 	count=1
-	while [ $count -le $MAX_RETRIES ]; do
+	while [ "$count" -le "$MAX_RETRIES" ]; do
 		log_info "Attempt $count of $MAX_RETRIES..."
 
 		if try_issue_and_install; then
@@ -163,12 +168,9 @@ issue_and_install_with_retry() {
 
 		log_warning "Attempt $count failed."
 
-		if [ $count -lt $MAX_RETRIES ]; then
-			log_warning "Cleaning up and retrying in 10s..."
-			# 清理旧的配置，避免状态不一致导致下一次重试失败
-			acme.sh --remove -d "$DOMAIN" > /dev/null 2>&1 || true
-			rm -rf "/acme.sh/${DOMAIN}_ecc" || true
-
+		if [ "$count" -lt "$MAX_RETRIES" ]; then
+			cleanup_domain
+			log_warning "Retrying in 10s..."
 			sleep 10
 		fi
 

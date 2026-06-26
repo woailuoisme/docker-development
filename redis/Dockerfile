@@ -1,4 +1,4 @@
-ARG REDIS_VERSION=8.6.3-alpine
+ARG REDIS_VERSION=8.8-alpine
 FROM redis:${REDIS_VERSION}
 LABEL maintainer="seaside <531773730@qq.com>"
 

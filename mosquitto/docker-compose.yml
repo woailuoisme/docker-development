@@ -2,8 +2,6 @@ services:
   mosquitto:
     build:
       context: .
-      args:
-        - MOSQUITTO_VERSION=2.1.2-alpine
     container_name: mosquitto
     restart: always
     ports:
