@@ -14,7 +14,7 @@
 .codebuddy
 .qoder
 .idea
-.vscode
+# .vscode
 .DS_Store
 .claude
 .agents

@@ -1,0 +1,81 @@
+{
+    "kiroAgent.configureMCP": "Enabled",
+
+    // ==========================================
+    // 1. 文件与搜索排除配置 (防止 data/ 和 logs/ 占用 CPU/内存)
+    // ==========================================
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/.claude": true,
+        "**/.agents": true,
+        "**/.agent": true,
+        "data/": true,  // 排除 Docker 挂载的本地数据目录
+        "logs/": true   // 排除日志目录
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/*.code-search": true,
+        "data/": true,
+        "logs/": true
+    },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/*/**": true,
+        "data/**": true,
+        "logs/**": true
+    },
+
+    // ==========================================
+    // 2. 文件关联与语言模式 (针对 Docker、Shell 和 Env)
+    // ==========================================
+    "files.associations": {
+        "*.env*": "properties",
+        ".shellcheckrc": "properties",
+        "*.conf": "nginx",
+        "nginx.conf": "nginx",
+        "justfile": "makefile"
+    },
+
+    // ==========================================
+    // 3. 代码格式化与编辑习惯 (规范 YAML/Docker-Compose 缩进)
+    // ==========================================
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    
+    "[yaml]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.quickSuggestions": {
+            "other": true,
+            "comments": false,
+            "strings": true
+        }
+    },
+    "[dockercompose]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
+    },
+    "[shellscript]": {
+        "editor.tabSize": 4,
+        "editor.insertSpaces": false
+    },
+    "[json]": {
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true
+    },
+
+    // ==========================================
+    // 4. Linter 与静态分析 (ShellCheck 集成)
+    // ==========================================
+    "shellcheck.run": "onSave",
+    "shellcheck.useWorkspaceRootAsCwd": true,
+
+    // ==========================================
+    // 5. CSS 静态分析配置 (忽略 Tailwind v4 的 @theme 等自定义指令警告)
+    // ==========================================
+    "css.lint.unknownAtRules": "ignore"
+}
