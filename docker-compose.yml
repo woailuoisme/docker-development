@@ -52,6 +52,7 @@ include:
   #  - bytebase/docker-compose.yml
   - redis/docker-compose.yml # 缓存
   - valkey/docker-compose.yml # 缓存
+  - bullboard/docker-compose.yml # Bullboard
   #  - etcd/docker-compose.yml        # 服务发现
   #  - mysql8/docker-compose.yml       # MySQL 8.4
   #  - mongodb/docker-compose.yml      # MongoDB
@@ -59,7 +60,7 @@ include:
   - garage/docker-compose.yml # 对象存储
   - meilisearch/docker-compose.yml # 全文检索
   #  - rustfs/docker-compose.yml        # 对象存储
-  #  - rabbitmq/docker-compose.yml     # 消息队列
+  # - rabbitmq/docker-compose.yml # 消息队列
   #  - pgbouncer/docker-compose.yml    # PG 连接池
   #  - pgdog/docker-compose.yml
   #  - clickhouse/docker-compose.yml   # OLAP 数据库

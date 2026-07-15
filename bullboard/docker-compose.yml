@@ -1,0 +1,16 @@
+services:
+  bullboard:
+    container_name: bullboard
+    image: venatum/bull-board:3.3
+    restart: unless-stopped
+    environment:
+      REDIS_HOST: valkey
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: 0
+      BULL_BOARD_LOCALE: zh-CN
+      BULL_PREFIX: bull
+    ports:
+      - "3500:3000"
+    networks:
+      - backend

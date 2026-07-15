@@ -4,8 +4,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - RABBITMQ_VERSION=${RABBITMQ_VERSION:-4.2.4-management}
     restart: always
     ports:
       - "${RABBITMQ_PORT:-5672}:5672"          # AMQP 协议端口
@@ -21,4 +19,3 @@ services:
       - ${LOG_PATH}rabbitmq:/var/log/rabbitmq
     networks:
       - backend
-

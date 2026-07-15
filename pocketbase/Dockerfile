@@ -2,9 +2,7 @@ FROM alpine:3.24
 
 ARG PB_VERSION=0.36.7
 
-# 设置默认管理员凭据
-ENV PB_ADMIN_EMAIL=admin@admin.com
-ENV PB_ADMIN_PASSWORD=1234567890
+
 
 RUN apk add --no-cache \
     unzip \

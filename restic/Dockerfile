@@ -26,7 +26,6 @@ COPY --chmod=755 scripts/backup.sh     /scripts/backup.sh
 
 ENV TZ=Asia/Shanghai \
     RESTIC_REPOSITORY=/repo \
-    RESTIC_PASSWORD=changeme \
     BACKUP_SOURCE=/data \
     RESTIC_KEEP_DAILY=7 \
     RESTIC_KEEP_WEEKLY=4 \
