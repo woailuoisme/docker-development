@@ -21,9 +21,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get update
 
 # 定义扩展版本参数（Debian 13 / trixie 对应 PGDG 构建后缀 pgdg13+1）
-ARG POSTGIS_VERSION=3.6.3+dfsg-1.pgdg13+1
-ARG PGVECTOR_VERSION=0.8.2-1.pgdg13+1
-ARG PGCRON_VERSION=1.6.7-2.pgdg13+1
+ARG POSTGIS_VERSION=3.6.4+dfsg-2.pgdg13+1
+ARG PGCRON_VERSION=1.6.7-3.pgdg13+1
+ARG PGVECTOR_VERSION=0.8.5-1.pgdg13+1
 
 # 安装扩展（从官方仓库安装最新稳定版）
 RUN apt-get install -y --no-install-recommends \

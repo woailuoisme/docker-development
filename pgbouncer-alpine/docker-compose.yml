@@ -1,6 +1,9 @@
 services:
   pgbouncer:
-    image: jiaoio/pgbouncer
+    build:
+      context: .
+      args:
+        CHANGE_SOURCE: ${CHANGE_SOURCE:-false}
     container_name: pgbouncer
     restart: always
     ports:

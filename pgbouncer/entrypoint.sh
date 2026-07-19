@@ -1,9 +1,15 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-echo "==================================="
-echo "PgBouncer 启动中..."
-echo "==================================="
+# 日志工具
+RED='\033[0;31m' GREEN='\033[0;32m' YELLOW='\033[1;33m' BLUE='\033[0;34m' NC='\033[0m'
+log() { echo -e "${1}[$(date '+%Y-%m-%d %H:%M:%S %z')] [${2}]${NC} ${3}"; }
+log_info() { log "${BLUE}" "INFO" "$1"; }
+log_success() { log "${GREEN}" "SUCCESS" "$1"; }
+log_warning() { log "${YELLOW}" "WARNING" "$1" >&2; }
+log_error() { log "${RED}" "ERROR" "$1" >&2; }
+
+log_info "PgBouncer 启动中..."
 
 PGBOUNCER_CONFIG="/etc/pgbouncer/pgbouncer.ini"
 PGBOUNCER_AUTH_FILE="/etc/pgbouncer/userlist.txt"
@@ -16,80 +22,94 @@ POSTGRES_USER="${POSTGRES_USER:-postgres}"
 
 # 验证密码
 if [ -z "$POSTGRES_PASSWORD" ]; then
-    echo "错误: POSTGRES_PASSWORD 未设置"
-    exit 1
+	log_error "POSTGRES_PASSWORD 未设置"
+	exit 1
 fi
 
-# ============================================================================
-# 等待 PostgreSQL 启动
-# ============================================================================
-echo "等待 PostgreSQL 启动..."
-for i in {1..30}; do
-    if pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" >/dev/null 2>&1; then
-        echo "PostgreSQL 已就绪"
-        break
-    fi
-    [ $i -eq 30 ] && echo "错误: PostgreSQL 启动超时" && exit 1
-    sleep 2
+# 优雅停机信号处理
+trap 'log_info "收到终止信号，正在停止 PgBouncer..."; kill -TERM "$PGBOUNCER_PID" 2>/dev/null || true; wait "$PGBOUNCER_PID"' TERM INT QUIT
+
+# 等待 PostgreSQL 数据库就绪
+log_info "等待 PostgreSQL 数据库上线 ($POSTGRES_HOST:$POSTGRES_PORT)..."
+attempts=0
+max_attempts=30
+
+while ! pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" > /dev/null 2>&1; do
+	attempts=$((attempts + 1))
+	if [ "$attempts" -ge "$max_attempts" ]; then
+		log_error "等待 PostgreSQL 超时 (30秒)，启动失败"
+		exit 1
+	fi
+	log_info "PostgreSQL 尚未就绪，等待中... (${attempts}/${max_attempts})"
+	sleep 1
 done
 
-# ============================================================================
-# 获取密码哈希并生成 userlist.txt
-# ============================================================================
-echo "生成用户认证文件..."
+log_success "PostgreSQL 数据库已成功上线！"
 
-# 获取主用户密码哈希
-SCRAM=$(PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" \
-    -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A \
-    -c "SELECT rolpassword FROM pg_authid WHERE rolname = '$POSTGRES_USER';" 2>&1 | tr -d '[:space:]')
+# Helper Function: Query SCRAM password hash from database
+get_scram_hash() {
+	local target_user="$1"
+	local default_pass="$2"
+	local query_sql="SELECT concat('\"', rolname, '\" \"', rolpassword, '\"') FROM pg_authid WHERE rolname = '$target_user';"
 
-# 验证哈希
-if [[ -z "$SCRAM" || "$SCRAM" == *"ERROR"* || "$SCRAM" == *"FATAL"* ]]; then
-    echo "警告: 使用明文密码"
-    SCRAM="$POSTGRES_PASSWORD"
-fi
+	local scram_hash
+	scram_hash=$(PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c "$query_sql" 2> /dev/null || true)
 
-# 写入主用户
-echo "\"$POSTGRES_USER\" \"$SCRAM\"" > "$PGBOUNCER_AUTH_FILE"
+	if [ -n "$scram_hash" ]; then
+		echo "$scram_hash"
+	else
+		echo "\"$target_user\" \"$default_pass\""
+	fi
+}
 
-# 添加管理用户
-if [ -n "$PGBOUNCER_ADMIN_USER" ] && [ -n "$PGBOUNCER_ADMIN_PASSWORD" ]; then
-    ADMIN_SCRAM=$(PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" \
-        -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A \
-        -c "SELECT rolpassword FROM pg_authid WHERE rolname = '$PGBOUNCER_ADMIN_USER';" 2>&1 | tr -d '[:space:]')
-    [[ -z "$ADMIN_SCRAM" || "$ADMIN_SCRAM" == *"ERROR"* ]] && ADMIN_SCRAM="$PGBOUNCER_ADMIN_PASSWORD"
-    echo "\"$PGBOUNCER_ADMIN_USER\" \"$ADMIN_SCRAM\"" >> "$PGBOUNCER_AUTH_FILE"
-else
-    echo "\"pgbouncer\" \"$SCRAM\"" >> "$PGBOUNCER_AUTH_FILE"
-fi
+# Helper Function: Write user entry to userlist.txt if user non-empty
+write_user_auth() {
+	local user="$1"
+	local pass="$2"
+	if [ -n "$user" ]; then
+		local entry
+		entry=$(get_scram_hash "$user" "$pass")
+		echo "$entry" >> "$PGBOUNCER_AUTH_FILE"
+		log_info "已为此用户添加认证配置: $user"
+	fi
+}
 
-# 添加额外用户
-if [ -n "$PGBOUNCER_EXTRA_USERS" ]; then
-    IFS=',' read -ra USERS <<< "$PGBOUNCER_EXTRA_USERS"
-    for user_pass in "${USERS[@]}"; do
-        IFS=':' read -r user pass <<< "$user_pass"
-        [ -z "$user" ] || [ -z "$pass" ] && continue
-        
-        USER_SCRAM=$(PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" \
-            -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A \
-            -c "SELECT rolpassword FROM pg_authid WHERE rolname = '$user';" 2>&1 | tr -d '[:space:]')
-        [[ -z "$USER_SCRAM" || "$USER_SCRAM" == *"ERROR"* ]] && USER_SCRAM="$pass"
-        echo "\"$user\" \"$USER_SCRAM\"" >> "$PGBOUNCER_AUTH_FILE"
-    done
-fi
-
+log_info "从 PostgreSQL 动态生成 authentication userlist.txt..."
+rm -f "$PGBOUNCER_AUTH_FILE"
+touch "$PGBOUNCER_AUTH_FILE"
 chmod 600 "$PGBOUNCER_AUTH_FILE"
 
-echo "==================================="
-echo "PostgreSQL: $POSTGRES_HOST:$POSTGRES_PORT"
-echo "数据库: $POSTGRES_DB"
-echo "用户: $POSTGRES_USER"
-echo "==================================="
+# 1. 默认 PostgreSQL 用户
+write_user_auth "$POSTGRES_USER" "$POSTGRES_PASSWORD"
 
-# 信号处理
-trap 'echo "关闭中..."; kill -TERM $(cat /var/run/pgbouncer/pgbouncer.pid 2>/dev/null) 2>/dev/null; exit 0' SIGTERM SIGINT SIGQUIT
+# 2. 管理员用户
+ADMIN_USER="${PGBOUNCER_ADMIN_USER:-$POSTGRES_USER}"
+ADMIN_PASS="${PGBOUNCER_ADMIN_PASSWORD:-$POSTGRES_PASSWORD}"
+if [ "$ADMIN_USER" != "$POSTGRES_USER" ]; then
+	write_user_auth "$ADMIN_USER" "$ADMIN_PASS"
+fi
 
-echo "PgBouncer 启动完成"
-echo ""
+# 3. 额外用户列表
+if [ -n "$PGBOUNCER_EXTRA_USERS" ]; then
+	log_info "正在处理额外用户配置..."
+	OLD_IFS="$IFS"
+	IFS=','
+	for extra_user in $PGBOUNCER_EXTRA_USERS; do
+		# 清理空格
+		clean_user=$(echo "$extra_user" | tr -d ' ')
+		if [ -n "$clean_user" ] && [ "$clean_user" != "$POSTGRES_USER" ] && [ "$clean_user" != "$ADMIN_USER" ]; then
+			write_user_auth "$clean_user" "$POSTGRES_PASSWORD"
+		fi
+	done
+	IFS="$OLD_IFS"
+fi
 
-exec pgbouncer "$PGBOUNCER_CONFIG"
+log_success "userlist.txt 配置已成功生成！"
+log_info "正在前台启动 PgBouncer 服务..."
+
+# 启动 pgbouncer 并记录 PID
+pgbouncer "$PGBOUNCER_CONFIG" &
+PGBOUNCER_PID=$!
+
+log_success "PgBouncer 已就绪，进程 PID: $PGBOUNCER_PID"
+wait "$PGBOUNCER_PID"

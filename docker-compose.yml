@@ -52,7 +52,7 @@ include:
   #  - bytebase/docker-compose.yml
   - redis/docker-compose.yml # 缓存
   - valkey/docker-compose.yml # 缓存
-  - bullboard/docker-compose.yml # Bullboard
+  # - bullboard/docker-compose.yml # Bullboard
   #  - etcd/docker-compose.yml        # 服务发现
   #  - mysql8/docker-compose.yml       # MySQL 8.4
   #  - mongodb/docker-compose.yml      # MongoDB
@@ -100,7 +100,7 @@ include:
   #  - node-red/docker-compose.yml      # 流程编排
   #  - dokploy/docker-compose.yml
   - mailpit/docker-composer.yml
-  - asynqmon/docker-compose.yml
+  # - asynqmon/docker-compose.yml
 
   # --- MONITORING & WEBSITES ---
   # - beszel/docker-compose.yml       # 服务器监控 Hub
