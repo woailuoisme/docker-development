@@ -12,14 +12,14 @@ services:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWD}
       - POSTGRES_DB=${DB_NAME}
-    networks:
-      - backend
     volumes:
       - ./postgres:/var/lib/postgresql/data
+    networks:
+      - backend
 
   # Gitea 主服务
   server:
-    image: gitea/gitea:latest
+    image: gitea/gitea:1.27.0
     container_name: gitea
     env_file: .env
     environment:
@@ -45,22 +45,21 @@ services:
 
   # Gitea Actions Runner 服务
   runner:
-    image: gitea/act_runner:latest
+    image: docker.io/gitea/runner:nightly
     container_name: act_runner
     restart: always
     env_file: .env
     depends_on:
       - server
-    volumes:
-      - ./runner-data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      # 注意：在 Docker 网络内部，使用服务名称访问 Gitea
-      - GITEA_INSTANCE_URL=${GITEA_INSTANCE_URL}
-      # 重要：首次启动后，你需要进入 Gitea 管理后台 (Site Administration -> Actions -> Runners)
-      # 创建一个新的 Runner 并获取 Registration Token，然后填入 .env 文件并重启 runner 容器
-      - GITEA_RUNNER_REGISTRATION_TOKEN=${RUNNER_TOKEN}
-      - GITEA_RUNNER_NAME=${RUNNER_NAME}
-      - GITEA_RUNNER_LABELS=${RUNNER_LABELS}
+      CONFIG_FILE: /config.yaml
+      GITEA_INSTANCE_URL: "${INSTANCE_URL}"
+      GITEA_RUNNER_REGISTRATION_TOKEN: "${REGISTRATION_TOKEN}"
+      GITEA_RUNNER_NAME: "${RUNNER_NAME}"
+      GITEA_RUNNER_LABELS: "${RUNNER_LABELS}"
+    volumes:
+      - ./config.yaml:/config.yaml
+      - ./data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - backend

@@ -1,0 +1,25 @@
+services:
+  nats:
+    image: nats:2.14.3-alpine
+    container_name: nats
+    restart: always
+    ports:
+      - "4222:4222" # Client connections
+      - "8222:8222" # Monitoring
+    command:
+      - "--config"
+      - "/etc/nats/nats.conf"
+    volumes:
+      - ./nats.conf:/etc/nats/nats.conf:ro
+      - ${DATA_PATH}/nats:/data
+    environment:
+      NATS_USER: ${NATS_USER:-app}
+      NATS_PASSWORD: ${NATS_PASSWORD:-change-me-password}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - backend

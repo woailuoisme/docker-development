@@ -101,6 +101,7 @@ include:
   #  - dokploy/docker-compose.yml
   - mailpit/docker-composer.yml
   # - asynqmon/docker-compose.yml
+  - nats/docker-compose.yml
 
   # --- MONITORING & WEBSITES ---
   # - beszel/docker-compose.yml       # 服务器监控 Hub
