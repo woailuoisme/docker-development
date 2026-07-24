@@ -7,9 +7,9 @@ ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # 定义扩展版本参数
+ARG PGCRON_VERSION=1.6.7-r0
 ARG POSTGIS_VERSION=3.6.3-r0
 ARG PGVECTOR_VERSION=0.8.1-r0
-ARG PGCRON_VERSION=1.6.7-r0
 
 # 安装扩展（PostGIS / pgvector / pg_cron）
 # edge/community 仓库提供 Alpine 上最新的 PostgreSQL 扩展包

@@ -3,7 +3,7 @@
 -- 自动创建常用扩展，避免手动执行 CREATE EXTENSION
 -- =============================================================================
 
--- 核心扩展
+CREATE EXTENSION IF NOT EXISTS timescaledb;
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS pg_cron;
@@ -22,5 +22,5 @@ CREATE EXTENSION IF NOT EXISTS hstore;         -- 键值对存储
 -- 提示信息
 DO $$
 BEGIN
-    RAISE NOTICE 'PostgreSQL 18 扩展初始化完成 (postgis, vector, pg_cron, pg_stat_statements 等)';
+    RAISE NOTICE 'PostgreSQL 18 扩展初始化完成 (timescaledb, postgis, vector, pg_cron, pg_stat_statements 等)';
 END $$;

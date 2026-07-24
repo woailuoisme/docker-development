@@ -21,17 +21,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get update
 
 # 定义扩展版本参数（Debian 13 / trixie 对应 PGDG 构建后缀 pgdg13+1）
-ARG POSTGIS_VERSION=3.6.3+dfsg-1.pgdg13+1
-ARG PGVECTOR_VERSION=0.8.2-1.pgdg13+1
-ARG PGCRON_VERSION=1.6.7-2.pgdg13+1
-ARG TIMESCALEDB_VERSION=2.26.0+dfsg-1.pgdg13+1
+ARG POSTGIS_VERSION=3.6.4+dfsg-2.pgdg13+1
+ARG PGVECTOR_VERSION=0.8.5-1.pgdg13+1
+ARG TIMESCALEDB_VERSION=2.28.3+dfsg-1.pgdg13+1
+ARG PGCRON_VERSION=1.6.7-3.pgdg13+1
 
 # 安装扩展（从官方仓库安装最新稳定版）
 RUN apt-get install -y --no-install-recommends \
-    postgresql-18-cron=${PGCRON_VERSION} \
     postgresql-18-postgis-3=${POSTGIS_VERSION} \
     postgresql-18-pgvector=${PGVECTOR_VERSION} \
     postgresql-18-timescaledb=${TIMESCALEDB_VERSION} \
+    postgresql-18-cron=${PGCRON_VERSION} \
     tzdata \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -46,7 +46,7 @@ COPY docker-entrypoint-initdb.d/ /docker-entrypoint-initdb.d/
 
 # 设置环境变量
 ENV POSTGRES_CONFIG_FILE=/etc/postgresql/postgresql.conf \
-    TS_LICENSE=timescale
+    TS_LICENSE=apache
 
 # 使用原始入口点，通过 CMD 传递配置参数
 CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
