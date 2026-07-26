@@ -1,0 +1,44 @@
+networks:
+  backend:
+    name: backend
+    external: ${NETWORK_EXTERNAL:-false}
+
+services:
+  drone-github-server:
+    image: drone/drone:${DRONE_VERSION:-2.24.0}
+    container_name: drone-github-server
+    restart: always
+    ports:
+      - "${DRONE_GITHUB_SERVER_PORT:-10082}:80"
+    environment:
+      - DRONE_SERVER_HOST=${DRONE_GITHUB_SERVER_HOST:-localhost:10082}
+      - DRONE_SERVER_PROTO=${DRONE_GITHUB_SERVER_PROTO:-http}
+      - DRONE_RPC_SECRET=${DRONE_GITHUB_RPC_SECRET:-drone_github_rpc_secret}
+      - DRONE_GITHUB_SERVER=${DRONE_GITHUB_SERVER:-https://github.com}
+      - DRONE_GITHUB_CLIENT_ID=${DRONE_GITHUB_CLIENT_ID:-}
+      - DRONE_GITHUB_CLIENT_SECRET=${DRONE_GITHUB_CLIENT_SECRET:-}
+      - DRONE_DATABASE_DRIVER=sqlite3
+      - DRONE_DATABASE_DATASOURCE=/data/drone.sqlite
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+    volumes:
+      - ${DATA_PATH}drone-github:/data
+    networks:
+      - backend
+
+  drone-github-runner:
+    image: drone/drone-runner-docker:${DRONE_RUNNER_VERSION:-1.8.3}
+    container_name: drone-github-runner
+    restart: always
+    depends_on:
+      - drone-github-server
+    environment:
+      - DRONE_RPC_PROTO=${DRONE_GITHUB_SERVER_PROTO:-http}
+      - DRONE_RPC_HOST=drone-github-server:80
+      - DRONE_RPC_SECRET=${DRONE_GITHUB_RPC_SECRET:-drone_github_rpc_secret}
+      - DRONE_RUNNER_CAPACITY=${DRONE_RUNNER_CAPACITY:-2}
+      - DRONE_RUNNER_NAME=${DRONE_RUNNER_NAME:-drone-github-runner}
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - backend

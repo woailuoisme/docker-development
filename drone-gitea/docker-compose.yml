@@ -1,0 +1,44 @@
+networks:
+  backend:
+    name: backend
+    external: ${NETWORK_EXTERNAL:-false}
+
+services:
+  drone-gitea-server:
+    image: drone/drone:${DRONE_VERSION:-2.24.0}
+    container_name: drone-gitea-server
+    restart: always
+    ports:
+      - "${DRONE_GITEA_SERVER_PORT:-10080}:80"
+    environment:
+      - DRONE_SERVER_HOST=${DRONE_GITEA_SERVER_HOST:-localhost:10080}
+      - DRONE_SERVER_PROTO=${DRONE_GITEA_SERVER_PROTO:-http}
+      - DRONE_RPC_SECRET=${DRONE_GITEA_RPC_SECRET:-drone_gitea_rpc_secret}
+      - DRONE_GITEA_SERVER=${DRONE_GITEA_SERVER:-http://gitea:3000}
+      - DRONE_GITEA_CLIENT_ID=${DRONE_GITEA_CLIENT_ID:-}
+      - DRONE_GITEA_CLIENT_SECRET=${DRONE_GITEA_CLIENT_SECRET:-}
+      - DRONE_DATABASE_DRIVER=sqlite3
+      - DRONE_DATABASE_DATASOURCE=/data/drone.sqlite
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+    volumes:
+      - ${DATA_PATH}drone-gitea:/data
+    networks:
+      - backend
+
+  drone-gitea-runner:
+    image: drone/drone-runner-docker:${DRONE_RUNNER_VERSION:-1.8.3}
+    container_name: drone-gitea-runner
+    restart: always
+    depends_on:
+      - drone-gitea-server
+    environment:
+      - DRONE_RPC_PROTO=${DRONE_GITEA_SERVER_PROTO:-http}
+      - DRONE_RPC_HOST=drone-gitea-server:80
+      - DRONE_RPC_SECRET=${DRONE_GITEA_RPC_SECRET:-drone_gitea_rpc_secret}
+      - DRONE_RUNNER_CAPACITY=${DRONE_RUNNER_CAPACITY:-2}
+      - DRONE_RUNNER_NAME=${DRONE_RUNNER_NAME:-drone-gitea-runner}
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - backend

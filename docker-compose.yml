@@ -50,6 +50,7 @@ include:
   #  - postgres-18-trixie/docker-compose-prod.yml   # 默认数据库 PostgreSQL 18
   # - postgres17/docker-compose.yml # 备选版本
   #  - bytebase/docker-compose.yml
+  - adminer/docker-compose.yml # 数据库 Web 管理界面
   - redis/docker-compose.yml # 缓存
   - valkey/docker-compose.yml # 缓存
   # - bullboard/docker-compose.yml # Bullboard
@@ -109,6 +110,9 @@ include:
 #  - glances/docker-compose.yml
 # - docs/docker-compose.yml         # 项目文档
 #  - gitea/docker-compose.yml
+  # - drone-gitea/docker-compose.yml
+  # - drone-gitee/docker-compose.yml
+  # - drone-github/docker-compose.yml
 #  - wordpress/docker-compose.yml
 #  - librespeed/docker-compose.yml
 #  - wifi-densepose/docker-compose.yml
