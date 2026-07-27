@@ -51,7 +51,7 @@ include:
   # - postgres17/docker-compose.yml # 备选版本
   #  - bytebase/docker-compose.yml
   - adminer/docker-compose.yml # 数据库 Web 管理界面
-  - redis/docker-compose.yml # 缓存
+  # - redis/docker-compose.yml # 缓存
   - valkey/docker-compose.yml # 缓存
   # - bullboard/docker-compose.yml # Bullboard
   #  - etcd/docker-compose.yml        # 服务发现
