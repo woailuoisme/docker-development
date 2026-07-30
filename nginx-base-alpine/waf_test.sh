@@ -11,18 +11,18 @@ echo "目标服务器: $TARGET_URL"
 echo "---------------------------------------------------"
 
 check_status() {
-    local url="$1"
-    local expected_code="$2"
-    local description="$3"
-    local user_agent="${4:-curl/7.68.0}" # 默认 User-Agent
+	local url="$1"
+	local expected_code="$2"
+	local description="$3"
+	local user_agent="${4:-curl/7.68.0}" # 默认 User-Agent
 
-    response_code=$(curl -s -o /dev/null --path-as-is -w "%{http_code}" -A "$user_agent" "$url")
+	response_code=$(curl -s -o /dev/null --path-as-is -w "%{http_code}" -A "$user_agent" "$url")
 
-    if [ "$response_code" == "$expected_code" ]; then
-        echo -e "${GREEN}[PASS]${NC} $description (Expected: $expected_code, Got: $response_code)"
-    else
-        echo -e "${RED}[FAIL]${NC} $description (Expected: $expected_code, Got: $response_code)"
-    fi
+	if [ "$response_code" == "$expected_code" ]; then
+		echo -e "${GREEN}[PASS]${NC} $description (Expected: $expected_code, Got: $response_code)"
+	else
+		echo -e "${RED}[FAIL]${NC} $description (Expected: $expected_code, Got: $response_code)"
+	fi
 }
 
 # 0. 正常访问测试
@@ -55,9 +55,9 @@ check_status "$TARGET_URL/wp-admin/" "404" "访问 wp-admin (应返回 404)"
 # curl -X TRACE ...
 response_code=$(curl -s -o /dev/null -w "%{http_code}" -X TRACE "$TARGET_URL/")
 if [ "$response_code" == "405" ]; then
-     echo -e "${GREEN}[PASS]${NC} TRACE 方法请求 (Expected: 405, Got: $response_code)"
+	echo -e "${GREEN}[PASS]${NC} TRACE 方法请求 (Expected: 405, Got: $response_code)"
 else
-     echo -e "${RED}[FAIL]${NC} TRACE 方法请求 (Expected: 405, Got: $response_code)"
+	echo -e "${RED}[FAIL]${NC} TRACE 方法请求 (Expected: 405, Got: $response_code)"
 fi
 
 # 6. SQL 注入攻击防护

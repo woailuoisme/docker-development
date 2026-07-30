@@ -1,6 +1,6 @@
 services:
   pgdog:
-    image: ghcr.io/pgdogdev/pgdog:0.1.30
+    image: ghcr.io/pgdogdev/pgdog:main
     container_name: pgdog
     ports:
       - "6432:6432"

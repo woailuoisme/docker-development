@@ -1,0 +1,17 @@
+services:
+  nginx-tester:
+    build: .
+    image: jiaoio/nginx-base:1.31-alpine
+    container_name: nginx-perf-tester
+    ports:
+      - "8080:80"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/snippets:/etc/nginx/snippets:ro
+      - ./config/default.conf:/etc/nginx/default.conf:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/api/test || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
