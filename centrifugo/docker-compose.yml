@@ -3,8 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        CENTRIFUGO_VERSION: v6.8.1
     container_name: centrifugo
     command: centrifugo -c /centrifugo/config.yaml
     ports:
