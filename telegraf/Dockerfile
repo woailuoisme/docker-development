@@ -31,7 +31,7 @@ WORKDIR /etc/telegraf
 
 # 健康检查 - 检查 telegraf 进程是否正在运行
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=10s \
-    CMD pgrep telegraf || exit 1
+    CMD ["sh", "-c", "pgrep telegraf || exit 1"]
 
 # 启动 Telegraf 并指定配置文件和配置目录
 CMD ["telegraf", "--non-strict-env-handling", "--config", "/etc/telegraf/telegraf.toml", "--config-directory", "/etc/telegraf/telegraf.d"]

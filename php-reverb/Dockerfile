@@ -38,6 +38,6 @@ USER www-data
 CMD ["/usr/local/bin/startup.sh"]
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD /usr/local/bin/healthcheck.sh
+    CMD ["sh", "-c", "/usr/local/bin/healthcheck.sh"]
 
 WORKDIR $APP_PATH

@@ -21,4 +21,4 @@ EXPOSE 3552
 # 健康检查
 # ============================================
 HEALTHCHECK --interval=10s --timeout=3s --retries=5 --start-period=15s \
-    CMD curl -fsS http://localhost:3552/api/health >/dev/null || exit 1
+    CMD ["sh", "-c", "curl -fsS http://localhost:3552/api/health >/dev/null || exit 1"]

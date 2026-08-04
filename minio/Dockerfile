@@ -20,4 +20,4 @@ ENTRYPOINT ["/usr/local/bin/startup.sh"]
 EXPOSE 9000 9001
 
 HEALTHCHECK --interval=60s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:9000/minio/health/live || exit 1
+    CMD ["sh", "-c", "curl -f http://localhost:9000/minio/health/live || exit 1"]

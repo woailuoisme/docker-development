@@ -48,6 +48,6 @@ EXPOSE 3000
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-    CMD curl -f http://localhost:3000/api/health || exit 1
+    CMD ["sh", "-c", "curl -f http://localhost:3000/api/health || exit 1"]
 
 # 使用默认的 Grafana 入口点

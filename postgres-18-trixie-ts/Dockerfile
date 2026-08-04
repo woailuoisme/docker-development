@@ -52,6 +52,6 @@ ENV POSTGRES_CONFIG_FILE=/etc/postgresql/postgresql.conf \
 CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
 
 HEALTHCHECK --interval=30s --timeout=10s --retries=5 --start-period=60s \
-    CMD pg_isready -d ${POSTGRES_DB:-postgres} -U ${POSTGRES_USER:-postgres}
+    CMD ["sh", "-c", "pg_isready -d ${POSTGRES_DB:-postgres} -U ${POSTGRES_USER:-postgres}"]
 
 EXPOSE 5432

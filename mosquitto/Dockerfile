@@ -1,4 +1,4 @@
-ARG MOSQUITTO_VERSION=2.1.2-alpine
+ARG MOSQUITTO_VERSION=2.1-alpine
 FROM eclipse-mosquitto:${MOSQUITTO_VERSION}
 
 ARG CHANGE_SOURCE=true
@@ -29,7 +29,7 @@ RUN chmod +x /usr/local/bin/startup.sh && \
 
 # 健康检查（支持认证）
 HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 \
-    CMD /usr/local/bin/healthcheck.sh
+    CMD ["sh", "-c", "/usr/local/bin/healthcheck.sh"]
 
 # 设置启动命令
 ENTRYPOINT ["/usr/local/bin/startup.sh"]

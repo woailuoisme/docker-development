@@ -33,7 +33,7 @@ ENV TZ=Asia/Shanghai \
     CRON_SCHEDULE="0 2 * * *"
 
 HEALTHCHECK --interval=60s --timeout=10s --retries=3 --start-period=15s \
-    CMD restic version > /dev/null 2>&1 || exit 1
+    CMD ["sh", "-c", "restic version > /dev/null 2>&1 || exit 1"]
 
 VOLUME ["/data", "/repo"]
 ENTRYPOINT ["/entrypoint.sh"]

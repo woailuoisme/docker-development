@@ -17,4 +17,4 @@ ENTRYPOINT []
 CMD ["sh", "-c", "goaccess ${GOACCESS_LOG} --config-file=${GOACCESS_CONFIG} --num-test=0 --real-time-html --ws-url=${GOACCESS_WS_URL} --addr=0.0.0.0 --port=7890 --output=${GOACCESS_OUTPUT}"]
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=15s \
-    CMD pgrep goaccess || exit 1
+    CMD ["sh", "-c", "pgrep goaccess || exit 1"]

@@ -6,4 +6,4 @@ LABEL maintainer="seaside <531773730@qq.com>"
 COPY config/rabbitmq.conf /etc/rabbitmq/
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD rabbitmq-diagnostics -q ping
+    CMD ["sh", "-c", "rabbitmq-diagnostics -q ping"]

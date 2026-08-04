@@ -1,4 +1,4 @@
-ARG MEILI_VERSION=v1.48
+ARG MEILI_VERSION=v1.52
 FROM getmeili/meilisearch:${MEILI_VERSION}
 
 ARG TIMEZONE=Asia/Shanghai
@@ -16,4 +16,4 @@ RUN apk add --no-cache tzdata && \
 COPY config.toml /meili_config/config.toml
 
 HEALTHCHECK --interval=60s --timeout=10s --start-period=60s --retries=5 \
-    CMD wget --spider -q http://127.0.0.1:7700/health || exit 1
+    CMD ["wget", "--spider", "-q", "http://127.0.0.1:7700/health"]

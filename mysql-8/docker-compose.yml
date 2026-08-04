@@ -2,8 +2,6 @@ services:
   mysql:
     build:
       context: .
-      args:
-        - MYSQL_VERSION=8.4.8
     container_name: mysql
     restart: always
     stop_grace_period: 1m

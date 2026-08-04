@@ -77,4 +77,4 @@ ENV POST=1 \
 
 # 健康检查：通过 wget 访问 HAProxy 的 /_ping 接口确保服务可用
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:2375/_ping || exit 1
+    CMD ["sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:2375/_ping || exit 1"]

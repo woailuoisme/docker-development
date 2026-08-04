@@ -19,6 +19,6 @@ CMD ["mongod", "--config", "/etc/mongod.conf"]
 
 # 设置健康检查
 HEALTHCHECK --interval=30s --timeout=10s --retries=5 --start-period=60s \
-    CMD mongosh --eval 'db.runCommand({ connectionStatus: 1 })'
+    CMD ["sh", "-c", "mongosh --eval 'db.runCommand({ connectionStatus: 1 })'"]
 
 EXPOSE 27017

@@ -52,6 +52,6 @@ CMD ["/usr/local/bin/startup.sh"]
 
 # 修复健康检查：检查 Horizon 进程而不是 supervisord
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD /usr/local/bin/healthcheck.sh
+    CMD ["sh", "-c", "/usr/local/bin/healthcheck.sh"]
 
 WORKDIR $APP_PATH

@@ -52,7 +52,7 @@ RUN mkdir -p /home/www-data/.ssh \
     && chmod 700 /home/www-data/.ssh
 
 HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
-    CMD /usr/local/bin/healthcheck.sh
+    CMD ["sh", "-c", "/usr/local/bin/healthcheck.sh"]
 
 #WORKDIR /var/www
 WORKDIR $APP_PATH

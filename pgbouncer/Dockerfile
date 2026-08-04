@@ -64,7 +64,7 @@ EXPOSE 15432
 
 # 优化的健康检查 - 使用 nc 检查 TCP 端口
 HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
-    CMD nc -z 127.0.0.1 15432 || exit 1
+    CMD ["sh", "-c", "nc -z 127.0.0.1 15432 || exit 1"]
 
 # 切换到非 root 用户
 USER pgbouncer

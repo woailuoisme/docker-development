@@ -53,7 +53,7 @@ EXPOSE 15432
 
 # 优化的健康检查 - 使用 BusyBox nc
 HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
-    CMD nc -z -w 2 127.0.0.1 15432 || exit 1
+    CMD ["sh", "-c", "nc -z -w 2 127.0.0.1 15432 || exit 1"]
 
 # 切换到非 root 用户
 USER pgbouncer

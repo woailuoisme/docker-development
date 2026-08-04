@@ -69,7 +69,7 @@ RUN sed -i 's/\r//g' /opt/startup.sh && \
     chmod +x /opt/startup.sh
 
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-    CMD pgrep nginx -l > /dev/null || exit 1
+    CMD ["sh", "-c", "pgrep nginx -l > /dev/null || exit 1"]
 
 # 容器启动命令和端口暴露
 CMD ["/bin/bash", "/opt/startup.sh"]

@@ -44,7 +44,7 @@ RUN chmod +x /usr/local/bin/healthcheck.sh
 
 # 健康检测配置
 HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 \
-    CMD /usr/local/bin/healthcheck.sh
+    CMD ["sh", "-c", "/usr/local/bin/healthcheck.sh"]
 
 EXPOSE ${APP_PORT} 6001
 WORKDIR $APP_PATH
