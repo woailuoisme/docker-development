@@ -34,3 +34,10 @@ pre-commit:
         - "**/*.sh"
       run: shfmt -w {staged_files}
       stage_fixed: true
+
+    - name: actionlint
+      glob:
+        - ".github/workflows/*.yml"
+        - ".github/workflows/*.yaml"
+      run: actionlint {staged_files}
+

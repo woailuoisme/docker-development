@@ -58,11 +58,11 @@ jobs:
           MATRIX_JSON='[]'
           
           add_task() {
-            local name=$1
-            local context=$2
-            local image=$3
-            local type=$4
-            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$name\", \"context\": \"$context\", \"image\": \"$image\", \"type\": \"$type\"}]")
+            local name="$1"
+            local context="$2"
+            local image="$3"
+            local type="$4"
+            MATRIX_JSON=$(echo "$MATRIX_JSON" | jq -c ". + [{\"name\": \"$name\", \"context\": \"$context\", \"image\": \"$image\", \"type\": \"$type\"}]")
           }
           
           BUILD_ALL=${{ inputs.build_all }}
@@ -75,7 +75,7 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_schedule }}" == "true" ]] && add_task "php-schedule" "./php-schedule" "php-schedule" "schedule"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_worker }}" == "true" ]] && add_task "php-worker" "./php-worker" "php-worker" "worker"
           
-          echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
+          echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
 
   build-php:
     needs: matrix-builder

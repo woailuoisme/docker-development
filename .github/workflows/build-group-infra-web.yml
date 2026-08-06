@@ -41,7 +41,7 @@ jobs:
         run: |
           MATRIX_JSON='[]'
           add_task() {
-            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$1\", \"context\": \"$2\", \"image\": \"$3\"}]")
+            MATRIX_JSON=$(echo "$MATRIX_JSON" | jq -c ". + [{\"name\": \"$1\", \"context\": \"$2\", \"image\": \"$3\"}]")
           }
           BUILD_ALL=${{ inputs.build_all }}
           
@@ -51,7 +51,7 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_certbot }}" == "true" ]] && add_task "certbot" "./certbot" "certbot"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_goaccess }}" == "true" ]] && add_task "goaccess" "./go-access" "goaccess"
           
-          echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
+          echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
 
   build:
     needs: matrix-builder

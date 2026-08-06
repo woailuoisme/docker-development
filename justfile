@@ -4,7 +4,7 @@ set dotenv-load := true
 caddy_root_cert := "./data/caddy/pki/authorities/local/root.crt"
 
 # 运行所有检测
-lint: lint-shell lint-dockerfile lint-caddy validate-docker-compose
+lint: lint-shell lint-dockerfile lint-caddy validate-docker-compose lint-actions
 
 # shellcheck 检测所有 shell 脚本
 lint-shell:
@@ -13,6 +13,10 @@ lint-shell:
 # hadolint 检测所有 Dockerfile
 lint-dockerfile:
     fd --type file '^Dockerfile.*$' --exclude data --exec-batch hadolint
+
+# actionlint 检测 GitHub Actions 工作流
+lint-actions:
+    actionlint
 
 # 验证 docker-compose 配置
 validate-docker-compose:

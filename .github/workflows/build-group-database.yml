@@ -59,10 +59,10 @@ jobs:
           MATRIX_JSON='[]'
           
           add_task() {
-            local name=$1
-            local context=$2
-            local image=$3
-            MATRIX_JSON=$(echo $MATRIX_JSON | jq -c ". + [{\"name\": \"$name\", \"context\": \"$context\", \"image\": \"$image\"}]")
+            local name="$1"
+            local context="$2"
+            local image="$3"
+            MATRIX_JSON=$(echo "$MATRIX_JSON" | jq -c ". + [{\"name\": \"$name\", \"context\": \"$context\", \"image\": \"$image\"}]")
           }
           
           BUILD_ALL=${{ inputs.build_all }}
@@ -77,7 +77,7 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_alpine }}" == "true" ]] && add_task "postgres-18-alpine" "./postgres-18-alpine" "postgres"
 
           
-          echo "matrix={\"include\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
+          echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
 
   build-database:
     needs: matrix-builder

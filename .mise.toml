@@ -6,6 +6,7 @@ just = "latest"          # 任务运行器，Makefile 替代品
 shellcheck = "latest"    # Shell 脚本静态分析
 shfmt = "latest"         # Shell 脚本格式化
 hadolint = "latest"      # Dockerfile lint
+actionlint = "latest"    # GitHub Actions workflow lint
 lefthook = "latest"      # Git hooks 管理
 
 # --- 文件搜索 ---
