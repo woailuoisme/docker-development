@@ -26,6 +26,9 @@ EMAIL=${EMAIL:-admin@haoxiaoguai.xyz}
 MAX_RETRIES=${MAX_RETRIES:-1} # 默认重试1次
 ACME_DEBUG=${ACME_DEBUG:-0}   # 调试模式: 0=off, 1=basic, 2=full
 
+# 证书输出目录 (映射到 Nginx 的 SSL 目录)
+SSL_OUTPUT="/ssl/live/${DOMAIN}"
+
 # 打印脱敏的环境变量，防止敏感信息泄露
 log_env_masked() {
 	if [ -n "$2" ]; then
@@ -46,9 +49,6 @@ log_env_masked "ALIYUN_ACCESS_KEY_ID" "$ALIYUN_ACCESS_KEY_ID"
 log_env_masked "ALIYUN_ACCESS_KEY_SECRET" "$ALIYUN_ACCESS_KEY_SECRET"
 log_info "-------------------------------------------------------"
 
-# 证书输出目录 (映射到 Nginx 的 SSL 目录)
-SSL_OUTPUT="/ssl/live/${DOMAIN}"
-
 # 清理指定域名配置和证书文件
 cleanup_domain() {
 	log_warning "Cleaning up domain config and directory for $DOMAIN..."
@@ -59,7 +59,7 @@ cleanup_domain() {
 # 配置 DNS 凭据并检查必要变量
 setup_credentials() {
 	case "$DNS_PROVIDER" in
-		"cloudflare")
+		cloudflare)
 			if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
 				log_error "Error: CLOUDFLARE_API_TOKEN is not set in .env or environment variables!"
 				fallback_to_cron
@@ -67,7 +67,7 @@ setup_credentials() {
 			export CF_Token="$CLOUDFLARE_API_TOKEN"
 			export DNS_TYPE="dns_cf"
 			;;
-		"aliyun")
+		aliyun)
 			if [ -z "$ALIYUN_ACCESS_KEY_ID" ] || [ -z "$ALIYUN_ACCESS_KEY_SECRET" ]; then
 				log_error "Error: ALIYUN_ACCESS_KEY_ID or ALIYUN_ACCESS_KEY_SECRET is not set in .env or environment variables!"
 				fallback_to_cron
@@ -87,12 +87,10 @@ setup_credentials() {
 if [ ! -f "/acme.sh/account.conf" ]; then
 	log_info "Initializing acme.sh configuration..."
 
-	# 1. 设置默认 CA 为 letsencrypt 并注册账号
 	log_info "Setting default CA to letsencrypt and registering account with email $EMAIL..."
 	acme.sh --set-default-ca --server letsencrypt
 	acme.sh --register-account -m "$EMAIL" --server letsencrypt
 
-	# 2. 设置 DNS 永久配置
 	setup_credentials
 	log_info "Setting persistent DNS configuration for $DOMAIN using $DNS_TYPE..."
 	acme.sh --set-dns -d "$DNS_TYPE" \
@@ -102,9 +100,11 @@ fi
 
 # 单次尝试申请与安装
 try_issue_and_install() {
-	# 1. 检查证书是否已管理
+	# 1. 检查证书是否已由 acme.sh 管理
 	is_managed=0
-	acme.sh --list | grep -q "$DOMAIN" && is_managed=1
+	if acme.sh --list | grep -q "$DOMAIN"; then
+		is_managed=1
+	fi
 
 	# 如果已管理但证书文件缺失，则强制清理以重新申请
 	if [ "$is_managed" -eq 1 ]; then
@@ -121,7 +121,6 @@ try_issue_and_install() {
 	if [ "$is_managed" -eq 0 ]; then
 		log_info "Issuing certificate for $DOMAIN via $DNS_PROVIDER..."
 
-		# 根据 ACME_DEBUG 级别匹配调试参数
 		DEBUG_OPT=""
 		case "$ACME_DEBUG" in
 			1) DEBUG_OPT="--debug" ;;
@@ -130,7 +129,6 @@ try_issue_and_install() {
 
 		log_info "Executing: acme.sh --issue --dns $DNS_TYPE -d $DOMAIN -d *.$DOMAIN --server letsencrypt $DEBUG_OPT"
 
-		# 利用 if 条件执行，即使失败也不会触发 set -e 导致脚本退出
 		if ! acme.sh --issue --dns "$DNS_TYPE" -d "$DOMAIN" -d "*.$DOMAIN" --server letsencrypt $DEBUG_OPT; then
 			log_error "Certificate issuance failed."
 			return 1
@@ -141,7 +139,6 @@ try_issue_and_install() {
 	mkdir -p "$SSL_OUTPUT"
 	log_info "Installing certificate to $SSL_OUTPUT..."
 
-	# 利用 if 条件执行，保证安装失败时返回错误码而不直接终止脚本
 	if ! acme.sh --install-cert -d "$DOMAIN" \
 		--key-file "$SSL_OUTPUT/privkey.pem" \
 		--fullchain-file "$SSL_OUTPUT/fullchain.pem" \

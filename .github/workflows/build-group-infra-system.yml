@@ -30,6 +30,26 @@ on:
         description: '构建 Docker Socket Proxy'
         type: boolean
         default: false
+      build_grafana:
+        description: '构建 Grafana'
+        type: boolean
+        default: false
+      build_prometheus:
+        description: '构建 Prometheus'
+        type: boolean
+        default: false
+      build_dnsmasq:
+        description: '构建 Dnsmasq'
+        type: boolean
+        default: false
+      build_restic:
+        description: '构建 Restic'
+        type: boolean
+        default: false
+      build_pocketbase:
+        description: '构建 PocketBase'
+        type: boolean
+        default: false
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio
@@ -55,6 +75,11 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_arcane }}" == "true" ]] && add_task "arcane" "./arcane" "arcane"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_telegraf }}" == "true" ]] && add_task "telegraf" "./telegraf" "telegraf"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_docker_socket_proxy }}" == "true" ]] && add_task "docker-socket-proxy" "./docker-socket-proxy" "docker-socket-proxy"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_grafana }}" == "true" ]] && add_task "grafana" "./grafana" "grafana"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_prometheus }}" == "true" ]] && add_task "prometheus" "./prometheus" "prometheus"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_dnsmasq }}" == "true" ]] && add_task "dnsmasq" "./dnsmasq" "dnsmasq"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_restic }}" == "true" ]] && add_task "restic" "./restic" "restic"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pocketbase }}" == "true" ]] && add_task "pocketbase" "./pocketbase" "pocketbase"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
 

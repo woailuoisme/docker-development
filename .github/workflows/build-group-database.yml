@@ -25,24 +25,22 @@ on:
         description: '构建 Valkey'
         type: boolean
         default: false
-      build_postgres_17_trixie:
-        description: '构建 PostgreSQL 17 (Trixie)'
+      build_clickhouse:
+        description: '构建 ClickHouse'
         type: boolean
         default: false
       build_postgres_18_trixie:
         description: '构建 PostgreSQL 18 (Trixie)'
         type: boolean
         default: false
-      build_postgres_18_no_tsdb:
-        description: '构建 PostgreSQL 18 (No-TSDB)'
+      build_postgres_18_trixie_ts:
+        description: '构建 PostgreSQL 18 (Trixie + TimescaleDB)'
         type: boolean
         default: false
-      
       build_postgres_18_alpine:
         description: '构建 PostgreSQL 18 (Alpine)'
         type: boolean
         default: false
-      
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio
@@ -71,10 +69,10 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mongodb }}" == "true" ]] && add_task "mongodb" "./mongodb" "mongodb"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_redis }}" == "true" ]] && add_task "redis" "./redis" "redis"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_valkey }}" == "true" ]] && add_task "valkey" "./valkey" "valkey"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_17_trixie }}" == "true" ]] && add_task "postgres-17-trixie" "./postgres-trixie-17" "postgres"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_trixie }}" == "true" ]] && add_task "postgres-18-trixie" "./postgres-18-trixie" "postgres"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_no_tsdb }}" == "true" ]] && add_task "postgres-18-no-tsdb" "./postgres-trixie-18-no-tsdb" "postgres-no-tsdb"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_alpine }}" == "true" ]] && add_task "postgres-18-alpine" "./postgres-18-alpine" "postgres"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_clickhouse }}" == "true" ]] && add_task "clickhouse" "./clickhouse" "clickhouse"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_trixie }}" == "true" ]] && add_task "postgres-18-trixie" "./postgres-18-trixie" "postgres-18-trixie"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_trixie_ts }}" == "true" ]] && add_task "postgres-18-trixie-ts" "./postgres-18-trixie-ts" "postgres-18-trixie-ts"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_alpine }}" == "true" ]] && add_task "postgres-18-alpine" "./postgres-18-alpine" "postgres-18-alpine"
 
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"

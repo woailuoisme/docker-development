@@ -33,10 +33,6 @@ on:
         description: '构建 PHP-Schedule'
         type: boolean
         default: false
-      build_php_worker:
-        description: '构建 PHP-Worker'
-        type: boolean
-        default: false
       
       php_version:
         description: 'PHP 基础版本 (默认: 8.5)'
@@ -73,7 +69,6 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_roadrunner }}" == "true" ]] && add_task "php-roadrunner" "./php-roadrunner" "php-roadrunner" "roadrunner"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_reverb }}" == "true" ]] && add_task "php-reverb" "./php-reverb" "php-reverb" "reverb"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_schedule }}" == "true" ]] && add_task "php-schedule" "./php-schedule" "php-schedule" "schedule"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_php_worker }}" == "true" ]] && add_task "php-worker" "./php-worker" "php-worker" "worker"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
 

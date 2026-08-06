@@ -10,20 +10,36 @@ on:
         description: '构建 Caddy'
         type: boolean
         default: false
-      build_nginx_base:
-        description: '构建 Nginx Base'
+      build_nginx_base_alpine:
+        description: '构建 Nginx Base (Alpine)'
         type: boolean
         default: false
       build_nginx:
         description: '构建 Nginx'
         type: boolean
         default: false
-      build_certbot:
-        description: '构建 Certbot'
+      build_nginx_simple:
+        description: '构建 Nginx Simple'
+        type: boolean
+        default: false
+      build_openresty:
+        description: '构建 OpenResty'
+        type: boolean
+        default: false
+      build_acme:
+        description: '构建 acme.sh'
         type: boolean
         default: false
       build_goaccess:
         description: '构建 GoAccess'
+        type: boolean
+        default: false
+      build_website:
+        description: '构建 Website'
+        type: boolean
+        default: false
+      build_wordpress:
+        description: '构建 WordPress'
         type: boolean
         default: false
 
@@ -46,10 +62,14 @@ jobs:
           BUILD_ALL=${{ inputs.build_all }}
           
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_caddy }}" == "true" ]] && add_task "caddy" "./caddy" "caddy"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx_base }}" == "true" ]] && add_task "nginx-base" "./nginx-base" "nginx-base"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx_base_alpine }}" == "true" ]] && add_task "nginx-base-alpine" "./nginx-base-alpine" "nginx-base-alpine"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx }}" == "true" ]] && add_task "nginx" "./nginx" "nginx"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_certbot }}" == "true" ]] && add_task "certbot" "./certbot" "certbot"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_nginx_simple }}" == "true" ]] && add_task "nginx-simple" "./nginx-simple" "nginx-simple"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_openresty }}" == "true" ]] && add_task "openresty" "./openresty" "openresty"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_acme }}" == "true" ]] && add_task "acme" "./acme" "acme"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_goaccess }}" == "true" ]] && add_task "goaccess" "./go-access" "goaccess"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_website }}" == "true" ]] && add_task "website" "./website" "website"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_wordpress }}" == "true" ]] && add_task "wordpress" "./wordpress" "wordpress"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
 

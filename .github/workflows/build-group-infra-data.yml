@@ -22,12 +22,20 @@ on:
         description: '构建 PgBouncer'
         type: boolean
         default: false
-      build_socket_proxy:
-        description: '构建Socket Proxy'
+      build_pgbouncer_alpine:
+        description: '构建 PgBouncer (Alpine)'
         type: boolean
         default: false
       build_garage:
         description: '构建 Garage'
+        type: boolean
+        default: false
+      build_mosquitto:
+        description: '构建 Mosquitto (MQTT)'
+        type: boolean
+        default: false
+      build_centrifugo:
+        description: '构建 Centrifugo'
         type: boolean
         default: false
 
@@ -53,8 +61,10 @@ jobs:
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_rabbitmq }}" == "true" ]] && add_task "rabbitmq" "./rabbitmq" "rabbitmq"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_meilisearch }}" == "true" ]] && add_task "meilisearch" "./meilisearch" "meilisearch"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgbouncer }}" == "true" ]] && add_task "pgbouncer" "./pgbouncer" "pgbouncer"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_socket_proxy }}" == "true" ]] && add_task "socket-proxy" "./socket-proxy" "socket-proxy"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_pgbouncer_alpine }}" == "true" ]] && add_task "pgbouncer-alpine" "./pgbouncer-alpine" "pgbouncer-alpine"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_garage }}" == "true" ]] && add_task "garage" "./garage" "garage"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mosquitto }}" == "true" ]] && add_task "mosquitto" "./mosquitto" "mosquitto"
+          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_centrifugo }}" == "true" ]] && add_task "centrifugo" "./centrifugo" "centrifugo"
           
           echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
 
