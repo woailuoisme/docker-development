@@ -1,4 +1,4 @@
-FROM clickhouse:25.8
+FROM clickhouse:26.7
 
 # 复制低内存优化配置
 COPY ./config.d/low_mem_tuning.xml /etc/clickhouse-server/config.d/

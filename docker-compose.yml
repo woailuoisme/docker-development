@@ -45,8 +45,7 @@ include:
   #  - pocketbase/docker-compose.yml
 
   # --- DATABASES & STORAGE ---
-  #  - postgres-18-alpine/docker-compose.yml   # 默认数据库 PostgreSQL 18
-  - postgres-18-trixie/docker-compose.yml # 默认数据库 PostgreSQL 18
+  - postgres-18/docker-compose.yml # 默认数据库 PostgreSQL 18
   #  - postgres-18-trixie/docker-compose-prod.yml   # 默认数据库 PostgreSQL 18
   # - postgres17/docker-compose.yml # 备选版本
   #  - bytebase/docker-compose.yml
