@@ -1,0 +1,21 @@
+services:
+  directus:
+    image: directus/directus:latest
+    container_name: directus
+    restart: always
+    ports:
+      - "8055:8055"
+    environment:
+      - KEY=${DIRECTUS_KEY:-9595f9c4-1be8-4228-a3f2-1ab9d4cb73f1}
+      - SECRET=${DIRECTUS_SECRET:-76db8a10-2792-4e02-b016-1698299863a3}
+      - ADMIN_EMAIL=${DIRECTUS_ADMIN_EMAIL:-admin@example.com}
+      - ADMIN_PASSWORD=${DIRECTUS_ADMIN_PASSWORD:-admin123!}
+      - DB_CLIENT=sqlite3
+      - DB_FILENAME=/directus/database/data.db
+    volumes:
+      - ${DATA_PATH}directus/database:/directus/database
+      - ${DATA_PATH}directus/uploads:/directus/uploads
+      - ${DATA_PATH}directus/extensions:/directus/extensions
+    networks:
+      - frontend
+      - backend

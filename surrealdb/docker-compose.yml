@@ -1,0 +1,25 @@
+# ==============================================================================
+# SurrealDB - 多模型分布式原生数据库（文档 / 图 / 关系 / 向量 / 实时）
+# ==============================================================================
+# 默认端口: 8000 (HTTP REST API / WebSocket RPC / Surrealist Studio)
+# 默认账号: root / root
+# 存储引擎: surrealkv (SurrealDB v2 原生嵌入式键值引擎)
+# ==============================================================================
+
+services:
+  surrealdb:
+    image: surrealdb/surrealdb:latest
+    container_name: surrealdb
+    restart: always
+    command: start --log info --user ${SURREAL_USER:-root} --pass ${SURREAL_PASS:-root} surrealkv:/data/database
+    ports:
+      - "8000:8000"
+    environment:
+      - SURREAL_USER=${SURREAL_USER:-root} # 超级管理员账号
+      - SURREAL_PASS=${SURREAL_PASS:-root} # 超级管理员密码
+      - SURREAL_LOG=info                   # 日志级别 (trace, debug, info, warn, error)
+    volumes:
+      - ${DATA_PATH}surrealdb:/data
+    networks:
+      - frontend
+      - backend

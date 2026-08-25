@@ -10,13 +10,15 @@
 
 ---
 
-### Task 1: 创建 Centrifugo Dockerfile (只拷贝 config.yaml)
+## Task 1: 创建 Centrifugo Dockerfile (只拷贝 config.yaml)
 
 **Files:**
+
 - Create: `centrifugo/Dockerfile`
 
 - [ ] **Step 1: 编写 Dockerfile**
   在 `centrifugo/Dockerfile` 中输入以下内容：
+
   ```dockerfile
   # 锁定 Centrifugo 版本
   ARG CENTRIFUGO_VERSION=v6.8.1
@@ -56,6 +58,7 @@
 
 - [ ] **Step 3: 提交修改**
   运行：
+
   ```bash
   rtk git add centrifugo/Dockerfile
   rtk git commit -m "feat(centrifugo): add custom Dockerfile with timezone and healthcheck"
@@ -66,11 +69,14 @@
 ### Task 2: 编写统一的配置文件 `config.yaml` 并在 Git 中删除 `config-dev.yaml`
 
 **Files:**
+
 - Modify: `centrifugo/config.yaml`
+
 - Delete: `centrifugo/config-dev.yaml`
 
 - [ ] **Step 1: 写入 config.yaml 统一配置**
   修改 `centrifugo/config.yaml`，去除 v6 废弃 Redis pool/timeout/log_format 配置以消除警告：
+
   ```yaml
   # Centrifugo v6 统一基础配置
   # 参考: https://centrifugal.dev/docs/server/configuration
@@ -188,6 +194,7 @@
 
 - [ ] **Step 3: 提交配置修改**
   运行：
+
   ```bash
   rtk git add centrifugo/config.yaml
   rtk git commit -m "chore(centrifugo): unify configuration into config.yaml and delete config-dev.yaml"
@@ -198,10 +205,12 @@
 ### Task 3: 更新 Docker Compose 配置 `docker-compose.yml` 并支持环境覆盖
 
 **Files:**
+
 - Modify: `centrifugo/docker-compose.yml`
 
 - [ ] **Step 1: 修改 docker-compose.yml 服务声明**
   修改 `centrifugo/docker-compose.yml` 内容为：
+
   ```yaml
   services:
     centrifugo:
@@ -249,6 +258,7 @@
 
 - [ ] **Step 3: 提交修改**
   运行：
+
   ```bash
   rtk git add centrifugo/docker-compose.yml
   rtk git commit -m "feat(centrifugo): configure compose file to use environment-based overrides for single-config setup"

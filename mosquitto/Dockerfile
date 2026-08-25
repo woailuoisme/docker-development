@@ -1,14 +1,14 @@
 ARG MOSQUITTO_VERSION=2.1-alpine
 FROM eclipse-mosquitto:${MOSQUITTO_VERSION}
 
-ARG CHANGE_SOURCE=true
-ARG TIMEZONE=Asia/Shanghai
-RUN if [ "${CHANGE_SOURCE}" = "true" ]; then \
+ARG CHINA=true
+ARG TZ=Asia/Shanghai
+RUN if [ "${CHINA}" = "true" ]; then \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/' /etc/apk/repositories; \
     fi && \
     apk add --no-cache tzdata && \
-    ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
-    echo "${TIMEZONE}" > /etc/timezone
+    ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && \
+    echo "${TZ}" > /etc/timezone
 
 ENV DEV=true
 

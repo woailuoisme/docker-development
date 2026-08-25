@@ -83,6 +83,7 @@ go get github.com/centrifugal/gocent/v2
 
 > [!NOTE]
 > Fiber v3 相比 v2 的重大变化：
+>
 > - 处理器签名从 `c *fiber.Ctx` (指针) 改变为 `c fiber.Ctx` (值类型)。
 > - 统一采用 `c.Bind().Body(&struct)` 进行 Request Body 的绑定和解析。
 
@@ -391,27 +392,34 @@ startNativeSSE();
 
 1. **公开命名空间 (`public`)**
    - **推送命令**：
+
      ```bash
      curl -X POST http://localhost:3000/api/centrifugo/publish \
        -H "Content-Type: application/json" \
        -d '{"namespace":"public", "channel_id":"chat_room_1", "message":{"text":"大厅广播"}}'
      ```
+
 2. **私有命名空间 (`private`)**
    - **推送命令**（只有后端能通过 API 往这里推送，且客户端订阅时会向后端请求 `/api/centrifugo/subscribe-token` 进行鉴权）：
+
      ```bash
      curl -X POST http://localhost:3000/api/centrifugo/publish \
        -H "Content-Type: application/json" \
        -d '{"namespace":"private", "channel_id":"secure_chat_1", "message":{"text":"这是一条加密的后台通知"}}'
      ```
+
 3. **个人用户频道 (`user`)**
    - **推送命令**（专门定向推送给某个用户 UID，禁用上下线通知以提高吞吐量）：
+
      ```bash
      curl -X POST http://localhost:3000/api/centrifugo/publish \
        -H "Content-Type: application/json" \
        -d '{"namespace":"user", "channel_id":"user_9958", "message":{"text":"您收到一条红点提醒"}}'
      ```
+
 4. **实时通知频道 (`notification`)**
    - **推送命令**（低敏感、高吞吐，不保留重连缓存的历史包）：
+
      ```bash
      curl -X POST http://localhost:3000/api/centrifugo/publish \
        -H "Content-Type: application/json" \

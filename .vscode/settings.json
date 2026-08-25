@@ -1,8 +1,7 @@
 {
     "kiroAgent.configureMCP": "Enabled",
-
     // ==========================================
-    // 1. 文件与搜索排除配置 (防止 data/ 和 logs/ 占用 CPU/内存)
+    // 1. 文件与搜索排除配置 (防止 data/logs/backup 占用 CPU/内存与文件监听器)
     // ==========================================
     "files.exclude": {
         "**/.git": true,
@@ -10,45 +9,62 @@
         "**/.claude": true,
         "**/.agents": true,
         "**/.agent": true,
-        "data/": true,  // 排除 Docker 挂载的本地数据目录
-        "logs/": true   // 排除日志目录
+        "data/": true, // 排除 Docker 挂载的本地数据目录
+        "logs/": true, // 排除日志目录
+        "backup/": true // 排除备份目录
     },
     "search.exclude": {
         "**/node_modules": true,
         "**/bower_components": true,
         "**/*.code-search": true,
         "data/": true,
-        "logs/": true
+        "logs/": true,
+        "backup/": true
     },
     "files.watcherExclude": {
         "**/.git/objects/**": true,
         "**/.git/subtree-cache/**": true,
         "**/node_modules/*/**": true,
         "data/**": true,
-        "logs/**": true
+        "logs/**": true,
+        "backup/**": true
     },
-
     // ==========================================
-    // 2. 文件关联与语言模式 (针对 Docker、Shell 和 Env)
+    // 2. 文件关联与语言模式 (精确匹配各类基础设施配置文件)
     // ==========================================
     "files.associations": {
+        // 环境变量与配置
         "*.env*": "properties",
+        ".env.*": "properties",
         ".shellcheckrc": "properties",
-        "*.conf": "nginx",
+        // Web 服务器与网关配置
+        "Caddyfile*": "caddyfile",
+        "**/caddy/**": "caddyfile",
         "nginx.conf": "nginx",
-        "justfile": "makefile"
+        "**/nginx/**/*.conf": "nginx",
+        "nginx*.conf": "nginx",
+        // 数据库与系统通用配置 (防止被误判为 nginx)
+        "*.cnf": "ini",
+        "my.conf": "ini",
+        "postgresql.conf": "properties",
+        "redis.conf": "properties",
+        // 构建与自动化工具
+        "Dockerfile*": "dockerfile",
+        "docker-compose*.yml": "dockercompose",
+        "docker-compose*.yaml": "dockercompose",
+        "justfile": "makefile",
+        "*.hadolint*": "yaml"
     },
-
     // ==========================================
-    // 3. 代码格式化与编辑习惯 (规范 YAML/Docker-Compose 缩进)
+    // 3. 代码格式化与编辑习惯 (规范缩进与换行)
     // ==========================================
     "files.trimTrailingWhitespace": true,
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
-    
     "[yaml]": {
         "editor.tabSize": 2,
         "editor.insertSpaces": true,
+        "editor.formatOnSave": true,
         "editor.quickSuggestions": {
             "other": true,
             "comments": false,
@@ -57,6 +73,11 @@
     },
     "[dockercompose]": {
         "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.formatOnSave": true
+    },
+    "[dockerfile]": {
+        "editor.tabSize": 4,
         "editor.insertSpaces": true
     },
     "[shellscript]": {
@@ -65,11 +86,11 @@
     },
     "[json]": {
         "editor.tabSize": 4,
-        "editor.insertSpaces": true
+        "editor.insertSpaces": true,
+        "editor.formatOnSave": true
     },
-
     // ==========================================
-    // 4. Linter 与静态分析 (ShellCheck 集成)
+    // 4. Linter 与静态分析 (ShellCheck & Hadolint 集成)
     // ==========================================
     "shellcheck.run": "onSave",
     "shellcheck.useWorkspaceRootAsCwd": true,
@@ -77,5 +98,14 @@
     // ==========================================
     // 5. CSS 静态分析配置 (忽略 Tailwind v4 的 @theme 等自定义指令警告)
     // ==========================================
-    "css.lint.unknownAtRules": "ignore"
+    "css.lint.unknownAtRules": "ignore",
+    // ==========================================
+    // 6. YAML Schema 映射 (精准消除 services.yaml 等误判)
+    // ==========================================
+    "yaml.schemas": {
+        "./.vscode/homepage-schema.json": [
+            "homepage/**",
+            "**/homepage/config/**"
+        ]
+    }
 }

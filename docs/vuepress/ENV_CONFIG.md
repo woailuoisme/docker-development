@@ -90,22 +90,24 @@ pgbouncer:
 
 ### MAX_CLIENT_CONN（最大客户端连接数）
 
-```
+```text
 MAX_CLIENT_CONN = RoadRunner Workers × 每个 Worker 的数据库连接数
 ```
 
 **示例：**
+
 - 4 个 RoadRunner workers
 - 每个 worker 最多 50 个数据库连接
 - `MAX_CLIENT_CONN = 4 × 50 = 200`
 
 ### DEFAULT_POOL_SIZE（默认连接池大小）
 
-```
+```text
 DEFAULT_POOL_SIZE = (PostgreSQL max_connections - 保留连接) / 数据库数量
 ```
 
 **示例：**
+
 - PostgreSQL `max_connections = 100`
 - 保留 10 个连接给管理和监控
 - 1 个数据库
@@ -174,6 +176,7 @@ SHOW CONFIG;
 **症状：** 客户端等待时间过长，`cl_waiting` 指标很高
 
 **解决：**
+
 1. 增加 `DEFAULT_POOL_SIZE`
 2. 增加 `MAX_DB_CONNECTIONS`
 3. 优化应用的数据库连接使用
@@ -183,6 +186,7 @@ SHOW CONFIG;
 **症状：** PostgreSQL 报错 "too many connections"
 
 **解决：**
+
 1. 减少 `DEFAULT_POOL_SIZE`
 2. 增加 PostgreSQL 的 `max_connections`
 3. 检查是否有连接泄漏
@@ -192,6 +196,7 @@ SHOW CONFIG;
 **症状：** 客户端报错 "query_wait_timeout"
 
 **解决：**
+
 1. 增加 `QUERY_WAIT_TIMEOUT`
 2. 增加 `DEFAULT_POOL_SIZE`
 3. 检查 PostgreSQL 性能

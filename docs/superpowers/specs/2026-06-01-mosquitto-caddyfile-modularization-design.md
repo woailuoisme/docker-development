@@ -16,21 +16,21 @@
 
 ### 2.1 修改主配置文件 (Caddyfile)
 
-*   **修改目标**：[Caddyfile](file:///Users/seaside/Projects/docker/development/caddy/Caddyfile)
-*   **动作**：移除文件末尾用于定义 `mqtt.{$SITE_ADDRESS}` 的配置块（即原 Caddyfile 的第 62 行至 88 行部分）。
+* **修改目标**：[Caddyfile](file:///Users/seaside/Projects/docker/development/caddy/Caddyfile)
+* **动作**：移除文件末尾用于定义 `mqtt.{$SITE_ADDRESS}` 的配置块（即原 Caddyfile 的第 62 行至 88 行部分）。
 
 ### 2.2 新建站点独立配置文件 (mqtt.conf)
 
-*   **创建目标**：[mqtt.conf](file:///Users/seaside/Projects/docker/development/caddy/sites/mqtt.conf)
-*   **动作**：在此文件中定义完整的 MQTT 代理服务规则。内容包含：
-    *   引入请求日志、安全策略及 WAF snippet 模版。
-    *   开启 `gzip` 和 `zstd` 压缩编码。
-    *   独立拦截 `/health` 路径返回 `OK` 200 便于健康检测。
-    *   将其余所有的长连接请求反向代理到内网 `mosquitto:9001`（WebSockets）端口，并配置好读写超时及响应非缓冲头以确保 WSS 长连接的稳定性。
+* **创建目标**：[mqtt.conf](file:///Users/seaside/Projects/docker/development/caddy/sites/mqtt.conf)
+* **动作**：在此文件中定义完整的 MQTT 代理服务规则。内容包含：
+  * 引入请求日志、安全策略及 WAF snippet 模版。
+  * 开启 `gzip` 和 `zstd` 压缩编码。
+  * 独立拦截 `/health` 路径返回 `OK` 200 便于健康检测。
+  * 将其余所有的长连接请求反向代理到内网 `mosquitto:9001`（WebSockets）端口，并配置好读写超时及响应非缓冲头以确保 WSS 长连接的稳定性。
 
 ---
 
 ## 3. 验证方案
 
-1.  **Caddy 语法检验**：运行 `caddy validate` 校验合并和模块化载入后的全量配置，确保语法无误且服务能正确识别新载入的文件。
-2.  **网络连通性测试**：使用 `curl` 请求 `https://mqtt.test.local/health`，验证站点能否正常响应 200 OK，证明 Caddy 正确加载了该域名并映射到此独立站点配置。
+1. **Caddy 语法检验**：运行 `caddy validate` 校验合并和模块化载入后的全量配置，确保语法无误且服务能正确识别新载入的文件。
+2. **网络连通性测试**：使用 `curl` 请求 `https://mqtt.test.local/health`，验证站点能否正常响应 200 OK，证明 Caddy 正确加载了该域名并映射到此独立站点配置。

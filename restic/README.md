@@ -4,7 +4,7 @@
 
 ## 文件结构
 
-```
+```text
 restic/
 ├── Dockerfile
 ├── scripts/

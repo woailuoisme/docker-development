@@ -1,4 +1,4 @@
-ARG POSTGRES_VERSION=18.4-trixie
+ARG POSTGRES_VERSION=18.6-trixie
 FROM postgres:${POSTGRES_VERSION}
 LABEL maintainer="seaside <531773730@qq.com>"
 

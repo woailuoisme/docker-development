@@ -48,5 +48,6 @@ bash to-remote.sh sync r2 garage:default default
 ```
 
 #### 参数快捷缩写映射表
-* **操作类型**：`copy` / `cp` （复制）、`sync` / `sy` （镜像同步）。
-* **目标云厂商**：`ali-oss` / `ali` （阿里云）、`cloudflare-r2` / `r2` （Cloudflare）。
+
+- **操作类型**：`copy` / `cp` （复制）、`sync` / `sy` （镜像同步）。
+- **目标云厂商**：`ali-oss` / `ali` （阿里云）、`cloudflare-r2` / `r2` （Cloudflare）。

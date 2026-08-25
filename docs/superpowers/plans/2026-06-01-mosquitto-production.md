@@ -10,15 +10,16 @@
 
 ---
 
-### Task 1: 初始化备份配置模板与改造 Dockerfile
+## Task 1: 初始化备份配置模板与改造 Dockerfile
 
 **Files:**
+
 - Create: `mosquitto/config/acl.default`
 - Modify: `mosquitto/Dockerfile`
-
 - [ ] **Step 1: 创建默认 ACL 模板文件**
-  
+
   创建 `mosquitto/config/acl.default` 并输入以下内容：
+
   ```ini
   # ============================================================================
   # 生产环境默认访问控制列表 (ACL) 模板
@@ -42,6 +43,7 @@
 - [ ] **Step 2: 修改 Dockerfile**
 
   修改 `mosquitto/Dockerfile` 为如下内容（在构建时同时打包默认的 `mosquitto.conf` 和 `acl.default` 到备份目录 `/etc/mosquitto.templates`）：
+
   ```dockerfile
   ARG MOSQUITTO_VERSION=2.1.2-alpine
   FROM eclipse-mosquitto:${MOSQUITTO_VERSION}
@@ -92,11 +94,13 @@
 ### Task 2: 改造启动入口脚本 startup.sh
 
 **Files:**
+
 - Modify: `mosquitto/startup.sh`
 
 - [ ] **Step 1: 编写多用户及空卷拷贝逻辑**
 
   将 `mosquitto/startup.sh` 修改为如下内容：
+
   ```bash
   #!/bin/sh
   set -e
@@ -223,11 +227,13 @@
 ### Task 3: 优化 mosquitto.conf 生产配置
 
 **Files:**
+
 - Modify: `mosquitto/config/mosquitto.conf`
 
 - [ ] **Step 1: 修改 mosquitto.conf 内容**
 
   将 `mosquitto/config/mosquitto.conf` 修改为如下内容：
+
   ```ini
   # Mosquitto MQTT Broker 生产环境优化配置
   # 版本: 2.0.22 以上兼容
@@ -310,11 +316,13 @@
 ### Task 4: 修改 Caddyfile 代理 WebSockets 流量
 
 **Files:**
+
 - Modify: `caddy/Caddyfile:62-68`
 
 - [ ] **Step 1: 更新 Caddyfile 代理部分**
 
   将 `caddy/Caddyfile` 的下述代码段：
+
   ```caddyfile
   mqtt.{$SITE_ADDRESS} {
   	respond "MQTT Management Endpoint" 200
@@ -323,7 +331,9 @@
   	}
   }
   ```
+
   修改替换为：
+
   ```caddyfile
   mqtt.{$SITE_ADDRESS} {
   	import ../snippets/request-log.conf
@@ -363,12 +373,13 @@
 ### Task 5: 优化 docker-compose.yml 与主程序联动
 
 **Files:**
+
 - Modify: `mosquitto/docker-compose.yml`
 - Modify: `docker-compose.yml`
-
 - [ ] **Step 1: 修改 mosquitto/docker-compose.yml**
 
   将 `mosquitto/docker-compose.yml` 修改为如下内容（添加资源限制、句柄数优化，清除 log 卷挂载，向外物理暴露 1883）：
+
   ```yaml
   services:
     mosquitto:
@@ -407,10 +418,13 @@
 
   修改根目录 `docker-compose.yml`：
   将以下注释行（第 90 行或相关位置）：
+
   ```yaml
   #  - mosquitto/docker-compose.yml    # MQTT 代理
   ```
+
   改为开启状态（注意，第 94 行如果重复，仅开启其中一行）：
+
   ```yaml
     - mosquitto/docker-compose.yml # MQTT 代理
   ```
@@ -425,6 +439,7 @@
 ### Task 6: 验证及集成测试
 
 **Files:**
+
 - Test: 自动化与手动网络连通性测试
 
 - [ ] **Step 1: 本地环境构建与容器启动验证**

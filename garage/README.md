@@ -28,6 +28,7 @@ docker compose up -d
 ```
 
 > **最佳实践优化说明**：
+>
 > - 移除了 `Dockerfile` 内的 `COPY garage.toml`，避免敏感 token 烧录进镜像中。
 > - 元数据及对象存储卷统一映射在宿主机上，内部更改为 `/var/lib/garage` 标准持久化路径。
 > - `garage-webui` 的启动依赖于 `garage` 服务的 `service_healthy` 健康检查状态，确保启动顺序。
@@ -48,6 +49,7 @@ bash rclone/rclone.sh delete garage:default/old-file.txt
 ```
 
 > **优化亮点**：
+>
 > - 仅在进行 `copy` 和 `sync` 这类涉及本地文件传输的操作时，才会挂载当前工作目录，有效优化了 `ls` 和 `delete` 的执行效率和权限敏感性。
 
 ---
@@ -69,6 +71,7 @@ bash rclone/to-remote.sh sy r2 garage:default default
 ```
 
 ### 参数映射说明
+
 - **操作别名**：`copy` / `cp` （复制）、`sync` / `sy` （同步）。
 - **目标服务别名**：`ali-oss` / `ali` （阿里云 OSS）、`cloudflare-r2` / `r2` （Cloudflare R2）。
 - 所有别名转换及环境适配已在脚本内部自动映射完成，免除多重 Case 选择嵌套。

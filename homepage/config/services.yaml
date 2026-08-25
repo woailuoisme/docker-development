@@ -3,6 +3,7 @@
 # 使用环境变量格式: {{HOMEPAGE_VAR_SITE_ADDRESS}}
 
 - 系统管理:
+
     - Dozzle:
         icon: dozzle
         href: https://dozzle.{{HOMEPAGE_VAR_SITE_ADDRESS}}
@@ -39,7 +40,8 @@
         icon: docker
         description: Docker Socket 代理
         server: my-docker
-        container: docker-proxy
+        container: docker-socket-proxy
+
 
 - 核心服务:
     - Caddy:

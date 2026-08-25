@@ -6,7 +6,7 @@ pre-commit:
         - "docker-compose.yml"
         - "**/docker-compose.yml"
         - ".env.example"
-      run: just validate-docker-compose
+      run: just lint-compose
 
     - name: validate caddyfile
       glob:
@@ -40,4 +40,10 @@ pre-commit:
         - ".github/workflows/*.yml"
         - ".github/workflows/*.yaml"
       run: actionlint {staged_files}
+
+    - name: rumdl
+      glob:
+        - "**/*.md"
+      run: rumdl fmt {staged_files}
+      stage_fixed: true
 

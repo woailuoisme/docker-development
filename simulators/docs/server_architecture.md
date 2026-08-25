@@ -17,7 +17,7 @@
 
 ## 2. 系统架构图
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                           IoT 售货机设备层                               │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐                │
@@ -71,7 +71,7 @@
 
 ### 3.1 遥测数据流 (Telemetry)
 
-```
+```text
 设备 → MQTT (v1/vm/{device_no}/telemetry, QoS 0)
      → Telegraf (mqtt_consumer 插件)
      → JSON 解析 (提取 system, environment, connectivity, location)
@@ -81,7 +81,7 @@
 
 ### 3.2 事件数据流 (Events)
 
-```
+```text
 设备 → MQTT (v1/vm/{device_no}/events, QoS 1)
      → Telegraf (mqtt_consumer 插件)
      → JSON 解析 (提取 event_type, data)
@@ -91,7 +91,7 @@
 
 ### 3.3 状态数据流 (Status)
 
-```
+```text
 设备 → MQTT (v1/vm/{device_no}/status, QoS 1, Retain)
      → Telegraf (mqtt_consumer 插件)
      → TimescaleDB (vm_status 超表)
@@ -309,15 +309,16 @@ ORDER BY bucket;
 
 ### 8.1 水平扩展
 
-*   **MQTT Broker**: 使用 EMQX 集群替代单节点 Mosquitto
-*   **TimescaleDB**: 启用多节点分布式模式
-*   **Telegraf**: 每个区域部署独立实例
+* **MQTT Broker**: 使用 EMQX 集群替代单节点 Mosquitto
+* **TimescaleDB**: 启用多节点分布式模式
+* **Telegraf**: 每个区域部署独立实例
 
 ### 8.2 高可用设计
 
-*   **数据库**: PostgreSQL 流复制 + Patroni 自动故障转移
-*   **Grafana**: 多实例 + 共享 PostgreSQL 后端
-*   **MQTT**: 主备模式 + VIP 漂移
+* **数据库**: PostgreSQL 流复制 + Patroni 自动故障转移
+* **Grafana**: 多实例 + 共享 PostgreSQL 后端
+* **MQTT**: 主备模式 + VIP 漂移
 
 ---
+
 *Created by Antigravity - IoT Backend Architecture*

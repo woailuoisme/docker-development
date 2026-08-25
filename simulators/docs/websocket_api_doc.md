@@ -18,6 +18,7 @@
 ## 2. 客户端连接与认证 (Authentication)
 
 ### 2.1 JWT 载荷 (Claims)
+
 前端连接 WSS 前，由后端签发 JWT Token。
 
 ```json
@@ -33,6 +34,7 @@
 ```
 
 ### 2.2 建立连接 (JavaScript 示例)
+
 ```javascript
 const centrifuge = new Centrifuge('ws://localhost:8000/connection/websocket', {
     token: 'YOUR_JWT_TOKEN' // 从后端获取
@@ -63,9 +65,11 @@ Centrifugo 使用命名空间区分不同类型的数据流。
 ## 4. 实时监控接口 (Client Subscriptions)
 
 ### 4.1 订阅设备遥测 (`telemetry`)
+
 **频道名**: `telemetry:VM-SH-001`
 
 **消息结构 (JSON)**:
+
 ```json
 {
     "id": "VM-SH-001",
@@ -76,6 +80,7 @@ Centrifugo 使用命名空间区分不同类型的数据流。
 ```
 
 ### 4.2 订阅设备事件 (`events`)
+
 **频道名**: `events:VM-SH-001`
 
 **典型场景**: 当设备检测到“暴力震动”或“出餐成功”时，前端 UI 立即弹出提示。
@@ -87,10 +92,12 @@ Centrifugo 使用命名空间区分不同类型的数据流。
 后端服务在接收到 MQTT 消息并处理入库后，通过此 API 转发给 Centrifugo。
 
 ### 5.1 推送单频道消息 (`publish`)
+
 **Endpoint**: `POST /api`
 **Headers**: `Authorization: Token {APIKEY}`
 
 **Body**:
+
 ```json
 {
   "method": "publish",
@@ -105,9 +112,11 @@ Centrifugo 使用命名空间区分不同类型的数据流。
 ```
 
 ### 5.2 广播消息 (`broadcast`)
+
 用于全向所有在线管理员推送停机维护通知。
 
 **Body**:
+
 ```json
 {
   "method": "broadcast",
@@ -134,9 +143,10 @@ Centrifugo 使用命名空间区分不同类型的数据流。
 
 ## 7. 性能优化建议
 
-1.  **二进制协议**: 对于超大规模并发（>10万连接），建议改用 Protobuf 模式。
-2.  **Proxy 模式**: Centrifugo v6 支持代理订阅逻辑，可以直接通过 HTTP 请求后端授权频道访问权限。
-3.  **WSS 证书**: 生产环境务必强制 TLS 加密，防止 IoT 数据在公网被嗅探。
+1. **二进制协议**: 对于超大规模并发（>10万连接），建议改用 Protobuf 模式。
+2. **Proxy 模式**: Centrifugo v6 支持代理订阅逻辑，可以直接通过 HTTP 请求后端授权频道访问权限。
+3. **WSS 证书**: 生产环境务必强制 TLS 加密，防止 IoT 数据在公网被嗅探。
 
 ---
+
 *Created by Antigravity - Centrifugo Integration Specialist*

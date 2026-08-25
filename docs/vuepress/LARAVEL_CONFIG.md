@@ -49,22 +49,24 @@ DB_PASSWORD=your_password
 
 ### 连接数计算
 
-```
+```text
 max_client_conn = RoadRunner Workers × 每个 Worker 的连接数
 ```
 
 例如：
+
 - 4 个 RoadRunner workers
 - 每个 worker 最多 50 个数据库连接
 - max_client_conn = 4 × 50 = 200
 
 ### 后端连接池大小
 
-```
+```text
 default_pool_size = (PostgreSQL max_connections - 保留连接) / 数据库数量
 ```
 
 例如：
+
 - PostgreSQL max_connections = 100
 - 保留 10 个连接给管理
 - 1 个数据库
@@ -148,6 +150,7 @@ SHUTDOWN;
 ### 性能指标
 
 关注以下指标：
+
 - `cl_waiting` - 等待连接的客户端数（应该接近 0）
 - `sv_idle` - 空闲的服务器连接数
 - `sv_active` - 活跃的服务器连接数
@@ -187,6 +190,7 @@ pgbouncer:
 ### 问题：连接被拒绝
 
 检查：
+
 1. PgBouncer 是否运行：`docker ps | grep pgbouncer`
 2. 端口是否监听：`docker exec pgbouncer netstat -tlnp | grep 6432`
 3. 认证配置是否正确：检查 `userlist.txt`

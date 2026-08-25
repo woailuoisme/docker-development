@@ -10,14 +10,16 @@
 
 ---
 
-### Task 1: 优化健康检查脚本 healthcheck.sh
+## Task 1: 优化健康检查脚本 healthcheck.sh
 
 **Files:**
+
 - Modify: `mosquitto/healthcheck.sh`
 
 - [ ] **Step 1: 修改 healthcheck.sh**
 
   将 `mosquitto/healthcheck.sh` 修改为如下内容（精简变量引用，加入 exec 接管，单引号直接传参）：
+
   ```bash
   #!/bin/sh
   # Mosquitto 生产级健康检查脚本
@@ -60,11 +62,13 @@
 ### Task 2: 优化与简化 startup.sh 启动脚本
 
 **Files:**
+
 - Modify: `mosquitto/startup.sh`
 
 - [ ] **Step 1: 修改 startup.sh**
 
   将 `mosquitto/startup.sh` 替换为以下精简的高效率内容：
+
   ```bash
   #!/bin/sh
   set -e
@@ -163,6 +167,7 @@
 ### Task 3: 本地构建与功能验证
 
 **Files:**
+
 - Test: 本地集成回归测试
 
 - [ ] **Step 1: 构建并重启服务**
@@ -176,7 +181,8 @@
   检查容器启动输出日志：
   Run: `docker compose logs mosquitto`
   Expected: 日志无多余的装饰边框及手动时间戳前缀，风格简约，如下所示：
-  ```
+
+  ```text
   [INFO] Mosquitto MQTT Broker 启动配置初始化与验证
   [SUCCESS] 认证配置: 账号密码验证已启用
   [INFO] 正在生成主管理员账户...

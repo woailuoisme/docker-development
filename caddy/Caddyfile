@@ -43,6 +43,7 @@ import proxy-app-auth s3-admin.{$SITE_ADDRESS} garage-webui:3909
 #import proxy-app-auth docs.{$SITE_ADDRESS} docs:80
 import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
 import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
+import proxy-app vault.{$SITE_ADDRESS} vaultwarden:80
 
 # 子路径服务聚合仅适用于支持baseURL的应用）
 #lot.{$SITE_ADDRESS} {

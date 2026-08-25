@@ -3,23 +3,35 @@ set dotenv-load := true
 # 路径定义
 caddy_root_cert := "./data/caddy/pki/authorities/local/root.crt"
 
-# 运行所有检测
-lint: lint-shell lint-dockerfile lint-caddy validate-docker-compose lint-actions
+# 快捷别名
+alias fmt := fmt-md
+alias validate-docker-compose := lint-compose
 
-# shellcheck 检测所有 shell 脚本
-lint-shell:
+# 运行全量代码与配置检测
+lint: lint-sh lint-docker lint-caddy lint-compose lint-actions lint-md
+
+# 格式化 Markdown
+fmt-md:
+    rumdl fmt
+
+# 检查 Markdown 文档
+lint-md:
+    rumdl check .
+
+# 检查 Shell 脚本
+lint-sh:
     fd --type file --extension sh --exclude data --exec-batch shellcheck --severity=warning
 
-# hadolint 检测所有 Dockerfile
-lint-dockerfile:
+# 检查 Dockerfile
+lint-docker:
     fd --type file '^Dockerfile.*$' --exclude data --exec-batch hadolint
 
-# actionlint 检测 GitHub Actions 工作流
+# 检查 GitHub Actions 工作流
 lint-actions:
     actionlint
 
-# 验证 docker-compose 配置
-validate-docker-compose:
+# 验证 Docker Compose 配置
+lint-compose:
     docker-compose config >/dev/null
 
 # 验证 Caddy 配置文件
@@ -27,11 +39,11 @@ lint-caddy:
     docker-compose run --rm --no-deps caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 
 # 测试 Caddy 代理
-test-caddy-proxy:
+test-proxy:
     ./test_caddy_proxy.sh
 
 # 安装 Caddy 根证书到 macOS 系统钥匙串
-trust-caddy-cert:
+trust-cert:
     #!/usr/bin/env bash
     if [ -f "{{ caddy_root_cert }}" ]; then
         echo "正在安装 Caddy 根证书到 macOS 系统钥匙串..."

@@ -1,0 +1,54 @@
+# ==============================================================================
+# Tuwunel - 极致轻量的高性能 Matrix 家服务器（基于 Rust 开发，Conduit 分支进阶版）
+# ==============================================================================
+# 【核心功能与作用】
+# 1. Matrix 协议服务端：提供去中心化、端到端加密（E2EE）的私有即时通讯与群聊服务。
+# 2. 极致低资源占用：相比官方重量级的 Python Synapse（通常需数 GB 内存），Tuwunel 仅需数十 MB 内存。
+# 3. 内置嵌入式数据库：自带 RocksDB/Sled 等嵌入式存储引擎，无需额外安装 PostgreSQL/MySQL。
+# 4. 客户端兼容性：完美支持 Element、SchildiChat、FluffyChat、Cinny 等所有标准 Matrix 客户端。
+# 5. 联盟互联（Federation）：支持加入 Matrix 全球联盟网络，与 matrix.org 等其他服务器互通消息。
+# ==============================================================================
+
+services:
+  homeserver:
+    image: jevolk/tuwunel:latest
+    container_name: tuwunel
+    restart: always
+    ports:
+      - "6167:6167"
+    volumes:
+      - ${DATA_PATH}tuwunel:/var/lib/tuwunel
+      #- ${CONFIG_PATH}tuwunel/tuwunel.toml:/etc/tuwunel.toml # 自定义配置文件（可选）
+    environment:
+      TUWUNEL_SERVER_NAME: your.server.name # Matrix 域名/服务器名称（请修改为你自己的域名）
+      TUWUNEL_DATABASE_PATH: /var/lib/tuwunel
+      TUWUNEL_PORT: 6167
+      TUWUNEL_MAX_REQUEST_SIZE: 20000000 # 最大请求大小（字节，此处约 20MB）
+      TUWUNEL_ALLOW_REGISTRATION: "true" # 是否允许注册
+      TUWUNEL_REGISTRATION_TOKEN: "YOUR_TOKEN" # 允许注册时的注册邀请码（防滥用）
+      #TUWUNEL_YES_I_AM_VERY_VERY_SURE_I_WANT_AN_OPEN_REGISTRATION_SERVER_PRONE_TO_ABUSE: 'true' # 无需邀请码完全公开注册（极易被恶意滥用，慎开）
+      TUWUNEL_ALLOW_FEDERATION: "true" # 是否允许加入 Matrix 联盟网络互联
+      TUWUNEL_TRUSTED_SERVERS: '["matrix.org"]' # 信任的联盟基础服务器列表
+      #TUWUNEL_LOG: warn,state_res=warn # 日志输出级别过滤
+      TUWUNEL_ADDRESS: 0.0.0.0
+      #TUWUNEL_CONFIG: '/etc/tuwunel.toml' # 若上方挂载了自定义 toml 配置文件，请取消此行注释
+    networks:
+      - frontend
+      - backend
+
+  ### 如需使用自建的 Element-Web 网页客户端，请取消下方注释
+  ### 注意：需要为 Element 提供 element_config.json 配置文件，并为 Element 分配独立的子域名
+  ### 配置文档参考：https://github.com/vector-im/element-web/blob/develop/docs/config.md
+  # element-web:
+  #   image: vectorim/element-web:latest
+  #   container_name: tuwunel-element
+  #   restart: always
+  #   ports:
+  #     - "8009:80"
+  #   volumes:
+  #     - ./element_config.json:/app/config.json
+  #   depends_on:
+  #     - homeserver
+  #   networks:
+  #     - frontend
+  #     - backend

@@ -3,39 +3,48 @@
 本文档详细描述了为 Centrifugo 服务引入自定义 Dockerfile 以及优化生产级配置的设计方案，旨在确保其安全性、高可用性、时区一致性，并融入本项目的 Docker Compose 服务体系中。
 
 ## 1. 目标与背景
+
 目前项目下的 `centrifugo/` 文件夹中仅包含基本的 `config.yaml` 和 `config-dev.yaml`，而 `docker-compose.yml` 直接拉取了官方预编译镜像。为了统一容器时区（`Asia/Shanghai`）、强化运行时安全（非 root 运行）、添加内置健康检查，并对 Valkey 引擎连接池及日志系统进行生产级优化，特制定本方案。
 
 ## 2. 方案详述
 
 ### A. Dockerfile 构建设计
+
 在 `centrifugo/Dockerfile` 中采用官方镜像进行扩展：
-*   **基础镜像**：`centrifugo/centrifugo:6.8.1`（Alpine 基础）
-*   **时区设定**：安装 `tzdata` 并配置 `TZ=Asia/Shanghai`。
-*   **安全规范**：在 root 下准备目录并分权后，恢复为非 root 用户 `centrifugo`（UID 1001）运行，避免安全风险。
-*   **健康检查**：使用 `wget` 访问自带的 `http://localhost:8000/health` 检查可用性。
+
+* **基础镜像**：`centrifugo/centrifugo:6.8.1`（Alpine 基础）
+* **时区设定**：安装 `tzdata` 并配置 `TZ=Asia/Shanghai`。
+* **安全规范**：在 root 下准备目录并分权后，恢复为非 root 用户 `centrifugo`（UID 1001）运行，避免安全风险。
+* **健康检查**：使用 `wget` 访问自带的 `http://localhost:8000/health` 检查可用性。
 
 ### B. 配置文件优化
+
 #### 生产配置 (`centrifugo/config.yaml`)
-*   **引擎调优**：使用 Valkey (Redis 协议)，并显式配置连接池（`pool_size: 256`、`min_idle_conns: 10` 等）。
-*   **安全加固**：默认禁用匿名连接（`allow_anonymous_connect_without_token: false`），强制 JWT。跨域源（Allowed Origins）设为空数组，通过环境变量动态覆盖。
-*   **日志格式**：设定 `log.format: json`，以便与系统的日志聚合工具对接。
+
+* **引擎调优**：使用 Valkey (Redis 协议)，并显式配置连接池（`pool_size: 256`、`min_idle_conns: 10` 等）。
+* **安全加固**：默认禁用匿名连接（`allow_anonymous_connect_without_token: false`），强制 JWT。跨域源（Allowed Origins）设为空数组，通过环境变量动态覆盖。
+* **日志格式**：设定 `log.format: json`，以便与系统的日志聚合工具对接。
 
 #### 开发配置 (`centrifugo/config-dev.yaml`)
-*   保持使用内置 `memory` 引擎。
-*   启用匿名连接和 `*` 跨域，便于本地开发调试。
-*   采用 `text` 格式日志，便于开发者终端直观排错。
+
+* 保持使用内置 `memory` 引擎。
+* 启用匿名连接和 `*` 跨域，便于本地开发调试。
+* 采用 `text` 格式日志，便于开发者终端直观排错。
 
 ### C. Docker Compose 集成
+
 修改 `centrifugo/docker-compose.yml`：
-*   将 `image` 替换为 `build` 块以指向本地 `Dockerfile`。
-*   通过 `CENTRIFUGO_` 前缀的环境变量传递敏感凭证（如 `CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY` 等）。
-*   利用 `depends_on.valkey.condition: service_healthy` 确保启动顺序。
+
+* 将 `image` 替换为 `build` 块以指向本地 `Dockerfile`。
+* 通过 `CENTRIFUGO_` 前缀的环境变量传递敏感凭证（如 `CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY` 等）。
+* 利用 `depends_on.valkey.condition: service_healthy` 确保启动顺序。
 
 ---
 
 ## 3. 详细代码设计
 
 ### Dockerfile (`centrifugo/Dockerfile`)
+
 ```dockerfile
 # 锁定 Centrifugo 版本
 ARG CENTRIFUGO_VERSION=6.8.1
@@ -71,6 +80,7 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
 ```
 
 ### 生产配置文件 (`centrifugo/config.yaml`)
+
 ```yaml
 # Centrifugo v6 生产级配置
 # 参考: https://centrifugal.dev/docs/server/configuration
@@ -189,6 +199,7 @@ channel:
 ```
 
 ### 开发配置文件 (`centrifugo/config-dev.yaml`)
+
 ```yaml
 # Centrifugo v6 开发环境配置
 # 用于本地开发和测试
@@ -274,6 +285,7 @@ channel:
 ```
 
 ### Docker Compose 配置 (`centrifugo/docker-compose.yml`)
+
 ```yaml
 services:
   centrifugo:
@@ -313,10 +325,12 @@ services:
 ## 4. 验证计划
 
 ### A. 静态验证
+
 1. 运行 `hadolint Dockerfile` 进行 Dockerfile 静态语法和安全检查。
 2. 运行 `docker compose config` 检查 compose 文件语法的正确性。
 
 ### B. 动态与运行时验证
+
 1. **构建验证**：运行 `docker compose build centrifugo` 以验证镜像能否顺利完成构建。
 2. **时区验证**：启动容器后，执行 `docker exec centrifugo date` 确认时间是否与宿主机及上海时区一致。
 3. **健康检查验证**：执行 `docker inspect --format='{{json .State.Health}}' centrifugo` 确认健康检查状态最终转为 `healthy`。

@@ -1,0 +1,40 @@
+services:
+  woodpecker-server:
+    image: woodpeckerci/woodpecker-server:v3
+    container_name: woodpecker-server
+    restart: always
+    ports:
+      - "${WOODPECKER_PORT:-8000}:8000"
+    volumes:
+      - ${DATA_PATH}woodpecker-server:/var/lib/woodpecker/
+    environment:
+      - WOODPECKER_OPEN=${WOODPECKER_OPEN:-true}
+      - WOODPECKER_HOST=${WOODPECKER_HOST:-http://localhost:8000}
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+      - WOODPECKER_ADMIN=${WOODPECKER_ADMIN:-}
+      - WOODPECKER_GITHUB=${WOODPECKER_GITHUB:-true}
+      - WOODPECKER_GITHUB_CLIENT=${WOODPECKER_GITHUB_CLIENT}
+      - WOODPECKER_GITHUB_SECRET=${WOODPECKER_GITHUB_SECRET}
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+    networks:
+      - backend
+      - frontend
+
+  woodpecker-agent:
+    image: woodpeckerci/woodpecker-agent:v3
+    container_name: woodpecker-agent
+    command: agent
+    restart: always
+    depends_on:
+      - woodpecker-server
+    volumes:
+      - ${DATA_PATH}woodpecker-agent:/etc/woodpecker
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WOODPECKER_SERVER=woodpecker-server:9000
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+      - WOODPECKER_MAX_WORKFLOWS=${WOODPECKER_MAX_WORKFLOWS:-2}
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+    networks:
+      - backend
+

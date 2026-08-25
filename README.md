@@ -12,12 +12,14 @@
 ## 📦 主要镜像
 
 ### PHP 基础镜像
+
 - `php-base-cli` - PHP CLI 基础环境
 - `php-base-fpm` - PHP FPM 基础环境  
 - `php-base-octane` - Laravel Octane 支持 (RoadRunner + Swoole + FrankenPHP)
 - `php-base-simple-cli` - 精简版 CLI 环境
 
 ### 应用镜像
+
 - `php-fpm` - 应用 FPM 环境
 - `php-franken` - FrankenPHP 应用环境
 - `php-horizon` - Laravel Horizon 队列处理
@@ -25,6 +27,7 @@
 - `php-schedule` - 定时任务调度
 
 ### 服务镜像
+
 - `caddy-base` - Caddy Web 服务器
 - `nginx` - Nginx Web 服务器
 - `pgsql` - PostgreSQL 数据库
@@ -34,12 +37,14 @@
 ## 🛠️ 使用方式
 
 ### 构建镜像
+
 ```bash
 # 手动触发构建工作流
 # 通过 GitHub Actions 界面选择要构建的镜像
 ```
 
 ### 拉取镜像
+
 ```bash
 # Docker Hub
 docker pull jiaoio/php-base-cli:latest
@@ -54,7 +59,8 @@ docker pull quay.io/jiaoio/php-base-cli:latest
 ## 🔧 开发
 
 ### 项目结构
-```
+
+```text
 lunchbox/
 ├── .github/workflows/    # CI/CD 工作流
 ├── php-base-*/          # PHP 基础镜像
@@ -64,6 +70,7 @@ lunchbox/
 ```
 
 ### 构建参数
+
 - `CHANGE_SOURCE` - 是否使用国内镜像源
 - `TIMEZONE` - 时区设置 (默认: Asia/Shanghai)
 - `WITH_*` - 可选功能开关
@@ -71,10 +78,12 @@ lunchbox/
 ## 📋 自动化
 
 ### 镜像构建
+
 - 手动触发多架构构建
 - 自动推送到多个镜像仓库
 
 ### 镜像同步
+
 - 定时同步所有镜像到腾讯云 TCR
 - 支持所有标签和架构版本
 
@@ -88,4 +97,4 @@ MIT License
 
 ---
 
-**为现代 PHP 应用提供可靠的容器化解决方案**
+> 为现代 PHP 应用提供可靠的容器化解决方案

@@ -1,0 +1,38 @@
+---
+- greeting:
+    text_size: 2xl
+    text: "欢迎回来"
+
+- search:
+    provider: duckduckgo
+    target: _blank
+    focus: true
+    showSearchSuggestions: true
+
+- datetime:
+    text_size: xl
+    format:
+      timeStyle: short
+      dateStyle: long
+      hourCycle: h24
+    locale: zh-CN
+
+- resources:
+    cpu: true
+    memory: true
+    disk: /
+    network: true
+    uptime: true
+    units: metric
+    refresh: 3000
+    diskUnits: bytes
+
+- openmeteo:
+    label: Dongguan
+    latitude: 23.018
+    longitude: 113.7487
+    timezone: Asia/Shanghai
+    units: metric
+    cache: 5
+    format:
+      maximumFractionDigits: 1

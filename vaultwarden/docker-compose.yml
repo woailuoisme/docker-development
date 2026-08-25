@@ -1,0 +1,17 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:1.37.2
+    container_name: vaultwarden
+    restart: always
+    ports:
+      - "4800:80"
+    volumes:
+      - ${DATA_PATH}vaultwarden:/data
+      # - /vw-data/:/data
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - WEBSOCKET_ENABLED=true
+      - DOMAIN=https://vault.${SITE_ADDRESS}
+    networks:
+      - frontend
+      - backend
