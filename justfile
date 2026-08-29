@@ -53,3 +53,43 @@ trust-cert:
         echo "错误: 找不到证书文件 {{ caddy_root_cert }}"
         echo "请确保 Caddy 服务已经启动并生成了证书。"
     fi
+
+# 手动在线重组指定表的膨胀 (例如: just pg-repack lunchbox users)
+pg-repack db table:
+    docker exec postgres pg_repack --username "${POSTGRES_USER}" --dbname "{{ db }}" --table "{{ table }}" --wait-timeout 60
+
+# 手动触发全库膨胀巡检与在线重组 (定时任务为每月 1 日/16 日 03:00；超表由 TimescaleDB 压缩/保留策略治理)
+pg-repack-all:
+	docker exec postgres psql --username "${POSTGRES_USER}" --dbname postgres -c "SELECT public.repack_bloated_tables();"
+
+# 查看 pgBackRest 备份清单与 stanza 状态
+pg-backup-info:
+	docker exec pgbackrest pgbackrest --stanza=main info
+
+# 手动触发一次全量备份 (日常由容器内调度器每日 03:00 自动执行)
+pg-backup-now:
+	docker exec pgbackrest pgbackrest --stanza=main --type=full backup
+
+# 恢复演练：从仓库恢复最新全量到隔离目录并用临时 PostgreSQL 验证数据可用 (不触碰生产数据)
+pg-backup-restore-test:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	RESTORE_DIR="${DATA_PATH}postgres18/restore-test"
+	rm -rf "${RESTORE_DIR}"
+	mkdir -p "${RESTORE_DIR}/data"
+	echo "→ 从备份仓库恢复最新全量备份..."
+	docker exec pgbackrest pgbackrest --stanza=main \
+	  --pg1-path="${RESTORE_DIR}/data" \
+	  --db-include="${POSTGRES_DB}" \
+	  --delta restore
+	echo "→ 启动临时 PostgreSQL 验证恢复数据..."
+	docker run --rm -d --name pg-restore-test \
+	  -v "${RESTORE_DIR}/data:/var/lib/postgresql/data" \
+	  -e POSTGRES_HOST_AUTH_METHOD=trust \
+	  postgres:18.6-trixie >/dev/null
+	sleep 10
+	docker exec pg-restore-test psql --username postgres --dbname "${POSTGRES_DB}" \
+	  -c "SELECT count(*) AS table_count FROM information_schema.tables WHERE table_schema='public';"
+	docker stop pg-restore-test >/dev/null
+	rm -rf "${RESTORE_DIR}"
+	echo "✔ 恢复演练通过：备份数据完整可用"

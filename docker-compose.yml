@@ -38,14 +38,14 @@ include:
   # 2. 数据库与缓存存储 (Databases & Storage)
   # ============================================================================
   # --- 关系型数据库 ---
-  - postgres-18/docker-compose.yml          # PostgreSQL 18 关系型数据库 (默认)
-  # - postgres-18-ts/docker-compose.yml     # PostgreSQL 18 + TimescaleDB (时序/GIS/AI 增强版)
+  - postgres-18/docker-compose.yml          # PostgreSQL 18 关系型数据库 (含 TimescaleDB / GIS / AI 向量)
   # - postgres17/docker-compose.yml         # PostgreSQL 17 备选版本
   # - mysql8/docker-compose.yml             # MySQL 8.4 关系型数据库
   # - pgbouncer/docker-compose.yml          # PostgreSQL 轻量级连接池
   # - pgdog/docker-compose.yml              # PostgreSQL 智能路由与负载连接池
   # - bytebase/docker-compose.yml           # Bytebase 数据库变更协同与审核平台
   # - adminer/docker-compose.yml            # Adminer 网页版数据库管理客户端
+  - pgbackrest/docker-compose.yml           # pgBackRest PostgreSQL 物理备份与 WAL 归档 (PITR)
 
   # --- 键值缓存与对象存储 ---
   - redis/docker-compose.yml                # Redis 高性能内存缓存与数据结构服务
@@ -74,7 +74,7 @@ include:
   - gotify/docker-compose.yml               # Gotify 私有自建推送通知服务
   # - ntfy/docker-compose.yml               # Ntfy HTTP 简单通知推送
   # - rabbitmq/docker-compose.yml           # RabbitMQ 企业级 AMQP 消息队列
-  # - asynqmon/docker-compose.yml           # Asynq Go 异步任务队列监控面板
+  - asynqmon/docker-compose.yml           # Asynq Go 异步任务队列监控面板
   # - bullboard/docker-compose.yml          # BullMQ 队列可视化看板
 
   # ============================================================================

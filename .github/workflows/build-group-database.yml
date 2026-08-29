@@ -5,36 +5,32 @@ on:
     inputs:
       # === 控制开关 ===
       build_all:
-        description: '🚀 构建所有数据库服务'
+        description: "🚀 构建所有数据库服务"
         type: boolean
         default: false
-      
+
       build_mysql:
-        description: '构建 mysql'
+        description: "构建 mysql"
         type: boolean
         default: false
       build_mongodb:
-        description: '构建 MongoDB'
+        description: "构建 MongoDB"
         type: boolean
         default: false
       build_redis:
-        description: '构建 Redis'
+        description: "构建 Redis"
         type: boolean
         default: false
       build_valkey:
-        description: '构建 Valkey'
+        description: "构建 Valkey"
         type: boolean
         default: false
       build_clickhouse:
-        description: '构建 ClickHouse'
+        description: "构建 ClickHouse"
         type: boolean
         default: false
       build_postgres_18:
-        description: '构建 PostgreSQL 18'
-        type: boolean
-        default: false
-      build_postgres_18_ts:
-        description: '构建 PostgreSQL 18 (TimescaleDB)'
+        description: "构建 PostgreSQL 18"
         type: boolean
         default: false
 
@@ -51,25 +47,24 @@ jobs:
       - id: set-matrix
         run: |
           MATRIX_JSON='[]'
-          
+
           add_task() {
             local name="$1"
             local context="$2"
             local image="$3"
             MATRIX_JSON=$(echo "$MATRIX_JSON" | jq -c ". + [{\"name\": \"$name\", \"context\": \"$context\", \"image\": \"$image\"}]")
           }
-          
+
           BUILD_ALL=${{ inputs.build_all }}
-          
+
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mysql }}" == "true" ]] && add_task "mysql" "./mysql-8" "mysql"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_mongodb }}" == "true" ]] && add_task "mongodb" "./mongodb" "mongodb"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_redis }}" == "true" ]] && add_task "redis" "./redis" "redis"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_valkey }}" == "true" ]] && add_task "valkey" "./valkey" "valkey"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_clickhouse }}" == "true" ]] && add_task "clickhouse" "./clickhouse" "clickhouse"
           [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18 }}" == "true" ]] && add_task "postgres-18" "./postgres-18" "postgres-18"
-          [[ "$BUILD_ALL" == "true" || "${{ inputs.build_postgres_18_ts }}" == "true" ]] && add_task "postgres-18-ts" "./postgres-18-ts" "postgres-18-ts"
 
-          
+
           echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
 
   build-database:
@@ -79,9 +74,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
-    
+
     name: Build ${{ matrix.name }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -104,7 +99,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-             CHANGE_SOURCE=false
+            CHANGE_SOURCE=false
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:latest
             ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:latest

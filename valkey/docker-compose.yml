@@ -7,12 +7,12 @@ services:
     restart: always
     environment:
       - VALKEY_PASSWORD=${REDIS_PASSWORD}
-    sysctls:
-      - net.core.somaxconn=4096
+    # 低配双保险：maxmemory 256mb + 容器层限额（预留自身结构开销）
+    mem_limit: 384mb
     ports:
-      - "6379:6379"
+      # 仅宿主机本机可访问（本机开发工具），不对局域网暴露；容器间走 backend 网络
+      - "127.0.0.1:6379:6379"
     volumes:
       - ${DATA_PATH}valkey:/data
     networks:
       - backend
-

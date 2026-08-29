@@ -16,36 +16,31 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gnupg \
     lsb-release \
-    unzip \
     && curl -fSsL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && apt-get update \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 定义扩展版本参数（Debian 13 / trixie 对应 PGDG 构建后缀 pgdg13+1）
+ARG TIMESCALEDB_VERSION=2.29.2+dfsg-1.pgdg13+1
 ARG PGCRON_VERSION=1.6.7-3.pgdg13+1
 ARG POSTGIS_VERSION=3.6.4+dfsg-2.pgdg13+1
 ARG PGVECTOR_VERSION=0.8.6-1.pgdg13+1
-ARG AGE_VERSION=1.8.0~rc0-2.pgdg13+1
-ARG PGVECTORSCALE_VERSION=0.9.0
+ARG PGREPACK_VERSION=1.5.3-1.pgdg13+1
 
 # 安装扩展：
-# 1. PostGIS: 空间地理信息支持
-# 2. pgvector (https://github.com/pgvector/pgvector): 向量数据库基础扩展
-# 3. pg_cron: 数据库定时任务调度
-# 4. Apache AGE (https://github.com/apache/age/releases/tag/PG18%2Fv1.8.0-rc0): openCypher 图数据库支持
-# 5. pgvectorscale (https://github.com/timescale/pgvectorscale/releases/tag/0.9.0): Timescale 向量加速扩展 (DiskANN + SBQ)
+# 1. TimescaleDB: 时序数据库引擎支持 (Hypertable / 连续聚合 / 数据压缩)
+# 2. PostGIS: 空间地理信息支持
+# 3. pgvector (https://github.com/pgvector/pgvector): 向量数据库基础扩展
+# 4. pg_cron: 数据库定时任务调度
+# 5. pg_repack (https://github.com/reorg/pg_repack): 在线表/索引膨胀重组 (无需预加载，CLI + 扩展)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-18-timescaledb="${TIMESCALEDB_VERSION}" \
     postgresql-18-postgis-3="${POSTGIS_VERSION}" \
     postgresql-18-pgvector="${PGVECTOR_VERSION}" \
     postgresql-18-cron="${PGCRON_VERSION}" \
-    postgresql-18-age="${AGE_VERSION}" \
+    postgresql-18-repack="${PGREPACK_VERSION}" \
     tzdata \
-    && ARCH="$(dpkg --print-architecture)" \
-    && curl -fSsL "https://github.com/timescale/pgvectorscale/releases/download/${PGVECTORSCALE_VERSION}/pgvectorscale-${PGVECTORSCALE_VERSION}-pg18-${ARCH}.zip" -o /tmp/pgvectorscale.zip \
-    && unzip /tmp/pgvectorscale.zip -d /tmp/pgvectorscale \
-    && dpkg -i "/tmp/pgvectorscale/pgvectorscale-postgresql-18_${PGVECTORSCALE_VERSION}-Linux_${ARCH}.deb" \
-    && rm -rf /tmp/pgvectorscale* \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 设置系统时区
@@ -57,8 +52,9 @@ COPY postgresql.conf /etc/postgresql/postgresql.conf
 # 复制扩展初始化脚本
 COPY docker-entrypoint-initdb.d/ /docker-entrypoint-initdb.d/
 
-# 设置环境变量
-ENV POSTGRES_CONFIG_FILE=/etc/postgresql/postgresql.conf
+# 设置环境变量（TS_LICENSE 声明使用 TimescaleDB Apache 开源许可版）
+ENV POSTGRES_CONFIG_FILE=/etc/postgresql/postgresql.conf \
+    TS_LICENSE=apache
 
 # 使用原始入口点，通过 CMD 传递配置参数
 CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
