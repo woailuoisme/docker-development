@@ -1,0 +1,8 @@
+# ==============================================================================
+# 开发者协作、代码仓库与 CI/CD 平台 (DevTools & CI/CD)
+# ==============================================================================
+include:
+  - mailpit/docker-compose.yml              # Mailpit 邮件测试与本地抓包服务 (默认启用)
+  # - gitea/docker-compose.yml              # Gitea 私有 Git 代码托管仓库
+  # - woodpecker/docker-compose.yml         # Woodpecker 轻量容器化 CI/CD 流水线
+  # - dokploy/docker-compose.yml            # Dokploy 自托管 PaaS 应用部署平台

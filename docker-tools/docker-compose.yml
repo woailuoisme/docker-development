@@ -1,0 +1,14 @@
+# ==============================================================================
+# Docker 宿主守护与容器自动化运维工具 (Docker Host Ops & Automation)
+# ==============================================================================
+include:
+  - docker-socket-proxy/docker-compose.yml  # Docker Socket 安全只读鉴权代理 (默认启用)
+  - dozzle/docker-compose.yml               # Dozzle 实时容器日志流查看器 (默认启用)
+  # - beszel/docker-compose.yml             # Beszel 轻量服务器资源监控集群 (Hub & Agent)
+  # - arcane/docker-compose.yml             # Arcane 开源现代 Docker 容器管理 WebUI
+  # - portainer/docker-compose.yml          # Portainer CE 容器可视化控制端
+  # - portainer-agent/docker-compose.yml    # Portainer Agent 节点探针
+  # - prunemate/docker-compose.yml          # PruneMate 容器自动垃圾清理与空间释放
+  # - wud/docker-compose.yml                # What's Up Docker 镜像更新检查与通知
+  # - diun/docker-compose.yml               # Docker Image Update Notifier 镜像更新提醒
+  # - watchtower/docker-compose.yml         # Watchtower 镜像自动监控与滚动更新

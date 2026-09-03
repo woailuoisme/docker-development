@@ -22,139 +22,58 @@ include:
   # ============================================================================
   # 1. 网络网关与安全反代 (Gateway & Security)
   # ============================================================================
-  - dnsmasq/docker-compose.yml              # 本地 DNS 解析服务
-  - caddy/docker-compose.yml                # Caddy 2 网关反代与自动证书
-  # - traefik/docker-compose.yml            # Traefik 反向代理
-  # - caddy-simple/docker-compose.yml       # Caddy 精简版网关
-  # - nginx/docker-compose.yml              # Nginx 基础 Web 反代
-  # - openresty/docker-compose.yml          # OpenResty 高性能 Lua 网关
-  # - nginx-proxy-manager/docker-compose.yml # NPM 可视化反代管理面板
-  # - certbot/docker-compose.yml            # Certbot SSL 证书申请
-  # - acme/docker-compose.yml               # ACME.sh 自动化证书管理
-  - authelia/docker-compose.yml             # Authelia 单点登录与双因子鉴权 (SSO/2FA)
-  # - cloudflared/docker-compose.yml        # Cloudflare Zero Trust 远程安全隧道
-  # - 3xui/docker-compose.yml               # X-UI 网络代理面板
+  - gateways/docker-compose.yml             # 统一网络网关、反向代理、DNS与证书工具链 (Caddy / Dnsmasq / Cloudflared / Traefik / 3X-UI / S-UI / Nginx / Certs)
 
   # ============================================================================
   # 2. 数据库与持久存储 (Databases & Storage)
   # ============================================================================
-  # --- 关系型数据库与连接池 ---
-  - postgres-18/docker-compose.yml          # PostgreSQL 18 关系型数据库 (含 TimescaleDB / GIS / AI 向量)
-  # - postgres17/docker-compose.yml         # PostgreSQL 17 备选版本
-  # - mysql8/docker-compose.yml             # MySQL 8.4 关系型数据库
-  # - pgbouncer/docker-compose.yml          # PostgreSQL 轻量级连接池
-  # - pgdog/docker-compose.yml              # PostgreSQL 智能路由与负载连接池
-  # - bytebase/docker-compose.yml           # Bytebase 数据库变更协同与审核平台
-  # - adminer/docker-compose.yml            # Adminer 网页版数据库管理客户端
-  # - pgbackrest/docker-compose.yml           # pgBackRest PostgreSQL 物理备份与 WAL 归档 (PITR)
+  # --- 数据库、键值缓存与数据管理平台 ---
+  - database/docker-compose.yml             # 统一数据库技术栈 (PostgreSQL / MySQL / Redis / Valkey / Meilisearch / Qdrant / ClickHouse / MongoDB / SurrealDB / Adminer / Bytebase)
 
-  # --- 键值缓存与对象存储 ---
-  - redis/docker-compose.yml                # Redis 高性能内存缓存与数据结构服务
-  - valkey/docker-compose.yml               # Valkey 开源高性能键值缓存
-  - garage/docker-compose.yml               # Garage 轻量分布式 S3 对象存储
-  # - minio/docker-compose.yml              # MinIO 分布式 S3 对象存储
-  # - rustfs/docker-compose.yml             # RustFS 文件与对象存储
+  # --- 对象存储与持久备份 ---
+  - storage/docker-compose.yml              # 对象存储、文件同步与快照备份网关 (Garage / MinIO / FileBrowser / Rclone / Restic)
   # - etcd/docker-compose.yml               # etcd 分布式键值与服务发现
-  # - filebrowser/docker-compose.yml        # FileBrowser 网页版私有网盘与文件管理
 
-  # --- 搜索/向量/分析/多模型数据库 ---
-  - meilisearch/docker-compose.yml          # Meilisearch 毫秒级全文搜索引擎
-  # - qdrant/docker-compose.yml             # Qdrant 向量数据库 (AI / Embedding)
-  # - surrealdb/docker-compose.yml          # SurrealDB 原生多模型数据库 (文档/图/关系)
-  # - clickhouse/docker-compose.yml         # ClickHouse 极速 OLAP 列式分析数据库
-  # - mongodb/docker-compose.yml            # MongoDB 文档型 NoSQL 数据库
-  # - influxdb/docker-compose.yml           # InfluxDB 时序数据库
-  # - influxdb-ui/docker-compose.yml        # Chronograf / InfluxDB 管理界面
 
   # ============================================================================
   # 3. 消息队列与事件广播 (Messaging & Realtime)
   # ============================================================================
-  - centrifugo/docker-compose.yml           # Centrifugo 实时 WebSocket 消息广播
-  - nats/docker-compose.yml                 # NATS 高性能轻量消息中间件
-  - mosquitto/docker-compose.yml            # Eclipse Mosquitto MQTT 物联网消息代理
-  # - gotify/docker-compose.yml               # Gotify 私有自建推送通知服务
-  # - ntfy/docker-compose.yml               # Ntfy HTTP 简单通知推送
-  # - rabbitmq/docker-compose.yml           # RabbitMQ 企业级 AMQP 消息队列
-  # - asynqmon/docker-compose.yml             # Asynq Go 异步任务队列监控面板
-  # - bullboard/docker-compose.yml          # BullMQ 队列可视化看板
+  - messaging/docker-compose.yml            # 统一消息队列、实时推送与队列看板 (Centrifugo / NATS / RabbitMQ / Notifications / Monitors)
 
   # ============================================================================
   # 4. 实时流媒体与音视频 (Media Streaming & WebRTC)
   # ============================================================================
-  - mediamtx/docker-compose.yml             # MediaMTX 实时全协议流媒体服务器 (RTSP/RTMP/WebRTC/HLS/SRT)
-  # - livekit/docker-compose.yml              # LiveKit 现代化 WebRTC SFU 实时音视频与 AI Agent 基础设施
-  # - srs/docker-compose.yml                  # SRS 6 高性能工业级流媒体集群服务器 (RTMP/WebRTC/HLS/FLV/SRT)
+  - media/docker-compose.yml                # 音视频与实时流媒体服务技术栈 (MediaMTX / LiveKit / SRS 6)
 
   # ============================================================================
   # 5. 物联网与智能硬件编排 (IoT & Edge Computing)
   # ============================================================================
-  # - node-red/docker-compose.yml           # Node-RED 低代码物联网流程与事件编排
-  # - simulators/docker-compose.yml         # IoT 模拟器设备集群
-  # - wifi-densepose/docker-compose.yml     # WiFi 信号人体姿态与密集估计
+  - iot/docker-compose.yml                  # 物联网与智能硬件套件 (Mosquitto / Telegraf / Node-RED / Simulators / WiFi-DensePose)
 
   # ============================================================================
   # 6. PHP / Laravel 运行环境 (PHP Runtimes)
   # ============================================================================
-  # - php-fpm/docker-compose.yml            # PHP-FPM 标准 FastCGI 运行环境
-  # - php-roadrunner/docker-compose.yml     # Laravel Octane (RoadRunner 极速常驻内存引擎)
-  # - php-franken/docker-compose.yml        # Laravel Octane (FrankenPHP 现代 Caddy 引擎)
-  # - php-horizon/docker-compose.yml        # Laravel Horizon Redis 队列监控与处理
-  # - php-schedule/docker-compose.yml       # Laravel 定时任务调度器 (cron runner)
-  # - php-reverb/docker-compose.yml         # Laravel Reverb 原生 WebSocket 服务
+  # - php/docker-compose.yml                # PHP/Laravel 全栈运行环境 (FPM / RoadRunner / FrankenPHP / Horizon / Schedule / Reverb)
 
   # ============================================================================
   # 7. 开发协作与 CI/CD 工具 (DevTools & CI/CD)
   # ============================================================================
-  # - woodpecker/docker-compose.yml           # Woodpecker 轻量容器化 CI/CD 流水线
-  - mailpit/docker-composer.yml             # Mailpit 邮件测试与本地抓包服务
-  # - gitea/docker-compose.yml              # Gitea 私有 Git 代码托管仓库
-  # - drone-gitea/docker-compose.yml        # Drone CI (对接 Gitea)
-  # - drone-gitee/docker-compose.yml        # Drone CI (对接 Gitee)
-  # - drone-github/docker-compose.yml       # Drone CI (对接 GitHub)
-  # - dokploy/docker-compose.yml            # Dokploy 自托管 PaaS 应用部署平台
+  - devtools/docker-compose.yml             # 开发者协作、代码仓库与 CI/CD 平台 (Mailpit / Gitea / Woodpecker / Dokploy)
 
   # ============================================================================
   # 8. 可观测性与运维监控 (Observability & Monitoring)
   # ============================================================================
-  # --- 容器与系统运维 ---
-  - dozzle/docker-compose.yml               # Dozzle 实时容器日志流查看器
-  - docker-socket-proxy/docker-compose.yml  # Docker Socket 安全只读鉴权代理
-  # - portainer/docker-compose.yml          # Portainer 容器可视化运维管理端
-  # - portainer-agent/docker-compose.yml    # Portainer Agent 节点探针
-  # - prunemate/docker-compose.yml          # PruneMate 容器自动垃圾清理与空间释放
-  # - wud/docker-compose.yml                # What's Up Docker 镜像更新检查与通知
-  # - diun/docker-compose.yml               # Docker Image Update Notifier 镜像更新提醒
-  # --- 指标监控、链路追踪与日志中心 ---
-  # - uptime-kuma/docker-compose.yml        # Uptime Kuma 统一服务健康状态与可用性监控
-  # - beszel/docker-compose.yml             # Beszel 轻量服务器资源监控 Hub
-  # - beszel-agent/docker-compose.yml       # Beszel 监控数据采集 Agent
-  # - glances/docker-compose.yml            # Glances 实时系统性能监控面板
-  # - go-access/docker-compose.yml          # GoAccess 实时 Web 访问日志分析
-  # - telegraf/docker-compose.yml           # Telegraf 指标数据采集器
-  # - tempo/docker-compose.yml              # Grafana Tempo 分布式链路追踪系统
-  # - fluent-bit/docker-compose.yml           # Fluent Bit 轻量日志采集与流转发总线
-  # - loki/docker-compose.yml                 # Grafana Loki 高性能日志聚合引擎
-  # - grafana/docker-compose.yml              # Grafana 多源数据可视化看板
+  - docker-tools/docker-compose.yml         # Docker 宿主守护与容器运维工具 (Socket Proxy / Dozzle / Beszel / Portainer / Arcane / PruneMate / WUD / Diun / Watchtower)
+  - observability/docker-compose.yml      # 统一可观测性技术栈 (Grafana / Vector / VictoriaMetrics / Loki / Tempo)
+
 
   # ============================================================================
   # 9. 身份平台与访问管理 (Identity & Access Management / IAM)
   # ============================================================================
-  # - casdoor/docker-compose.yml            # Casdoor (OAuth 2.0 / OIDC 单点登录身份平台)
-  # - zitadel/docker-compose.yml            # ZITADEL (云原生身份认证与授权平台)
-  # - vaultwarden/docker-compose.yml        # Vaultwarden (Bitwarden 轻量私有密码管理器)
+  - iam/docker-compose.yml                  # 统一身份认证与凭证管理平台 (Authelia / Vaultwarden / Casdoor / ZITADEL / Infisical)
 
   # ============================================================================
   # 10. 业务应用与自建服务 (Self-Hosted Apps & Productivity)
   # ============================================================================
-  # --- 无头 CMS 与轻量后端 ---
-  # - directus/docker-compose.yml           # Directus (实时数据驱动的无头 CMS 后台)
-  # - pocketbase/docker-compose.yml         # PocketBase (单文件轻量嵌入式后端框架)
-  # - wordpress/docker-compose.yml          # WordPress 经典博客与内容发布系统
-  # --- 办公协同与个人效率工具 ---
-  # - homepage/docker-compose.yml           # Homepage 个人导航与服务状态仪表盘
-  # - docs/docker-compose.yml               # 项目在线技术文档站点
-  # - drawio/docker-compose.yml             # Draw.io 在线专业流程图与架构图设计
-  # - excalidraw/docker-compose.yml         # Excalidraw 现代手绘风格白板协作
-  # - tuwunel/docker-compose.yml            # Tuwunel (Rust 编写的高性能 Matrix 去中心化聊天服务器)
-  # - gotenberg/docker-compose.yml          # Gotenberg 无头浏览器 HTML/Office 转 PDF
-  # - librespeed/docker-compose.yml         # LibreSpeed 私有无 Flash 局域网/公网测速服务
+  # - cms/docker-compose.yml                # 开源无头 CMS 与快速应用开发后端 (Directus / PocketBase / WordPress)
+  # - apps/docker-compose.yml               # 协作办公、知识库与个人自建效率服务 (Homepage / Docs / Draw.io / Excalidraw / Gotenberg / LibreSpeed / Tuwunel / Sshwifty / Chatwoot / GoAccess / Uptime Kuma)

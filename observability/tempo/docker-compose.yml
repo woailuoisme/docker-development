@@ -1,0 +1,16 @@
+services:
+  tempo:
+    image: grafana/tempo:2.8.2
+    container_name: tempo
+    restart: unless-stopped
+    command:
+      - "-config.file=/etc/tempo.yaml"
+    volumes:
+      - ${CONFIG_PATH}observability/tempo/tempo.yaml:/etc/tempo.yaml:ro
+      - ${DATA_PATH}tempo:/tmp/tempo
+    ports:
+      - "${TEMPO_PORT:-3200}:3200" # Tempo HTTP 查询 API
+      - "${TEMPO_OTLP_GRPC_PORT:-4317}:4317" # 原生 OTLP gRPC 接收端
+      - "${TEMPO_OTLP_HTTP_PORT:-4318}:4318" # 原生 OTLP HTTP 接收端
+    networks:
+      - backend

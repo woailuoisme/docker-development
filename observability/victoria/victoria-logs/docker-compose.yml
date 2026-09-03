@@ -1,0 +1,30 @@
+services:
+  victoria-logs:
+    image: victoriametrics/victoria-logs:v1.52.0
+    container_name: victoria-logs
+    restart: always
+    ports:
+      - "${VICTORIA_LOGS_PORT:-9428}:9428"
+    command:
+      - "--storageDataPath=/storage"
+      - "--retentionPeriod=1M"
+      - "--httpListenAddr=:9428"
+      - "--memory.allowedPercent=60"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DATA_PATH}victoria-logs:/storage
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+    networks:
+      - backend
+      - frontend
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9428/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M

@@ -1,4 +1,4 @@
-/homepage/logs
+**/homepage/logs
 /data/
 /backup/
 /.env
@@ -6,10 +6,11 @@
 .env
 .env.local
 .env.product
-/authelia/db.sqlite3
+/iam/authelia/db.sqlite3
 
-./3xui/db
-/3xui/db/x-ui.db
+**/3xui/db/**
+**/sui/db/**
+**/sui/cert/**
 .zed
 .codebuddy
 .qoder
@@ -31,12 +32,12 @@ registry.ini
 
 certbot/conf/renewal/
 ssh/
-authelia/config/db.sqlite3
+iam/authelia/config/db.sqlite3
 
-/pgbouncer/userlist.txt
-/certs
+**/pgbouncer/userlist.txt
 .kiro
 /scripts/setup-github-secrets.sh
-/mosquitto/config/passwd
+**/mosquitto/config/passwd
 
-/simulators/nodejs/node_modules
+**/simulators/nodejs/node_modules
+

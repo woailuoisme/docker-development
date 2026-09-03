@@ -1,0 +1,7 @@
+# ==============================================================================
+# 开源无头 CMS 与快速应用开发后端 (Headless CMS & BaaS)
+# ==============================================================================
+# include:
+#   - pocketbase/docker-compose.yml         # PocketBase (单文件轻量嵌入式后端框架)
+  # - directus/docker-compose.yml           # Directus (实时数据驱动的无头 CMS 后台)
+  # - wordpress/docker-compose.yml          # WordPress 经典博客与内容发布系统

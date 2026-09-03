@@ -1,0 +1,11 @@
+# ==============================================================================
+# 消息队列、事件流与实时通信中间件 (Messaging & Realtime Brokers)
+# ==============================================================================
+include:
+  - centrifugo/docker-compose.yml  # Centrifugo WebSocket 实时推送与消息广播引擎 (默认启用)
+  # - nats/docker-compose.yml        # NATS 轻量高性能发布订阅与 JetStream 消息中间件 (默认启用)
+  # - rabbitmq/docker-compose.yml     # RabbitMQ 企业级 AMQP 消息队列与管理面板 (按需启用)
+  # - gotify/docker-compose.yml       # Gotify 私有自建推送通知服务 (按需启用)
+  # - ntfy/docker-compose.yml         # ntfy 基于 HTTP 的轻量订阅推送服务 (按需启用)
+  # - asynqmon/docker-compose.yml     # Asynq Go 异步任务队列监控面板 (按需启用)
+  # - bullboard/docker-compose.yml    # BullMQ 队列可视化看板 (按需启用)

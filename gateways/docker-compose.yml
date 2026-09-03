@@ -1,0 +1,25 @@
+# ==============================================================================
+# Gateways 统一网络网关、安全反代、DNS 与证书工具链 (Unified Gateways Stack)
+# ==============================================================================
+include:
+  # --- 核心网关与本地 DNS (Core Gateway & DNS) ---
+  - caddy/docker-compose.yml                # Caddy 2 网关反代与自动证书 (默认启用)
+  - dnsmasq/docker-compose.yml              # Dnsmasq 本地 DNS 泛解析服务 (默认启用)
+
+  # --- 安全穿透隧道与备选网关 (Tunnels & Alternative Gateways) ---
+  # - cloudflared/docker-compose.yml          # Cloudflare Zero Trust 远程安全穿透隧道 (默认启用)
+  # - traefik/docker-compose.yml            # Traefik 云原生微服务反向代理
+  # - 3xui/docker-compose.yml               # 3X-UI 多协议网络代理面板
+  # - sui/docker-compose.yml                # S-UI 轻量级代理管理面板
+
+  # --- Nginx Web 反代多形态系列 (Nginx Ecosystem) ---
+  # - standard/docker-compose.yml           # Nginx 标准全功能反向代理 (含完整站点与 snippets)
+  # - simple/docker-compose.yml             # Nginx 极简快速启动形态
+  # - npm/docker-compose.yml                # Nginx Proxy Manager (NPM 可视化管理后台)
+  # - openresty/docker-compose.yml          # OpenResty 高性能 Lua 网关与动态代理
+  # - base-alpine/docker-compose.yml        # Nginx Alpine WAF 基础镜像性能测试
+
+  # --- SSL / TLS 证书自动化管理工具 (SSL/TLS Certificates) ---
+  # - certbot/docker-compose.yml            # Let's Encrypt 官方 Certbot 证书管理
+  # - acme/docker-compose.yml               # acme.sh 自动化泛域名证书申请容器
+  # - mkcert/docker-compose.yml             # 本地开发环境自签受信任证书生成器

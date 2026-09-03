@@ -1,0 +1,11 @@
+services:
+  rclone:
+    image: rclone/rclone:latest
+    container_name: garage-rclone
+    restart: "no"
+    entrypoint: ["rclone"]
+    command: ["version"]
+    volumes:
+      - ./rclone.docker.conf:/config/rclone.conf:ro
+    networks:
+      - backend

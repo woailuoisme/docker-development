@@ -1,0 +1,8 @@
+# ==============================================================================
+# 音视频与实时流媒体服务技术栈模块化编排
+# 可根据实际开发需求，选择启用 MediaMTX 全协议网关、LiveKit WebRTC SFU 或 SRS 6
+# ==============================================================================
+# include:
+#   - mediamtx/docker-compose.yml # MediaMTX 全协议流媒体服务 (RTSP / RTMP / WebRTC / HLS)
+  # - livekit/docker-compose.yml  # LiveKit 现代化分布式 WebRTC SFU 服务器
+  # - srs/docker-compose.yml      # SRS 6 工业级高性能流媒体服务器

@@ -1,0 +1,12 @@
+services:
+  node-red:
+    image: nodered/node-red:5-minimal
+    container_name: node-red
+    ports:
+      - "11880:1880"
+    volumes:
+      - ${DATA_PATH}node-red:/data
+    restart: unless-stopped
+    networks:
+      - backend
+      - frontend

@@ -1,0 +1,17 @@
+services:
+  valkey-exporter:
+    image: oliver006/redis_exporter:v1.90.0
+    container_name: valkey-exporter
+    restart: always
+    environment:
+      - REDIS_ADDR=redis://valkey:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    networks:
+      - backend
+    expose:
+      - 9121
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 64M

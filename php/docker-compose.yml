@@ -1,0 +1,11 @@
+# ==============================================================================
+# PHP / Laravel 全栈运行环境模块化编排
+# 可根据实际开发需求，保留或注释对应的运行时引擎与辅助服务
+# ==============================================================================
+# include:
+#   - fpm/docker-compose.yml        # PHP-FPM FastCGI 运行环境
+#   - roadrunner/docker-compose.yml # Laravel Octane (RoadRunner 极速引擎)
+#   - franken/docker-compose.yml    # Laravel Octane (FrankenPHP 现代引擎)
+#   - horizon/docker-compose.yml    # Laravel Horizon 异步队列分发中心
+#   - schedule/docker-compose.yml   # Laravel Schedule 定时任务调度器
+#   - reverb/docker-compose.yml     # Laravel Reverb 原生 WebSocket 服务

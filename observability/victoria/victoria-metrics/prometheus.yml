@@ -1,0 +1,55 @@
+# ==============================================================================
+# VictoriaMetrics 全局指标抓取配置文件
+# 语法 100% 兼容 Prometheus 抓取规范
+# ==============================================================================
+global:
+  scrape_interval: 15s     # 默认抓取间隔
+  scrape_timeout: 10s      # 抓取超时时间
+
+  # 外部标签，用于多实例或多集群环境区分
+  external_labels:
+    monitor: 'lunchbox-monitor'
+    environment: 'development'
+
+# 抓取任务定义
+scrape_configs:
+  # 1. 监控 VictoriaMetrics 自身指标与存储状态
+  - job_name: 'victoria-metrics'
+    static_configs:
+      - targets: ['victoria-metrics:8428']
+
+  # 2. 监控 VictoriaLogs 日志引擎指标与检索状态
+  - job_name: 'victoria-logs'
+    static_configs:
+      - targets: ['victoria-logs:9428']
+
+  # 3. 监控宿主机核心资源 (Node Exporter)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # 4. 监控 Docker 容器资源占用 (cAdvisor)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # 5. 监控 Valkey / Redis 键值库 (redis-exporter)
+  - job_name: 'valkey'
+    static_configs:
+      - targets: ['valkey-exporter:9121']
+
+  # 6. 监控 PostgreSQL 主数据库 (postgres-exporter)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # 7. 监控 Caddy 网关流量与响应延时
+  - job_name: 'caddy'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['caddy:2019']
+
+  # 8. 监控 Vector 统一日志与数据管道吞吐
+  - job_name: 'vector'
+    static_configs:
+      - targets: ['vector:8686']

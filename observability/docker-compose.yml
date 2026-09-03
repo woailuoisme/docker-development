@@ -1,0 +1,9 @@
+# ==============================================================================
+# Observability & Monitoring 可观测性与监控告警技术栈模块化编排
+# 可根据实际开发需求，保留或注释对应的监控、日志与追踪组件
+# ==============================================================================
+include:
+  - grafana/docker-compose.yml       # Grafana 统一可视化多源数据看板
+  - vector/docker-compose.yml        # Vector 高性能全能可观测性数据管道 (核心日志/指标采集与中继)
+  - victoria/docker-compose.yml      # Victoria 极速高压缩监控集群 (含 VictoriaMetrics TSDB、VictoriaLogs 日志引擎与 4 大 Exporters)
+#   - tempo/docker-compose.yml         # Grafana Tempo 分布式链路追踪存储

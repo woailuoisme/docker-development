@@ -1,0 +1,69 @@
+{
+	import snippets/global-log.conf
+	acme_dns cloudflare {env.CF_API_TOKEN}
+	admin 0.0.0.0:2019
+}
+
+import sites/*
+import templates/*
+
+#import fpm-app fpm.{$SITE_ADDRESS} /var/www/lunchbox
+#import proxy-octane-app-auth dev.{$SITE_ADDRESS} php-roadrunner:8001 /var/www/lunchbox/public
+#import fpm-app-auth rest.{$SITE_ADDRESS} /var/www/lunchbox
+import fpm-app-auth dev.{$SITE_ADDRESS} /var/www/lunchbox/public php-fpm:9000
+import proxy-octane-app-auth rest.{$SITE_ADDRESS} php-roadrunner:8001 /var/www/lunchbox/public
+#import proxy-octane-app-auth api.{$SITE_ADDRESS} php-franken:8001 /var/www/lunchbox/public
+#import proxy-octane-app-auth prd.{$SITE_ADDRESS} roadrunner:8001 /var/www/lunchbox/public
+#import fpm-app wp.{$SITE_ADDRESS} /var/www/html wordpress:9000
+
+#import proxy-app auth.{$SITE_ADDRESS} authelia:9091
+#import proxy-app ws.{$SITE_ADDRESS} php-reverb:8080
+
+#import proxy-app beszel.{$SITE_ADDRESS} beszel:8090
+
+import proxy-app mo.{$SITE_ADDRESS} minio:9001
+import proxy-app mos.{$SITE_ADDRESS} minio:9000
+
+# Garage S3 标准 API 访问点（支持标准对象操作及虚拟主机样式存储桶解析）
+import proxy-app s3.{$SITE_ADDRESS} garage:3900
+import proxy-app *.s3.{$SITE_ADDRESS} garage:3900
+# Garage S3 静态网页托管端点（直接渲染输出存储桶内的网页内容）
+import proxy-app s3.web.{$SITE_ADDRESS} garage:3902
+import proxy-app *.s3.web.{$SITE_ADDRESS} garage:3902
+# Garage 后台管理 Dashboard 页面（附带身份验证鉴权拦截层）
+import proxy-app-auth s3-admin.{$SITE_ADDRESS} garage-webui:3909
+
+#import proxy-app push.{$SITE_ADDRESS} centrifugo:8000
+#import proxy-app msg.{$SITE_ADDRESS} gotify:80
+import proxy-app grafana.{$SITE_ADDRESS} grafana:3000
+import proxy-app-auth prom.{$SITE_ADDRESS} victoria-metrics:8428
+import proxy-app-auth logs.{$SITE_ADDRESS} victoria-logs:9428
+
+#import proxy-app-subpath msg.{$SITE_ADDRESS} msg gotify:80
+#import proxy-app mq.{$SITE_ADDRESS} rabbitmq:15672
+
+#import proxy-app-auth home.{$SITE_ADDRESS} homepage:3000
+#import proxy-app-auth docs.{$SITE_ADDRESS} docs:80
+import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
+import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
+import proxy-app vault.{$SITE_ADDRESS} vaultwarden:80
+
+# 子路径服务聚合仅适用于支持baseURL的应用）
+#lot.{$SITE_ADDRESS} {
+#	encode zstd gzip
+#	import subpath mq rabbitmq:15672
+#}
+
+# import proxy-app ssh.{$SITE_ADDRESS}  ssh:8182
+# import proxy-app app.{$SITE_ADDRESS}  chatNext:3000
+
+# 显式声明通配符主机名，让 Caddy 申请并复用 *.{$SITE_ADDRESS} 证书。
+# 未匹配到具体服务的子域名直接中止连接，避免暴露默认响应。
+*.{$SITE_ADDRESS}, http://localhost {
+	handle /health {
+		respond "OK" 200
+	}
+	handle {
+		abort
+	}
+}

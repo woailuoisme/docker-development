@@ -13,7 +13,7 @@
 ### 1. 根编排与模块化加载
 
 - **根文件**：`docker-compose.yml` 声明核心网络（`frontend`、`backend`）与数据卷，通过 `include:` 引入各子服务的 `docker-compose.yml`。
-- **子服务目录**：各独立服务位于单独目录（如 `caddy/`、`postgres-18/`、`vaultwarden/` 等），内部包含对应的 `docker-compose.yml` 及必要配置。
+- **子服务目录**：各独立服务位于单独目录（如 `database/postgres-18/`、`gateways/caddy/`、`iam/vaultwarden/` 等），内部包含对应的 `docker-compose.yml` 及必要配置。
 
 ### 2. 子服务 Compose 编写规范
 
@@ -31,7 +31,7 @@
 
 ### 3. Caddy 反向代理接入规范
 
-- 网关位于 `caddy/Caddyfile`。
+- 网关位于 `gateways/caddy/Caddyfile`。
 - 新增反代子域名时，使用模板语法：
 
   ```caddyfile
@@ -112,7 +112,7 @@ just lint-md
 1. **增删服务流程**：
    - 在子目录创建/修改 `<service>/docker-compose.yml`。
    - 在根目录 `docker-compose.yml` 的 `include:` 列表中按分类添加对应配置路径。
-   - 如需暴露 Web 访问，在 `caddy/Caddyfile` 中配置 `import proxy-app` 规则。
+   - 如需暴露 Web 访问，在 `gateways/caddy/Caddyfile` 中配置 `import proxy-app` 规则。
    - 运行 `just validate-docker-compose` 验证配置正确性。
 2. **格式规范**：
    - YAML 文件使用 **2 空格缩进**，严禁使用 Tab。

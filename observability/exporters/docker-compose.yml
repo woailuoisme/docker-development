@@ -1,0 +1,9 @@
+# ==============================================================================
+# 基础设施与通用监控探针集群 (Exporters)
+# 提供主机硬件、容器资源、Redis/Valkey 缓存与 PostgreSQL 数据库指标导出端点
+# ==============================================================================
+include:
+  - node-exporter/docker-compose.yml      # 宿主机核心硬件与 OS 基础指标探针
+  - cadvisor/docker-compose.yml           # 容器资源开销精简探针 (--docker_only=true)
+  - valkey-exporter/docker-compose.yml    # Valkey / Redis 缓存指标探针
+  - postgres-exporter/docker-compose.yml  # PostgreSQL 关系型数据库指标探针

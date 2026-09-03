@@ -1,0 +1,53 @@
+# ==============================================================================
+# Vector 生产级基础流水线配置
+# ==============================================================================
+
+# 1. 数据采集源 (Sources)
+sources:
+  # 采集宿主机所有 Docker 容器标准输出与错误日志 (排除 Vector 自身，彻底杜绝自循环日志风暴)
+  docker_logs:
+    type: docker_logs
+    exclude_containers:
+      - vector
+
+  # 采集 Vector 自身内部运行指标与吞吐统计
+  internal_metrics:
+    type: internal_metrics
+
+# 2. 数据转换与指标生成 (Transforms)
+transforms:
+  # 将原始 Docker 日志行流量转化为计数指标
+  docker_log_metrics:
+    type: log_to_metric
+    inputs:
+      - docker_logs
+    metrics:
+      - type: counter
+        field: message
+        name: docker_log_lines_total
+        tags:
+          container_name: "{{ container_name }}"
+
+# 3. 数据出口与汇聚 (Sinks)
+sinks:
+  # Prometheus 指标导出端点 (供 VictoriaMetrics 原生抓取，单路拉取避免重复双写)
+  prometheus_exporter:
+    type: prometheus_exporter
+    inputs:
+      - internal_metrics
+      - docker_log_metrics
+    address: "0.0.0.0:8686"
+
+  # 将容器日志实时推送至 VictoriaLogs (JSON stream)
+  victoria_logs:
+    type: http
+    inputs:
+      - docker_logs
+    uri: "http://victoria-logs:9428/insert/jsonline?_stream_fields=container_name,stream&_time_field=timestamp"
+    method: post
+    encoding:
+      codec: json
+    framing:
+      method: newline_delimited
+    healthcheck:
+      enabled: false

@@ -1,0 +1,25 @@
+# ==============================================================================
+# Database 统一数据库与持久化数据存储模块 (Unified Database Stack)
+# ==============================================================================
+include:
+  # --- 关系型数据库 (RDBMS) ---
+  - postgres-18/docker-compose.yml          # PostgreSQL 18 (含 TimescaleDB / GIS / 向量) (默认启用)
+  # - mysql-8/docker-compose.yml            # MySQL 8.0 关系型数据库
+  # - pgbouncer/docker-compose.yml          # PgBouncer 轻量级高性能连接池 (Debian 基础)
+  # - pgdog/docker-compose.yml              # PgDog 智能负载与分片路由连接池 (Rust 实现)
+  # - pgbackrest/docker-compose.yml         # pgBackRest 企业级物理备份与 WAL 归档 (PITR)
+
+  # --- 键值缓存与内存库 (In-Memory & Cache) ---
+  - redis/docker-compose.yml                # Redis 经典内存数据结构服务 (默认启用)
+  - valkey/docker-compose.yml               # Valkey 高性能开源内存缓存 (默认启用)
+
+  # --- 专用、分析、向量与多模型数据库 (Specialty & NoSQL) ---
+  - meilisearch/docker-compose.yml          # Meilisearch 毫秒级全文搜索引擎 (默认启用)
+  # - qdrant/docker-compose.yml             # Qdrant 向量数据库 (AI / Embedding / RAG)
+  # - clickhouse/docker-compose.yml         # ClickHouse 极速 OLAP 列式分析数据库
+  # - mongodb/docker-compose.yml            # MongoDB 文档型 NoSQL 数据库
+  # - surrealdb/docker-compose.yml          # SurrealDB 原生多模型数据库 (文档/图/关系/实时)
+
+  # --- 数据库 Web 管理与协同工具 (DB Management Tools) ---
+  # - adminer/docker-compose.yml            # Adminer 轻量级全能数据库 Web 管理器
+  # - bytebase/docker-compose.yml           # Bytebase 数据库 DevOps 与 Schema 变更管理平台

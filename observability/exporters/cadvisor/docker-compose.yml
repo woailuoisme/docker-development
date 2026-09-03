@@ -1,0 +1,25 @@
+services:
+  cadvisor:
+    image: ghcr.io/google/cadvisor:v0.60.5
+    container_name: cadvisor
+    restart: always
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    command:
+      - "--docker_only=true"
+      - "--housekeeping_interval=15s"
+      - "--disable_metrics=disk,tcp,udp,percpu,sched,process"
+    networks:
+      - backend
+    expose:
+      - 8080
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M

@@ -10,12 +10,12 @@ pre-commit:
 
     - name: validate caddyfile
       glob:
-        - "caddy/Caddyfile"
-        - "caddy/templates/*.conf"
-        - "caddy/snippets/*.conf"
-        - "caddy/sites/*"
-        - "caddy/Dockerfile"
-        - "caddy/docker-compose.yml"
+        - "gateways/caddy/Caddyfile"
+        - "gateways/caddy/templates/*.conf"
+        - "gateways/caddy/snippets/*.conf"
+        - "gateways/caddy/sites/*"
+        - "gateways/caddy/Dockerfile"
+        - "gateways/caddy/docker-compose.yml"
       run: just lint-caddy
 
     - name: hadolint
