@@ -1,0 +1,26 @@
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:1.20.1
+    container_name: mediamtx
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - MTX_RTSPTRANSPORTS=tcp
+      - MTX_WEBRTCADDITIONALHOSTS=${MEDIAMTX_WEBRTC_ADDITIONAL_HOSTS:-127.0.0.1}
+    # volumes:
+    #   - ${CONFIG_PATH}mediamtx/mediamtx.yml:/mediamtx.yml:ro
+    #   - ${DATA_PATH}mediamtx:/recordings
+    ports:
+      - "${MEDIAMTX_RTSP_PORT:-8554}:8554"        # RTSP
+      - "${MEDIAMTX_RTMP_PORT:-1935}:1935"        # RTMP
+      - "${MEDIAMTX_HLS_PORT:-8888}:8888"          # HLS
+      - "${MEDIAMTX_WEBRTC_PORT:-8889}:8889"      # WebRTC HTTP (WHEP / WHIP)
+      - "${MEDIAMTX_SRT_PORT:-8890}:8890/udp"     # SRT
+      - "${MEDIAMTX_WEBRTC_ICE_PORT:-8189}:8189/udp" # WebRTC ICE UDP
+      - "${MEDIAMTX_RIST_PORT:-8892}:8892"        # RIST TCP
+      - "${MEDIAMTX_RIST_PORT:-8892}:8892/udp"    # RIST UDP
+      - "${MEDIAMTX_RIST_CTRL_PORT:-8893}:8893/udp" # RIST Control UDP
+    networks:
+      - frontend
+      - backend

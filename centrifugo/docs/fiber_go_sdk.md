@@ -9,9 +9,9 @@
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Client as 客户端 (Browser/App)
-    participant Fiber as Fiber 应用后端 (Go)
-    participant Centrifugo as Centrifugo 推送服务
+    actor Client as "客户端 (Browser/App)"
+    participant Fiber as "Fiber 应用后端 (Go)"
+    participant Centrifugo as "Centrifugo 推送服务"
     
     %% 连接流程
     Note over Client, Fiber: 1. 建立长连接

@@ -235,3 +235,14 @@ Centrifugo v6 默认将日志以结构化 JSON 格式输出至 stdout。容器�
 3. **时区错乱问题**
     * **现象**：导出的历史消息和日志记录出现 8 小时时差。
     * **排查**：确保部署时使用的是由自定义 Dockerfile 编译的 `centrifugo` 本地镜像，而非直接拉取的官方裸镜像。重新构建命令：`docker compose build --no-cache centrifugo`。
+
+---
+
+## 7. 多语言业务后端集成最佳实践 (SDK & Guides)
+
+针对本项目主流开发栈，提供了详细的企业级实战集成指南：
+
+* 🏭 **工业级生产指南**：[工业产品级架构与实践指南](file:///Users/seaside/Projects/docker/development/centrifugo/docs/industrial_production_guide.md)（含 IIoT 场景、高可用拓扑、内核调优、弱网恢复与可观测性）
+* 🐘 **Laravel 13 (PHP 8.2+)**：[Laravel 13 最佳实践集成指南](file:///Users/seaside/Projects/docker/development/centrifugo/docs/laravel13_integration.md)（含自定义 Broadcaster、JWT 鉴权、事件广播）
+* 🦁 **NestJS (TypeScript)**：[NestJS 最佳实践集成指南](file:///Users/seaside/Projects/docker/development/centrifugo/docs/nestjs_integration.md)（含动态 Module、TokenService、EventEmitter 监听与 Webhook Guard）
+* 🚀 **Go Fiber (v2/v3)**：[Go Fiber SDK 实战与长连接指南](file:///Users/seaside/Projects/docker/development/centrifugo/docs/fiber_go_sdk.md)（含 gocent 封装、SSE / WebSocket 接入与并发广播）

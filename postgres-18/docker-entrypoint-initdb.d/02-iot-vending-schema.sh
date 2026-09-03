@@ -4,7 +4,21 @@ set -euo pipefail
 # =============================================================================
 # IoT 售货机业务 Schema 初始化 - 02-iot-vending-schema.sh
 # 职责：创建业务表结构、配置 TimescaleDB 超表、索引与数据生命周期策略
+# 策略：默认不初始化（按需使用），仅当 ENABLE_IOT_VENDING_SCHEMA=true 时执行
+#
+# 传感器体系总览 (6 大类 / 13 种物理与感知采集通道)：
+#   1. 温控传感器组 (5 通道)：4 路冷冻温区探头 (freezer_temp_0~3) + 1 路机外环境温度 (ambient_temp)
+#   2. 电气监测传感器 (2 通道)：市电输入电压 (voltage) + 整机总工作电流 (current)
+#   3. 结构与安全开关 (1 通道)：机门门磁行程微动开关 (door_closed)
+#   4. 防暴力与位移传感器 (1 通道)：3 轴 MEMS 加速度计/瞬时冲击 G 值 (vibration_g)
+#   5. 通信与定位模组 (3 通道)：无线射频信号 RSSI (rssi) + GPS/北斗 GNSS 经纬度 (lat, lng)
+#   6. 业务与取证感知 (事件驱动)：出货红外光栅 (channel_id) + 微波温控门联锁 (oven_id) + 抓拍相机 (image_url/video_url)
 # =============================================================================
+
+if [ "${ENABLE_IOT_VENDING_SCHEMA:-false}" != "true" ]; then
+	echo "ENABLE_IOT_VENDING_SCHEMA is not set to 'true'. Skipping IoT vending schema initialization (按需启用)."
+	exit 0
+fi
 
 # 如果创建了独立的 lunchbox 业务库则优先初始化至 lunchbox，否则初始化至默认库
 if [ "$(psql -XtA -c "SELECT 1 FROM pg_database WHERE datname='lunchbox'" --username "$POSTGRES_USER" --dbname "postgres")" = '1' ]; then
@@ -19,7 +33,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$TARGET_DB" <<- 'E
 	-- 确保扩展已启用
 	CREATE EXTENSION IF NOT EXISTS timescaledb;
 
-	-- 1. 遥测数据表 (vm_telemetry)
+	-- 1. 遥测数据表 (vm_telemetry) - 周期性传感器采样数据集 (QoS 0)
 	CREATE TABLE IF NOT EXISTS vm_telemetry (
 	    time            TIMESTAMPTZ NOT NULL,
 	    device_no       TEXT NOT NULL,
@@ -38,23 +52,23 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$TARGET_DB" <<- 'E
 	    lng             DOUBLE PRECISION
 	);
 
-	-- 添加注释
-	COMMENT ON TABLE vm_telemetry IS '售货机遥测历史数据集';
-	COMMENT ON COLUMN vm_telemetry.time IS '数据上报/采样时间';
+	-- 添加注释 (详细说明各传感器硬件与采集物理量)
+	COMMENT ON TABLE vm_telemetry IS '售货机高频遥测历史数据集 (TimescaleDB 超表)';
+	COMMENT ON COLUMN vm_telemetry.time IS '数据上报/采样时间戳 (UTC)';
 	COMMENT ON COLUMN vm_telemetry.device_no IS '设备唯一编号 (格式: VM-地区-编号)';
-	COMMENT ON COLUMN vm_telemetry.voltage IS '当前输入电压 (V)';
-	COMMENT ON COLUMN vm_telemetry.current IS '系统总工作电流 (A)';
-	COMMENT ON COLUMN vm_telemetry.uptime IS '自上次启动以来的持续时长 (秒)';
-	COMMENT ON COLUMN vm_telemetry.door_closed IS '机门状态: true=关闭, false=开启';
-	COMMENT ON COLUMN vm_telemetry.freezer_temp_0 IS '冷冻温区0采样温度 (℃)';
-	COMMENT ON COLUMN vm_telemetry.freezer_temp_1 IS '冷冻温区1采样温度 (℃)';
-	COMMENT ON COLUMN vm_telemetry.freezer_temp_2 IS '冷冻温区2采样温度 (℃)';
-	COMMENT ON COLUMN vm_telemetry.freezer_temp_3 IS '冷冻温区3采样温度 (℃)';
-	COMMENT ON COLUMN vm_telemetry.ambient_temp IS '外部环境气温 (℃)';
-	COMMENT ON COLUMN vm_telemetry.vibration_g IS '三轴加速度计感应到的瞬间G值';
-	COMMENT ON COLUMN vm_telemetry.rssi IS '移动网络/WiFi信号强度 (dBm)';
-	COMMENT ON COLUMN vm_telemetry.lat IS '地理坐标-纬度';
-	COMMENT ON COLUMN vm_telemetry.lng IS '地理坐标-经度';
+	COMMENT ON COLUMN vm_telemetry.voltage IS '【电气传感器】当前主板输入电压 (V，用于电网波动与欠压保护)';
+	COMMENT ON COLUMN vm_telemetry.current IS '【电气传感器】系统总工作电流 (A，用于压缩机/微波炉过载与能耗计算)';
+	COMMENT ON COLUMN vm_telemetry.uptime IS '【系统指标】自上次主板启动以来的持续运行秒数';
+	COMMENT ON COLUMN vm_telemetry.door_closed IS '【门磁开关】机门行程开关状态: true=关闭, false=打开';
+	COMMENT ON COLUMN vm_telemetry.freezer_temp_0 IS '【温控传感器 1/5】冷冻底层温区0温度 (℃，食品 -18℃ 达标监测)';
+	COMMENT ON COLUMN vm_telemetry.freezer_temp_1 IS '【温控传感器 2/5】冷冻中下温区1温度 (℃)';
+	COMMENT ON COLUMN vm_telemetry.freezer_temp_2 IS '【温控传感器 3/5】冷冻中上温区2温度 (℃)';
+	COMMENT ON COLUMN vm_telemetry.freezer_temp_3 IS '【温控传感器 4/5】冷冻顶层温区3温度 (℃)';
+	COMMENT ON COLUMN vm_telemetry.ambient_temp IS '【温控传感器 5/5】机柜外部环境气温 (℃，用于温控制冷动态调功)';
+	COMMENT ON COLUMN vm_telemetry.vibration_g IS '【防破坏传感器】3 轴 MEMS 加速度计瞬时冲击 G 值 (踢砸/撬机告警)';
+	COMMENT ON COLUMN vm_telemetry.rssi IS '【通信模组】4G/5G/WiFi 移动网络无线信号强度 (dBm)';
+	COMMENT ON COLUMN vm_telemetry.lat IS '【GNSS 定位】GPS/北斗卫星定位纬度 (电子围栏防盗与资产盘点)';
+	COMMENT ON COLUMN vm_telemetry.lng IS '【GNSS 定位】GPS/北斗卫星定位经度';
 
 	-- 转换为超表 (按时间自动分区)
 	SELECT create_hypertable('vm_telemetry', 'time', if_not_exists => TRUE);

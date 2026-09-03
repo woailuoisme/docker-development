@@ -2,10 +2,14 @@ services:
   loki:
     image: grafana/loki:3.7
     container_name: loki
-    ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
-    volumes:
-      - ./loki/local-config.yaml:/etc/loki/local-config.yaml
-      - loki_data:/loki
     restart: unless-stopped
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    command:
+      - "-config.file=/etc/loki/local-config.yaml"
+    volumes:
+      - ${CONFIG_PATH}loki/local-config.yaml:/etc/loki/local-config.yaml:ro
+      - ${DATA_PATH}loki:/loki
+    networks:
+      - backend
+      - frontend
