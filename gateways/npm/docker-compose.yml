@@ -1,15 +1,16 @@
 services:
   nginx-proxy-manager:
     container_name: nginx-proxy-manager
-    image: 'docker.io/jc21/nginx-proxy-manager:latest'
+    image: jlesage/nginx-proxy-manager:latest
     restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
     ports:
-      - '80:80'
-      - '81:81'
-      - '443:443'
+      - "8181:8181"
+      - "8080:8080"
+      - "4443:4443"
     volumes:
-      - ${DATA_PATH}nginx-proxy-manager:/data
-      - ${CONFIG_PATH}gateways/npm/letsencrypt:/etc/letsencrypt
+      - ${DATA_PATH}nginx-proxy-manager:/config:rw
     networks:
-      - backend
       - frontend
+      - backend

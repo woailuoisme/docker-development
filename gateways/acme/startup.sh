@@ -139,10 +139,11 @@ try_issue_and_install() {
 	mkdir -p "$SSL_OUTPUT"
 	log_info "Installing certificate to $SSL_OUTPUT..."
 
+	RELOAD_CMD="echo 'Certificate updated.'; curl -s --unix-socket /var/run/docker.sock -X POST 'http://localhost/containers/nginx/kill?signal=HUP' >/dev/null 2>&1 || true"
 	if ! acme.sh --install-cert -d "$DOMAIN" \
 		--key-file "$SSL_OUTPUT/privkey.pem" \
 		--fullchain-file "$SSL_OUTPUT/fullchain.pem" \
-		--reloadcmd "echo 'Certificate updated.'"; then
+		--reloadcmd "$RELOAD_CMD"; then
 		log_error "Certificate installation failed."
 		return 1
 	fi

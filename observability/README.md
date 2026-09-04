@@ -16,18 +16,18 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **grafana** | `grafana` | `grafana/` | `http://grafana:3000` | `${GRAFANA_PORT:-13000}` | 统一可视化看板，预置 VictoriaMetrics / VictoriaLogs 数据源 |
 | **vector** | `vector` | `vector/` | `http://vector:8686` | `${VECTOR_PORT:-8686}` | Rust 高性能 Docker 容器日志采集、清洗并推送到 VictoriaLogs |
-| **victoria-metrics** | `victoria-metrics` | `victoria/victoria-metrics/` | `http://victoria-metrics:8428` | `${VICTORIA_METRICS_PORT:-8428}` | TSDB 核心引擎，内置 Prometheus 抓取器与 `vmui` 指标看板 |
-| **victoria-logs** | `victoria-logs` | `victoria/victoria-logs/` | `http://victoria-logs:9428` | `${VICTORIA_LOGS_PORT:-9428}` | 极速轻量日志存储库，内置 `vmui` 日志看板，支持 LogsQL |
+| **victoria-metrics** | `victoria-metrics` | `victoria-metrics/` | `http://victoria-metrics:8428` | `${VICTORIA_METRICS_PORT:-8428}` | TSDB 核心引擎，内置 Prometheus 抓取器与 `vmui` 指标看板 |
+| **victoria-logs** | `victoria-logs` | `victoria-logs/` | `http://victoria-logs:9428` | `${VICTORIA_LOGS_PORT:-9428}` | 极速轻量日志存储库，内置 `vmui` 日志看板，支持 LogsQL |
 | **tempo** | `tempo` | `tempo/` | `http://tempo:3200` | `${TEMPO_PORT:-3200}` | (备选) 链路追踪存储后端，支持 OTLP 写入与 TraceQL 查询 |
 
-### 2. 监控探针集群 (位于 `victoria/` 模块下)
+### 2. 监控探针集群 (位于 `exporters/` 模块下)
 
 | 服务名 | 容器名 | 所属子目录 | 内部端口 | 抓取路径 | 探针监控目标 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **node-exporter** | `node-exporter` | `victoria/node-exporter/` | `9100` | `/metrics` | 宿主机 CPU、内存、磁盘与网络核心 OS 指标 |
-| **cadvisor** | `cadvisor` | `victoria/cadvisor/` | `8080` | `/metrics` | 容器资源占用精简指标 (`--docker_only=true`) |
-| **valkey-exporter** | `valkey-exporter` | `victoria/valkey-exporter/` | `9121` | `/metrics` | Valkey / Redis 缓存命中率与内存状态 |
-| **postgres-exporter** | `postgres-exporter` | `victoria/postgres-exporter/` | `9187` | `/metrics` | PostgreSQL 数据库连接数、事务与锁状态 |
+| **node-exporter** | `node-exporter` | `exporters/node-exporter/` | `9100` | `/metrics` | 宿主机 CPU、内存、磁盘与网络核心 OS 指标 |
+| **cadvisor** | `cadvisor` | `exporters/cadvisor/` | `8080` | `/metrics` | 容器资源占用精简指标 (`--docker_only=true`) |
+| **valkey-exporter** | `valkey-exporter` | `exporters/valkey-exporter/` | `9121` | `/metrics` | Valkey / Redis 缓存命中率与内存状态 |
+| **postgres-exporter** | `postgres-exporter` | `exporters/postgres-exporter/` | `9187` | `/metrics` | PostgreSQL 数据库连接数、事务与锁状态 |
 
 ---
 
@@ -73,13 +73,13 @@ observability/
 ├── vector/                          # Vector 数据管道 (基于 Rust)
 │   ├── docker-compose.yml
 │   └── vector.yaml                  # 容器日志采集与 VictoriaLogs 推送流水线
-├── victoria/                        # Victoria 极速高压缩监控与日志套件
-│   ├── docker-compose.yml           # 子模块顶层编排 (include)
-│   ├── victoria-metrics/            # VictoriaMetrics TSDB 核心与原生抓取
-│   │   ├── docker-compose.yml
-│   │   └── prometheus.yml           # 原生抓取规则配置 (自监控与探针配置)
-│   ├── victoria-logs/               # VictoriaLogs 极速轻量日志引擎
-│   │   └── docker-compose.yml
+├── victoria-metrics/                # VictoriaMetrics TSDB 核心与原生抓取
+│   ├── docker-compose.yml
+│   └── prometheus.yml               # 原生抓取规则配置 (自监控与探针配置)
+├── victoria-logs/                   # VictoriaLogs 极速轻量日志引擎
+│   └── docker-compose.yml
+├── exporters/                       # 监控探针套件
+│   ├── docker-compose.yml           # 探针聚合编排 (include)
 │   ├── node-exporter/               # 宿主机硬件资源指标探针
 │   │   └── docker-compose.yml
 │   ├── cadvisor/                    # 容器资源指标精简探针

@@ -1,0 +1,60 @@
+# ==============================================================================
+# 前端现代静态打包产物生产托管模板 (Frontend Static SPA / SSG Production Template)
+# 适用场景：React (Vite/CRA), Vue 3 (Vite), Astro (SSG), Svelte (Vite) 编译打包出的 dist 静态目录
+# ==============================================================================
+
+# 1. HTTP (80) 端口自动强制跳转 HTTPS (443)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name web.${SITE_ADDRESS};
+
+    return 301 https://$host$request_uri;
+}
+
+# 2. HTTPS (443) 静态单页应用服务
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name web.${SITE_ADDRESS};
+
+    # SSL 证书 (ACME 自动申请与热重载)
+    ssl_certificate /etc/nginx/ssl/live/${SITE_ADDRESS}/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/live/${SITE_ADDRESS}/privkey.pem;
+    include /etc/nginx/snippets/ssl.conf;
+
+    # 静态产物目录 (请在 docker-compose.yml 的 volumes 挂载至此或相应路径)
+    root /var/www/frontend/dist;
+    index index.html;
+    charset utf-8;
+
+    # 单页应用 (SPA) 路由兜底：静态文件不存在时回退至 index.html 由客户端路由接管
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 前端带 Hash 指纹的静态资源 (JS/CSS/图片/字体/Astro 资源)：开启 1 年强缓存
+    location ~* \.(?:css|js|woff2?|svg|gif|ico|png|jpe?g|webp|avif)$ {
+        expires 1y;
+        access_log off;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # 入口 HTML 文件禁止浏览器强缓存，确保每次发版能立即生效
+    location = /index.html {
+        expires -1;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+    }
+
+    location /api/ {
+        include /etc/nginx/snippets/proxy.conf;
+        set $api_backend "${API_UPSTREAM}";
+        proxy_pass http://$api_backend;
+    }
+
+    # 禁止直接访问隐藏文件 (如 .git, .env)
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}

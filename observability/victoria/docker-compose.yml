@@ -1,6 +1,0 @@
-# ==============================================================================
-# Victoria 核心双引擎模块化编排 (Metrics + Logs)
-# ==============================================================================
-include:
-  - victoria-metrics/docker-compose.yml     # VictoriaMetrics 核心 TSDB 时序数据库与原生抓取引擎
-  - victoria-logs/docker-compose.yml        # VictoriaLogs 极速轻量日志存储引擎

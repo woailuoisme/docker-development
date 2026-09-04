@@ -1,0 +1,41 @@
+# ==============================================================================
+# 通用微服务 / API / 流式长连接全能反代模板 (Universal Reverse Proxy Template)
+# 适用场景：REST API、微服务、大模型 AI Chat 流式响应 (SSE)、WebSocket、实时日志 (Dozzle)
+# ==============================================================================
+
+# 1. HTTP (80) 端口自动强制跳转 HTTPS (443)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name api.${SITE_ADDRESS};
+
+    return 301 https://$host$request_uri;
+}
+
+# 2. HTTPS (443) 全能反向代理服务
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name api.${SITE_ADDRESS};
+
+    # SSL 证书 (ACME 自动申请与热重载)
+    ssl_certificate /etc/nginx/ssl/live/${SITE_ADDRESS}/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/live/${SITE_ADDRESS}/privkey.pem;
+    include /etc/nginx/snippets/ssl.conf;
+
+    location / {
+        include /etc/nginx/snippets/proxy.conf;
+        set $upstream_backend "${API_UPSTREAM}";
+        proxy_pass http://$upstream_backend;
+
+        # 核心：关闭代理缓冲与缓存，确保 SSE / AI 流式响应与实时日志即时推送到客户端
+        proxy_buffering off;
+        proxy_cache off;
+        chunked_transfer_encoding on;
+
+        # 核心：设置 24 小时超长超时，杜绝 WebSocket、长轮询或长时间通信被提前切断
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
+}

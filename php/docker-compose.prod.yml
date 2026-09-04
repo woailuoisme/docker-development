@@ -1,0 +1,37 @@
+x-app-base: &app-base
+  image: ${APP_PROD_IMAGE:-lunchbox-app:prod}
+  restart: always
+  env_file:
+    - .env.production
+  volumes:
+    - ${DATA_PATH}app/storage:/var/www/storage
+  depends_on:
+    postgres:
+      condition: service_started
+    valkey:
+      condition: service_started
+
+services:
+  api:
+    <<: *app-base
+    container_name: app-api
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    command: ['php', 'artisan', 'octane:start', '--server=roadrunner', '--host=0.0.0.0', '--port=8000']
+    networks:
+      - backend
+      - frontend
+
+  horizon:
+    <<: *app-base
+    container_name: app-horizon
+    command: ['php', 'artisan', 'horizon']
+    networks:
+      - backend
+
+  schedule:
+    <<: *app-base
+    container_name: app-schedule
+    command: ['php', 'artisan', 'schedule:work']
+    networks:
+      - backend

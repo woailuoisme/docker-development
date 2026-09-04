@@ -35,8 +35,8 @@
     },
     {
       "datasource": {
-        "type": "loki",
-        "uid": "loki"
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
       },
       "fieldConfig": {
         "defaults": {
@@ -82,11 +82,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "loki",
-            "uid": "loki"
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({job=\"fluent-bit\"}[$__range]))",
+          "expr": "* | count()",
           "queryType": "range",
           "refId": "A"
         }
@@ -96,8 +96,8 @@
     },
     {
       "datasource": {
-        "type": "loki",
-        "uid": "loki"
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
       },
       "fieldConfig": {
         "defaults": {
@@ -147,11 +147,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "loki",
-            "uid": "loki"
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({job=\"fluent-bit\"} |= \"error\" [$__range]))",
+          "expr": "error | count()",
           "queryType": "range",
           "refId": "A"
         }
@@ -161,8 +161,8 @@
     },
     {
       "datasource": {
-        "type": "loki",
-        "uid": "loki"
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
       },
       "fieldConfig": {
         "defaults": {
@@ -238,11 +238,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "loki",
-            "uid": "loki"
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
           },
           "editorMode": "code",
-          "expr": "sum by (stream) (rate({job=\"fluent-bit\"}[1m]))",
+          "expr": "* | rate() by (stream)",
           "queryType": "range",
           "refId": "A"
         }
@@ -252,8 +252,8 @@
     },
     {
       "datasource": {
-        "type": "loki",
-        "uid": "loki"
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
       },
       "fieldConfig": {
         "defaults": {
@@ -330,11 +330,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "loki",
-            "uid": "loki"
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
           },
           "editorMode": "code",
-          "expr": "sum by (container_name) (rate({job=\"fluent-bit\", container_name=~\"$container\"}[1m]))",
+          "expr": "container_name:($container) | rate() by (container_name)",
           "queryType": "range",
           "refId": "A"
         }
@@ -356,8 +356,8 @@
     },
     {
       "datasource": {
-        "type": "loki",
-        "uid": "loki"
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
       },
       "gridPos": {
         "h": 14,
@@ -380,11 +380,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "loki",
-            "uid": "loki"
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
           },
           "editorMode": "code",
-          "expr": "{job=\"fluent-bit\", container_name=~\"$container\"} |= \"$search\"",
+          "expr": "container_name:($container) $search",
           "queryType": "range",
           "refId": "A"
         }
@@ -398,8 +398,8 @@
   "tags": [
     "observability",
     "logs",
-    "fluent-bit",
-    "loki"
+    "vector",
+    "victorialogs"
   ],
   "templating": {
     "list": [
@@ -411,17 +411,17 @@
           "value": "$__all"
         },
         "datasource": {
-          "type": "loki",
-          "uid": "loki"
+          "type": "victoriametrics-logs-datasource",
+          "uid": "victorialogs"
         },
-        "definition": "label_values(container_name)",
+        "definition": "field_values(container_name)",
         "hide": 0,
         "includeAll": true,
         "label": "容器名称",
         "multi": true,
         "name": "container",
         "options": [],
-        "query": "label_values(container_name)",
+        "query": "field_values(container_name)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -472,5 +472,5 @@
   "timezone": "browser",
   "title": "统一容器日志中心 (Container Logs Central)",
   "uid": "container-logs-central",
-  "version": 1
+  "version": 2
 }

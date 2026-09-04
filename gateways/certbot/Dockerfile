@@ -1,4 +1,3 @@
-#ARG CERTBOT_VERSION=v5.2.2
 ARG CERTBOT_VERSION=latest
 FROM certbot/certbot:${CERTBOT_VERSION}
 
@@ -9,7 +8,7 @@ ARG TIMEZONE=Asia/Shanghai
 # 替换为阿里云镜像源以解决网络问题，并抑制 pip 警告
 ENV PIP_ROOT_USER_ACTION=ignore
 RUN if [ "${CHANGE_SOURCE}" = "true" ]; then \
-        sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
     fi && \
     apk add --no-cache netcat-openbsd tzdata && \
     cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \

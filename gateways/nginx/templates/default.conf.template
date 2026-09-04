@@ -1,0 +1,30 @@
+# ==============================================================================
+# 默认兜底站点 (Default Server / Fallback)
+# 拦截未绑定域名或直接通过 IP 访问的 HTTP/HTTPS 请求，阻断未授权扫描与嗅探
+# ==============================================================================
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    # 存活探针健康检查 (Docker HEALTHCHECK / K8s / LB)
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "healthy\n";
+    }
+
+    location / {
+        return 444;
+    }
+}
+
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    server_name _;
+
+    ssl_certificate /etc/nginx/ssl/live/${SITE_ADDRESS}/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/live/${SITE_ADDRESS}/privkey.pem;
+    include /etc/nginx/snippets/ssl.conf;
+
+    return 444;
+}

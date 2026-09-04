@@ -1,0 +1,76 @@
+# ==============================================================================
+# Traefik v3 Static Configuration (静态基础配置)
+# ==============================================================================
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+# ------------------------------------------------------------------------------
+# 日志配置 (Logging)
+# ------------------------------------------------------------------------------
+log:
+  level: INFO
+  format: common
+
+accessLog:
+  format: common
+  bufferingSize: 100
+  filters:
+    retryAttempts: true
+    minDuration: 10ms
+
+# ------------------------------------------------------------------------------
+# API 与 Dashboard 仪表盘 (API & Dashboard)
+# ------------------------------------------------------------------------------
+api:
+  dashboard: true
+  insecure: false  # 禁用非安全的 8080 直接端口暴露，改由 dynamic/dashboard.yml 路由统一管理
+
+# ------------------------------------------------------------------------------
+# 入口点配置 (EntryPoints)
+# ------------------------------------------------------------------------------
+entryPoints:
+  # HTTP 入口 (默认自动重定向至 HTTPS)
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+
+  # HTTPS 入口 (支持 HTTP/3)
+  websecure:
+    address: ":443"
+    http3: {}
+    http:
+      tls: {}
+
+# ------------------------------------------------------------------------------
+# 配置提供者 (Providers)
+# ------------------------------------------------------------------------------
+providers:
+  # Docker 容器动态标签服务发现
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: "frontend"
+    watch: true
+
+  # File 动态文件配置提供者 (支持 Go 模版变量热重载)
+  file:
+    directory: "/etc/traefik/dynamic"
+    watch: true
+
+# ------------------------------------------------------------------------------
+# 证书解析器 (可选 Let's Encrypt ACME 自动签发预留)
+# ------------------------------------------------------------------------------
+# certificatesResolvers:
+#   letsencrypt:
+#     acme:
+#       email: admin@example.com
+#       storage: /etc/traefik/acme/acme.json
+#       httpChallenge:
+#         entryPoint: web

@@ -1,0 +1,40 @@
+# ==============================================================================
+# 前端 Node/SSR 容器与 Vite 开发容器反向代理模板 (Frontend SSR & Dev Server Proxy)
+# 适用场景：Next.js, Nuxt 3, Astro (Node SSR), SvelteKit 或 Vite 本地开发容器 (带 HMR 热重载)
+# ==============================================================================
+
+# 1. HTTP (80) 端口自动强制跳转 HTTPS (443)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name node.${SITE_ADDRESS};
+
+    return 301 https://$host$request_uri;
+}
+
+# 2. HTTPS (443) 前端开发服务器 / SSR 服务反代
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name node.${SITE_ADDRESS};
+
+    # SSL 证书 (ACME 自动申请与热重载)
+    ssl_certificate /etc/nginx/ssl/live/${SITE_ADDRESS}/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/live/${SITE_ADDRESS}/privkey.pem;
+    include /etc/nginx/snippets/ssl.conf;
+
+    location / {
+        include /etc/nginx/snippets/proxy.conf;
+        set $upstream_backend "${FRONTEND_UPSTREAM}";
+        proxy_pass http://$upstream_backend;
+
+        # 核心优化 1：针对 Vite / Webpack Dev Server 的 HMR WebSocket 保持长连接不中断
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+
+        # 核心优化 2：针对 React 19 / Next.js / Astro 的流式 SSR (Streaming SSR)，关闭缓冲立即下发 HTML 块
+        proxy_buffering off;
+        chunked_transfer_encoding on;
+    }
+}

@@ -30,5 +30,7 @@ fi
 # 在此可以继续按需添加其他业务库，例如：
 # create_db_if_not_exists "shop"
 # create_db_if_not_exists "authelia"
+create_db_if_not_exists "zitadel"
+create_db_if_not_exists "chatwoot"
 
 echo "Database administrator tasks completed."

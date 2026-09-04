@@ -1,0 +1,26 @@
+# ==============================================================================
+# Traefik v3 业务路由模板示例 (Apps Dynamic Route Template)
+# ==============================================================================
+# 提示: Traefik 的 File 提供者原生支持 Go 模板语法。
+# 您可以直接在配置文件中使用 {{ env "SITE_ADDRESS" }} 引用环境变量，
+# 在不同环境（如本地 test.local、开发 dev.example.com）下自动适配无缝切换。
+# ==============================================================================
+
+# http:
+#   routers:
+#     example-app:
+#       rule: "Host(`example.{{ env \"SITE_ADDRESS\" }}`)"
+#       entryPoints:
+#         - websecure
+#       service: example-app-service
+#       tls: {}
+#       middlewares:
+#         - security-headers
+#         - compress
+#
+#   services:
+#     example-app-service:
+#       loadBalancer:
+#         servers:
+#           - url: "http://example-container:8000"
+#         passHostHeader: true

@@ -4,7 +4,8 @@
 include:
   - docker-socket-proxy/docker-compose.yml  # Docker Socket 安全只读鉴权代理 (默认启用)
   - dozzle/docker-compose.yml               # Dozzle 实时容器日志流查看器 (默认启用)
-  # - beszel/docker-compose.yml             # Beszel 轻量服务器资源监控集群 (Hub & Agent)
+  # - beszel-hub/docker-compose.yml         # Beszel Hub 轻量服务器监控服务端与 Web 看板
+  # - beszel-agent/docker-compose.yml       # Beszel Agent 节点监控探针
   # - arcane/docker-compose.yml             # Arcane 开源现代 Docker 容器管理 WebUI
   # - portainer/docker-compose.yml          # Portainer CE 容器可视化控制端
   # - portainer-agent/docker-compose.yml    # Portainer Agent 节点探针

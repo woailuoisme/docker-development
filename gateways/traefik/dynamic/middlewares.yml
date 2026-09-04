@@ -1,0 +1,46 @@
+# ==============================================================================
+# Traefik v3 通用中间件配置 (Common Middlewares)
+# ==============================================================================
+
+http:
+  middlewares:
+    # --------------------------------------------------------------------------
+    # 1. 安全响应头 (Security Headers)
+    # --------------------------------------------------------------------------
+    security-headers:
+      headers:
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        customFrameOptionsValue: "SAMEORIGIN"
+        referrerPolicy: "strict-origin-when-cross-origin"
+        permissionsPolicy: "camera=(), microphone=(), geolocation=()"
+
+    # --------------------------------------------------------------------------
+    # 2. 内容压缩中间件 (Gzip & Brotli)
+    # --------------------------------------------------------------------------
+    compress:
+      compress:
+        excludedContentTypes:
+          - "text/event-stream"
+          - "application/grpc"
+
+    # --------------------------------------------------------------------------
+    # 3. 速率限制中间件 (Rate Limiting)
+    # --------------------------------------------------------------------------
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: "1s"
+
+    # --------------------------------------------------------------------------
+    # 4. 控制台 BasicAuth 基础认证 (预设 admin / admin)
+    # 生成新哈希: echo $(htpasswd -nb <user> <password>)
+    # --------------------------------------------------------------------------
+    dashboard-auth:
+      basicAuth:
+        users:
+          - "admin:$apr1$ruca84Hq$mbjdMZBAG.KWn7vfN/SNK/"

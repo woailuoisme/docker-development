@@ -5,5 +5,6 @@
 include:
   - grafana/docker-compose.yml       # Grafana 统一可视化多源数据看板
   - vector/docker-compose.yml        # Vector 高性能全能可观测性数据管道 (核心日志/指标采集与中继)
-  - victoria/docker-compose.yml      # Victoria 极速高压缩监控集群 (含 VictoriaMetrics TSDB、VictoriaLogs 日志引擎与 4 大 Exporters)
-#   - tempo/docker-compose.yml         # Grafana Tempo 分布式链路追踪存储
+  - victoria-metrics/docker-compose.yml # VictoriaMetrics 核心 TSDB 时序数据库与原生抓取引擎
+  - victoria-logs/docker-compose.yml    # VictoriaLogs 极速轻量日志存储引擎
+  - tempo/docker-compose.yml         # Grafana Tempo 分布式链路追踪存储

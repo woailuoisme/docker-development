@@ -1,71 +1,56 @@
-name: zitadel
+# ==============================================================================
+# ZITADEL 统一身份认证与授权平台 (Identity & Access Management / ZITADEL)
+# ==============================================================================
+# 📦 镜像组件架构与职责说明：
+#
+# 1. zitadel-api (ghcr.io/zitadel/zitadel)
+#    - 功能职责：ZITADEL 核心后端引擎 (Golang)。承载身份认证 (OIDC/OAuth2/SAML)、
+#               权限授权、多租户管理、事件溯源 (Event Sourcing) 及 gRPC / REST API。
+#    - 使用方式：作为 IAM 基础设施核心，负责数据库初始化/迁移、数据持久化与令牌签发。
+#               通过 `start-from-init` 一键完成初始化并启动，对外提供管理控制台与认证接口，
+#               由 Caddy 网关以 h2c 协议进行高性能反代。
+#
+# 2. zitadel-login (ghcr.io/zitadel/zitadel-login)
+#    - 功能职责：现代化 Login V2 独立前端用户界面 (Next.js / React)。
+#               自 ZITADEL v4 起从后端解耦独立发布，专职负责终端用户视觉与认证交互。
+#    - 使用方式：承载用户登录、注册、MFA 多因子验证、重置密码等全套交互流程。
+#               通过首次启动生成的机器服务账号令牌 (login-client.pat) 与 zitadel-api 通信，
+#               在反代网关中路由至 `/ui/v2/login` 前缀，直接面向终端浏览器访问。
+# ==============================================================================
 
 services:
-  proxy:
-    image: ${TRAEFIK_IMAGE}
-    restart: unless-stopped
-    command:
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --providers.docker.network=zitadel
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --api.dashboard=${TRAEFIK_DASHBOARD_ENABLED}
-      - --api.insecure=false
-      - --ping=true
-      - --ping.entrypoint=web
-      - --log.level=${TRAEFIK_LOG_LEVEL}
-      - --accesslog=${TRAEFIK_ACCESSLOG_ENABLED}
-    ports:
-      - ${PROXY_HTTP_PUBLISHED_PORT}:80
-    networks:
-      - zitadel
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    depends_on:
-      zitadel-api:
-        condition: service_healthy
-      zitadel-login:
-        condition: service_healthy
-
   zitadel-api:
-    image: ghcr.io/zitadel/zitadel:${ZITADEL_VERSION}
-    restart: unless-stopped
+    image: ghcr.io/zitadel/zitadel:${ZITADEL_VERSION:-v4.17.2}
+    container_name: zitadel-api
+    restart: always
     user: "0"
-    command: start-from-init --masterkey "${ZITADEL_MASTERKEY}"
+    command: start-from-init --masterkey "${ZITADEL_MASTERKEY:-MasterkeyNeedsToHave32Characters}"
     environment:
       ZITADEL_PORT: 8080
-      ZITADEL_EXTERNALDOMAIN: ${ZITADEL_DOMAIN}
-      ZITADEL_EXTERNALPORT: ${ZITADEL_EXTERNALPORT}
-      ZITADEL_EXTERNALSECURE: ${ZITADEL_EXTERNALSECURE}
-      ZITADEL_TLS_ENABLED: false
+      ZITADEL_EXTERNALDOMAIN: zitadel.${SITE_ADDRESS}
+      ZITADEL_EXTERNALPORT: 443
+      ZITADEL_EXTERNALSECURE: "true"
+      ZITADEL_TLS_ENABLED: "false"
 
-      ZITADEL_DATABASE_POSTGRES_DSN: ${ZITADEL_DATABASE_POSTGRES_DSN}
+      # 数据库连接：接入 backend 网络公共 PostgreSQL (提供开箱即用开发回退)
+      ZITADEL_DATABASE_POSTGRES_DSN: ${ZITADEL_DATABASE_POSTGRES_DSN:-postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/zitadel?sslmode=disable}
 
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: false
+      # 首次初始化配置与 PAT 令牌生成 (供给 Login V2 UI 使用)
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "false"
       ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /zitadel/bootstrap/login-client.pat
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Automatically Initialized IAM_LOGIN_CLIENT
-      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: ${LOGIN_CLIENT_PAT_EXPIRATION}
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: "2099-01-01T00:00:00Z"
 
-      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: true
-      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: ${ZITADEL_PUBLIC_SCHEME}://${ZITADEL_DOMAIN}:${ZITADEL_EXTERNALPORT}/ui/v2/login/
-      ZITADEL_OIDC_DEFAULTLOGINURLV2: ${ZITADEL_PUBLIC_SCHEME}://${ZITADEL_DOMAIN}:${ZITADEL_EXTERNALPORT}/ui/v2/login/login?authRequest=
-      ZITADEL_OIDC_DEFAULTLOGOUTURLV2: ${ZITADEL_PUBLIC_SCHEME}://${ZITADEL_DOMAIN}:${ZITADEL_EXTERNALPORT}/ui/v2/login/logout?post_logout_redirect=
-      ZITADEL_SAML_DEFAULTLOGINURLV2: ${ZITADEL_PUBLIC_SCHEME}://${ZITADEL_DOMAIN}:${ZITADEL_EXTERNALPORT}/ui/v2/login/login?samlRequest=
+      # Login V2 UI 路由端点与重定向
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: "true"
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: https://zitadel.${SITE_ADDRESS}/ui/v2/login/
+      ZITADEL_OIDC_DEFAULTLOGINURLV2: https://zitadel.${SITE_ADDRESS}/ui/v2/login/login?authRequest=
+      ZITADEL_OIDC_DEFAULTLOGOUTURLV2: https://zitadel.${SITE_ADDRESS}/ui/v2/login/logout?post_logout_redirect=
+      ZITADEL_SAML_DEFAULTLOGINURLV2: https://zitadel.${SITE_ADDRESS}/ui/v2/login/login?samlRequest=
 
-      ZITADEL_LOGSTORE_ACCESS_STDOUT_ENABLED: ${ZITADEL_ACCESS_LOG_STDOUT_ENABLED}
-
-      ZITADEL_INSTRUMENTATION_TRACE_EXPORTER_TYPE: ${ZITADEL_INSTRUMENTATION_TRACE_EXPORTER_TYPE}
-      ZITADEL_INSTRUMENTATION_TRACE_EXPORTER_ENDPOINT: ${ZITADEL_INSTRUMENTATION_TRACE_EXPORTER_ENDPOINT}
-      ZITADEL_INSTRUMENTATION_TRACE_EXPORTER_INSECURE: ${ZITADEL_INSTRUMENTATION_TRACE_EXPORTER_INSECURE}
-      ZITADEL_INSTRUMENTATION_SERVICENAME: ${ZITADEL_INSTRUMENTATION_SERVICENAME}
-
-      ZITADEL_CACHES_CONNECTORS_REDIS_ENABLED: ${ZITADEL_CACHES_CONNECTORS_REDIS_ENABLED}
-      ZITADEL_CACHES_CONNECTORS_REDIS_URL: ${ZITADEL_CACHES_CONNECTORS_REDIS_URL}
-      ZITADEL_CACHES_INSTANCE_CONNECTOR: ${ZITADEL_CACHES_INSTANCE_CONNECTOR}
-      ZITADEL_CACHES_MILESTONES_CONNECTOR: ${ZITADEL_CACHES_MILESTONES_CONNECTOR}
-      ZITADEL_CACHES_ORGANIZATION_CONNECTOR: ${ZITADEL_CACHES_ORGANIZATION_CONNECTOR}
+      # 访问日志标准输出
+      ZITADEL_LOGSTORE_ACCESS_STDOUT_ENABLED: "true"
 
     healthcheck:
       test:
@@ -77,63 +62,21 @@ services:
       retries: 12
       start_period: 20s
     volumes:
-      - zitadel-bootstrap:/zitadel/bootstrap:rw
+      - ${DATA_PATH}zitadel/bootstrap:/zitadel/bootstrap:rw
     networks:
-      - zitadel
-    depends_on:
-      postgres:
-        condition: service_healthy
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=zitadel
-
-      - traefik.http.services.zitadel-api.loadbalancer.server.port=8080
-      - traefik.http.services.zitadel-api.loadbalancer.server.scheme=h2c
-
-      - traefik.http.middlewares.zitadel-strip-api.stripprefix.prefixes=/api
-      - traefik.http.middlewares.zitadel-strip-api.stripprefix.forceSlash=false
-
-      # Note: no dedicated gRPC router needed. All gRPC and Connect-RPC traffic
-      # is handled by the catch-all router below since the backend already uses h2c.
-
-      - traefik.http.routers.zitadel-api-alias-web.rule=Host(`${ZITADEL_DOMAIN}`) && PathPrefix(`/api`)
-      - traefik.http.routers.zitadel-api-alias-web.entrypoints=web
-      - traefik.http.routers.zitadel-api-alias-web.middlewares=zitadel-strip-api
-      - traefik.http.routers.zitadel-api-alias-web.service=zitadel-api
-      - traefik.http.routers.zitadel-api-alias-web.priority=200
-
-      - traefik.http.routers.zitadel-api-alias-websecure.rule=Host(`${ZITADEL_DOMAIN}`) && PathPrefix(`/api`)
-      - traefik.http.routers.zitadel-api-alias-websecure.entrypoints=websecure
-      - traefik.http.routers.zitadel-api-alias-websecure.tls=true
-      - traefik.http.routers.zitadel-api-alias-websecure.middlewares=zitadel-strip-api
-      - traefik.http.routers.zitadel-api-alias-websecure.service=zitadel-api
-      - traefik.http.routers.zitadel-api-alias-websecure.priority=200
-
-      - traefik.http.routers.zitadel-canonical-web.rule=Host(`${ZITADEL_DOMAIN}`) && !PathPrefix(`/ui/v2/login`) && !PathPrefix(`/api`) && !Path(`/`)
-      - traefik.http.routers.zitadel-canonical-web.entrypoints=web
-      - traefik.http.routers.zitadel-canonical-web.service=zitadel-api
-      - traefik.http.routers.zitadel-canonical-web.priority=100
-
-      - traefik.http.routers.zitadel-canonical-websecure.rule=Host(`${ZITADEL_DOMAIN}`) && !PathPrefix(`/ui/v2/login`) && !PathPrefix(`/api`) && !Path(`/`)
-      - traefik.http.routers.zitadel-canonical-websecure.entrypoints=websecure
-      - traefik.http.routers.zitadel-canonical-websecure.tls=true
-      - traefik.http.routers.zitadel-canonical-websecure.service=zitadel-api
-      - traefik.http.routers.zitadel-canonical-websecure.priority=100
+      - frontend
+      - backend
 
   zitadel-login:
-    image: ghcr.io/zitadel/zitadel-login:${ZITADEL_VERSION}
-    restart: unless-stopped
+    image: ghcr.io/zitadel/zitadel-login:${ZITADEL_VERSION:-v4.17.2}
+    container_name: zitadel-login
+    restart: always
     user: "0"
     environment:
       ZITADEL_API_URL: http://zitadel-api:8080
       NEXT_PUBLIC_BASE_PATH: /ui/v2/login
       ZITADEL_SERVICE_USER_TOKEN_FILE: /zitadel/bootstrap/login-client.pat
-      CUSTOM_REQUEST_HEADERS: Host:${ZITADEL_DOMAIN},X-Forwarded-Proto:${ZITADEL_PUBLIC_SCHEME}
-
-      # Future-ready placeholders for upcoming Login OTEL support.
-      OTEL_SERVICE_NAME: ${LOGIN_OTEL_SERVICE_NAME}
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${LOGIN_OTEL_EXPORTER_OTLP_ENDPOINT}
-      OTEL_EXPORTER_OTLP_PROTOCOL: ${LOGIN_OTEL_EXPORTER_OTLP_PROTOCOL}
+      CUSTOM_REQUEST_HEADERS: Host:zitadel.${SITE_ADDRESS},X-Forwarded-Proto:https
     healthcheck:
       test:
         - CMD
@@ -145,92 +88,10 @@ services:
       retries: 12
       start_period: 20s
     volumes:
-      - zitadel-bootstrap:/zitadel/bootstrap:ro
-    networks:
-      - zitadel
+      - ${DATA_PATH}zitadel/bootstrap:/zitadel/bootstrap:ro
     depends_on:
       zitadel-api:
         condition: service_healthy
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=zitadel
-      - traefik.http.services.zitadel-login.loadbalancer.server.port=3000
-
-      - traefik.http.middlewares.zitadel-root-rewrite.replacepath.path=/ui/v2/login/
-
-      - traefik.http.routers.zitadel-root-web.rule=Host(`${ZITADEL_DOMAIN}`) && Path(`/`)
-      - traefik.http.routers.zitadel-root-web.entrypoints=web
-      - traefik.http.routers.zitadel-root-web.middlewares=zitadel-root-rewrite
-      - traefik.http.routers.zitadel-root-web.service=zitadel-login
-      - traefik.http.routers.zitadel-root-web.priority=400
-
-      - traefik.http.routers.zitadel-root-websecure.rule=Host(`${ZITADEL_DOMAIN}`) && Path(`/`)
-      - traefik.http.routers.zitadel-root-websecure.entrypoints=websecure
-      - traefik.http.routers.zitadel-root-websecure.tls=true
-      - traefik.http.routers.zitadel-root-websecure.middlewares=zitadel-root-rewrite
-      - traefik.http.routers.zitadel-root-websecure.service=zitadel-login
-      - traefik.http.routers.zitadel-root-websecure.priority=400
-
-      - traefik.http.routers.zitadel-login-web.rule=Host(`${ZITADEL_DOMAIN}`) && PathPrefix(`/ui/v2/login`)
-      - traefik.http.routers.zitadel-login-web.entrypoints=web
-      - traefik.http.routers.zitadel-login-web.service=zitadel-login
-      - traefik.http.routers.zitadel-login-web.priority=250
-
-      - traefik.http.routers.zitadel-login-websecure.rule=Host(`${ZITADEL_DOMAIN}`) && PathPrefix(`/ui/v2/login`)
-      - traefik.http.routers.zitadel-login-websecure.entrypoints=websecure
-      - traefik.http.routers.zitadel-login-websecure.tls=true
-      - traefik.http.routers.zitadel-login-websecure.service=zitadel-login
-      - traefik.http.routers.zitadel-login-websecure.priority=250
-
-  postgres:
-    image: ${POSTGRES_IMAGE}
-    restart: unless-stopped
-    environment:
-      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
-      POSTGRES_USER: ${POSTGRES_ADMIN_USER}
-      POSTGRES_DB: ${POSTGRES_DB}
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_ADMIN_USER}
-      interval: 10s
-      timeout: 30s
-      retries: 10
-      start_period: 20s
-    volumes:
-      - postgres-data:/var/lib/postgresql/data:rw
     networks:
-      - zitadel
-
-  redis:
-    image: ${REDIS_IMAGE}
-    restart: unless-stopped
-    profiles:
-      - cache
-    command:
-      - --save
-      - ""
-      - --appendonly
-      - "no"
-    networks:
-      - zitadel
-
-  otel-collector:
-    image: ${OTEL_COLLECTOR_IMAGE}
-    restart: unless-stopped
-    profiles:
-      - observability
-    command:
-      - --config=/etc/otelcol/config.yaml
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
-    networks:
-      - zitadel
-
-networks:
-  zitadel:
-    name: zitadel
-
-volumes:
-  postgres-data:
-  zitadel-bootstrap:
+      - frontend
+      - backend

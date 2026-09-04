@@ -3,52 +3,46 @@ FROM grafana/grafana:${GRAFANA_VERSION}
 LABEL maintainer="seaside <531773730@qq.com>"
 
 # ==============================================================================
-# SECTION 1: 构建参数与系统环境配置 (Debian Slim 换源与基础工具)
+# SECTION 1: 构建参数与系统环境配置
 # ==============================================================================
-ARG CHINA=true
 ARG TIMEZONE=Asia/Shanghai
 USER root
 
-# 适配 Debian 12 (Bookworm) / Debian 13 (Trixie) 源配置并安装基础工具
-RUN if [ "${CHINA}" = "true" ]; then \
-        if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
-            sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources; \
-        fi; \
-        if [ -f /etc/apt/sources.list ]; then \
-            sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list; \
-            sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list; \
-        fi; \
+# 适配基础包、系统时区与 grafana-cli 兼容脚本
+RUN if [ -f /etc/alpine-release ]; then \
+        apk add --no-cache curl tzdata; \
+    elif command -v apt-get >/dev/null 2>&1; then \
+        apt-get update && \
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            curl \
+            tzdata && \
+        apt-get clean && \
+        rm -rf /var/lib/apt/lists/*; \
     fi && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        curl \
-        tzdata && \
     ln -snf "/usr/share/zoneinfo/${TIMEZONE}" /etc/localtime && \
     echo "${TIMEZONE}" > /etc/timezone && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    if ! command -v grafana-cli >/dev/null 2>&1 && command -v grafana >/dev/null 2>&1; then \
+        printf '#!/bin/sh\nexec grafana cli "$@"\n' > /usr/local/bin/grafana-cli && \
+        chmod +x /usr/local/bin/grafana-cli; \
+    fi
 
 # ==============================================================================
-# SECTION 2: 官方与社区插件批量安装 (按监控职能分组合并)
+# SECTION 2: 官方与社区插件批量安装 (按职能分组合并)
 # ==============================================================================
 # 1. 数据源增强:
-#    - yesoreyeram-infinity-datasource: 支持 HTTP/REST, CSV, JSON, GraphQL, XML 等泛数据源接入
-#    - victoriametrics-logs-datasource: VictoriaLogs 官方日志检索与聚合数据源插件
-# 2. 状态与指标聚合:
-#    - grafana-polystat-panel: 类似蜂窝/多边形状态聚合，适合海量节点与设备统一概览
-# 3. 内容与富文本:
-#    - marcusolsson-dynamictext-panel: 支持 Markdown/HTML/动态模版渲染富文本
-# 4. 交互控制与操作:
-#    - volkovlabs-form-panel: 业务表单操作，在面板直接向后台发送 API/控制指令
-# 5. 看板与大屏辅助:
-#    - grafana-clock-panel: 监控大屏显眼时间与时钟展示
+#    - yesoreyeram-infinity-datasource: 万能数据源，支持 HTTP/REST, JSON, CSV, GraphQL 等接入
+#    - victoriametrics-logs-datasource: VictoriaLogs 官方日志检索与聚合数据源插件（强依赖）
+# 2. 高级可视化与大屏图表:
+#    - volkovlabs-echarts-panel: Apache ECharts 渲染面板，支持桑基图、雷达图、关系拓扑及高级定制
+#    - marcusolsson-hourly-heatmap-panel: 24小时 x 7天 GitHub 风格业务与故障时段热力矩阵
+# 3. 动态内容与排版:
+#    - marcusolsson-dynamictext-panel: 支持 Markdown/HTML/Handlebars 动态模板渲染卡片
 RUN for plugin in \
         yesoreyeram-infinity-datasource \
         victoriametrics-logs-datasource \
-        grafana-polystat-panel \
+        volkovlabs-echarts-panel \
+        marcusolsson-hourly-heatmap-panel \
         marcusolsson-dynamictext-panel \
-        volkovlabs-form-panel \
-        grafana-clock-panel \
     ; do \
         grafana-cli plugins install "$plugin"; \
     done

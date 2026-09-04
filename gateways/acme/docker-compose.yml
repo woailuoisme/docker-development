@@ -6,7 +6,7 @@ services:
     container_name: acme
     environment:
       - TZ=Asia/Shanghai
-      - DOMAIN=${DOMAIN:-gaara.lol}
+      - DOMAIN=${DOMAIN:-${SITE_ADDRESS:-test.local}}
       - DNS_PROVIDER=${DNS_PROVIDER:-cloudflare}
       # Cloudflare
       - CLOUDFLARE_API_TOKEN=${DNS_CLOUDFLARE_API_TOKEN:-}
@@ -17,6 +17,7 @@ services:
     volumes:
       - ${DATA_PATH}acme:/acme.sh
       - ${DATA_PATH}ssl:/ssl
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: always
     networks:
       - backend

@@ -1,0 +1,56 @@
+# ==============================================================================
+# Laravel / PHP-FPM 生产级全功能站点模板 (Laravel PHP-FPM Production Template)
+# 适用场景：Laravel、Symfony 等现代 PHP-FPM 应用 (支持 HTTP 强跳 HTTPS + HTTP/2)
+# ==============================================================================
+
+# 1. HTTP (80) 端口自动强制跳转 HTTPS (443)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name app.${SITE_ADDRESS};
+
+    return 301 https://$host$request_uri;
+}
+
+# 2. HTTPS (443) 核心业务服务
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name app.${SITE_ADDRESS};
+
+    # SSL 证书 (由 ACME 容器生成并联动热重载，未生成时由 entrypoint 脚本自动兜底自签)
+    ssl_certificate /etc/nginx/ssl/live/${SITE_ADDRESS}/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/live/${SITE_ADDRESS}/privkey.pem;
+    include /etc/nginx/snippets/ssl.conf;
+
+    # Laravel Web 根目录与字符集
+    root /var/www/public;
+    index index.php index.html;
+    charset utf-8;
+
+    # Laravel 前端路由与单一入口调度
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # 常见元数据免日志
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    # PHP-FPM 调度块 (动态变量配合 Docker DNS 解析，避免容器未启动时 Nginx 崩溃退出)
+    location ~ \.php$ {
+        set $php_fpm_backend "${PHP_UPSTREAM}";
+        fastcgi_pass $php_fpm_backend;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+        include /etc/nginx/snippets/fastcgi-security.conf;
+    }
+
+    # 禁止访问隐藏文件 (排除 Let's Encrypt / ACME 的 .well-known)
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}

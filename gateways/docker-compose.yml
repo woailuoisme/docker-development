@@ -12,12 +12,9 @@ include:
   # - 3xui/docker-compose.yml               # 3X-UI 多协议网络代理面板
   # - sui/docker-compose.yml                # S-UI 轻量级代理管理面板
 
-  # --- Nginx Web 反代多形态系列 (Nginx Ecosystem) ---
-  # - standard/docker-compose.yml           # Nginx 标准全功能反向代理 (含完整站点与 snippets)
-  # - simple/docker-compose.yml             # Nginx 极简快速启动形态
+  # --- Nginx Web 反代与生态系列 (Nginx Ecosystem) ---
+  # - nginx/docker-compose.yml              # Nginx 标准全功能反向代理 (含模块化 snippets 与虚拟主机)
   # - npm/docker-compose.yml                # Nginx Proxy Manager (NPM 可视化管理后台)
-  # - openresty/docker-compose.yml          # OpenResty 高性能 Lua 网关与动态代理
-  # - base-alpine/docker-compose.yml        # Nginx Alpine WAF 基础镜像性能测试
 
   # --- SSL / TLS 证书自动化管理工具 (SSL/TLS Certificates) ---
   # - certbot/docker-compose.yml            # Let's Encrypt 官方 Certbot 证书管理
