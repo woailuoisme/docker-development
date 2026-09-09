@@ -167,6 +167,6 @@ server {
 
 ## 🔒 证书与安全机制
 
-1. **ACME 联动**：正式证书由 `gateways/acme` 服务自动向 Let's Encrypt 申请泛域名证书，保存在 `${DATA_PATH}ssl/live/${SITE_ADDRESS}/` 目录，供 Nginx 直接引用。
+1. **ACME 联动**：正式证书由 `gateways/lego` 服务自动向 Let's Encrypt 申请泛域名证书，保存在 `${DATA_PATH}ssl/live/${SITE_ADDRESS}/` 目录，供 Nginx 直接引用。
 2. **启动自签兜底**：容器启动时，`05-init-ssl.sh` 会检查证书是否已就绪。若尚未生成，会自动调用 `openssl` 即时生成一张临时通配符证书（`*.${SITE_ADDRESS}`），杜绝因缺少 SSL 证书导致 Nginx 容器崩溃闪退。
 3. **安全防护增强**：默认加载防刷限流（`anti-ddos.conf`）、基础 WAF 注入拦截（`waf.conf`）以及完整现代安全响应头（`security-headers.conf`，含 HSTS、No-Sniff、Frame-Options 等）。

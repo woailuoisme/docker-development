@@ -1,0 +1,63 @@
+groups:
+  - name: infrastructure_alerts
+    interval: 15s
+    rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "服务目标不可达 (实例: {{ $labels.instance }})"
+          description: "目标 {{ $labels.job }} 持续 1 分钟未能响应指标抓取，服务可能已崩溃或网络断开。"
+
+      - alert: HostHighCpuLoad
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "宿主机 CPU 使用率过高 (实例: {{ $labels.instance }})"
+          description: "宿主机 CPU 使用率持续 5 分钟超过 85%（当前值: {{ $value | printf \"%.2f\" }}%）。"
+
+      - alert: HostMemoryUnderPressure
+        expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "宿主机可用内存不足 (实例: {{ $labels.instance }})"
+          description: "宿主机可用内存持续 5 分钟低于 10%（当前值: {{ $value | printf \"%.2f\" }}%）。"
+
+      - alert: HostDiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "根分区磁盘剩余空间过低 (实例: {{ $labels.instance }})"
+          description: "根目录可用磁盘空间持续 5 分钟低于 15%（当前值: {{ $value | printf \"%.2f\" }}%）。"
+
+  - name: container_alerts
+    interval: 15s
+    rules:
+      - alert: ContainerHighMemoryUsage
+        expr: (container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""}) * 100 > 85
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "容器内存接近上限 (容器: {{ $labels.name }})"
+          description: "容器 {{ $labels.name }} 内存占用已持续 3 分钟超过配额的 85%（当前值: {{ $value | printf \"%.2f\" }}%）。"
+
+  - name: victoriametrics_alerts
+    interval: 15s
+    rules:
+      - alert: VictoriaMetricsWriteErrors
+        expr: rate(vm_rows_ignored_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "VictoriaMetrics 丢弃写入数据"
+          description: "VictoriaMetrics 正在忽略或丢弃指标写入（当前速率: {{ $value }} 条/秒），请检查磁盘容量或时序合法性。"

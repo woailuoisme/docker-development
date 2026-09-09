@@ -1,41 +1,75 @@
 <clickhouse>
-    <!-- 禁用不需要的接口和日志表，减少资源消耗 -->
+    <!-- ============================================================================== -->
+    <!-- ClickHouse 极简低内存 (Low-Memory) 与高稳定性调优配置 -->
+    <!-- 适用场景: 本地开发 / 轻量物联时序与日志分析 (常驻目标 1.0G ~ 1.5G, 容器配额 2.5G) -->
+    <!-- ============================================================================== -->
+
+    <!-- 0. 监听地址绑定: 仅监听 IPv4，避免容器未开启 IPv6 时的监听报错与重试 -->
+    <listen_host>0.0.0.0</listen_host>
+
+    <!-- 1. 协议与端口裁剪: 禁用不需要的 MySQL 与 PostgreSQL 兼容端口，减少监听线程与内存开销 -->
     <mysql_port remove="1" />
     <postgresql_port remove="1" />
+
+    <!-- 2. 系统日志表精简治理: 禁用高开销内部监控表，大幅削减后台微小 Part 产生与磁盘合并开销 -->
     <query_thread_log remove="1" />
+    <part_log remove="1" />
+    <trace_log remove="1" />
+    <text_log remove="1" />
     <opentelemetry_span_log remove="1" />
     <processors_profile_log remove="1" />
+    <session_log remove="1" />
+    <zookeeper_log remove="1" />
+    <asynchronous_insert_log remove="1" />
 
-    <!-- 允许系统在内存不足时卸载二进制页面 -->
+    <!-- 3. 保留核心排障与指标表，放宽刷新间隔并配置 3 天 TTL 自动淘汰过期数据 -->
+    <query_log>
+        <flush_interval_milliseconds>15000</flush_interval_milliseconds>
+        <ttl>event_date + INTERVAL 3 DAY DELETE</ttl>
+    </query_log>
+
+    <metric_log>
+        <flush_interval_milliseconds>30000</flush_interval_milliseconds>
+        <ttl>event_date + INTERVAL 3 DAY DELETE</ttl>
+    </metric_log>
+
+    <!-- 4. 允许系统在内存吃紧时将只读可执行二进制页面换出，防止被内核强制 OOM 杀死 -->
     <mlock_executable>false</mlock_executable>
 
-    <!-- 缓存大小（256MB + 64MB + 16MB = 336MB） -->
+    <!-- 5. 核心缓存优化 (ClickHouse 官方低内存最佳实践) -->
+    <!-- 索引标记缓存: 256MB，稀疏索引过滤的主力，维持高聚合与快速点查性能 -->
     <mark_cache_size>268435456</mark_cache_size>
+    <!-- 二级索引标记缓存: 64MB -->
     <index_mark_cache_size>67108864</index_mark_cache_size>
-    <uncompressed_cache_size>16777216</uncompressed_cache_size>
+    <!-- 未压缩数据缓存: 设为 0 (OLAP 实时解压极快，禁用可直接节约 100MB+ 常驻内存，消除内存抖动) -->
+    <uncompressed_cache_size>0</uncompressed_cache_size>
+    <!-- MMAP 缓存: 设为 0，避免内核页缓存不可控膨胀 -->
+    <mmap_cache_size>0</mmap_cache_size>
 
-    <!-- 连接和并发限制 -->
+    <!-- 6. 连接池与并发查询限制: 严格防范高并发查询堆积打满内存 -->
     <max_connections>64</max_connections>
     <max_concurrent_queries>8</max_concurrent_queries>
 
-    <!-- 内存管理：使用 75% RAM，为系统保留 25% -->
+    <!-- 7. 服务进程硬内存上限 (Server-Level Hard Limit) -->
+    <!-- 显式硬限制 1.8GB (1932735283 字节)，容器上限 2.5GB，预留 700MB 给系统与页缓存，杜绝 Docker OOMKilled -->
+    <max_server_memory_usage>1932735283</max_server_memory_usage>
     <max_server_memory_usage_to_ram_ratio>0.75</max_server_memory_usage_to_ram_ratio>
 
-    <!-- 后台合并线程池（2核优化） -->
+    <!-- 8. 后台合并线程池与并发度限制 (针对本地 2~4 核 CPU 调优) -->
     <background_pool_size>2</background_pool_size>
     <background_merges_mutations_concurrency_ratio>2</background_merges_mutations_concurrency_ratio>
 
-    <!-- MergeTree 合并优化 -->
+    <!-- 9. MergeTree 存储引擎合并与 Part 调优 -->
     <merge_tree>
-        <!-- 合并时每次读取的行数，降低内存使用 -->
-        <merge_max_block_size>1024</merge_max_block_size>
-        <!-- 单次合并最大 1GB -->
+        <!-- 每次合并读取行数恢复为标准 8192 (避免 1024 导致过多细碎 part 激增后台 CPU/IO) -->
+        <merge_max_block_size>8192</merge_max_block_size>
+        <!-- 单次合并最大尺寸限制为 1GB -->
         <max_bytes_to_merge_at_max_space_in_pool>1073741824</max_bytes_to_merge_at_max_space_in_pool>
-        <!-- 池空闲条目控制，必须 <= background_pool_size * background_merges_mutations_concurrency_ratio -->
+        <!-- 合并池空闲条目控制 -->
         <number_of_free_entries_in_pool_to_lower_max_size_of_merge>2</number_of_free_entries_in_pool_to_lower_max_size_of_merge>
         <number_of_free_entries_in_pool_to_execute_mutation>2</number_of_free_entries_in_pool_to_execute_mutation>
         <number_of_free_entries_in_pool_to_execute_optimize_entire_partition>2</number_of_free_entries_in_pool_to_execute_optimize_entire_partition>
-        <!-- Wide part 和垂直合并阈值 128MB -->
+        <!-- 宽 Part (Wide Part) 与垂直合并阈值 (128MB) -->
         <min_bytes_for_wide_part>134217728</min_bytes_for_wide_part>
         <vertical_merge_algorithm_min_bytes_to_activate>134217728</vertical_merge_algorithm_min_bytes_to_activate>
     </merge_tree>

@@ -1,15 +1,25 @@
 services:
   casdoor:
-    image: casbin/casdoor:latest
+    image: casbin/casdoor:4.2.0
     container_name: casdoor
     restart: always
     ports:
-      - "8300:8000"
+      - "${CASDOOR_PORT:-8300}:8000"
     environment:
       - GIN_MODE=release
+      - TZ=${TIMEZONE:-Asia/Shanghai}
     volumes:
       - ${CONFIG_PATH}iam/casdoor/conf:/conf
-      - ${DATA_PATH}casdoor/logs:/logs
+      - ${LOG_PATH}casdoor:/logs
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - frontend
       - backend
+

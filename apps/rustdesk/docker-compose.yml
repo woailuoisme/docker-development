@@ -1,0 +1,42 @@
+# ==============================================================================
+# RustDesk - 开源远程桌面基础服务 (自建信令与中继服务器)
+# ==============================================================================
+# 【核心组件与作用】
+# 1. rustdesk-hbbs (Rendezvous / ID 调度中心)：
+#    负责客户端注册、心跳维持、NAT 类型检测与 P2P 直连打洞协商。
+# 2. rustdesk-hbbr (Relay 数据中继网关)：
+#    在双方网络受限无法实现 P2P 直连打洞时，提供端到端加密数据流转发。
+# ==============================================================================
+
+services:
+  hbbs:
+    image: rustdesk/rustdesk-server:latest
+    container_name: rustdesk-hbbs
+    command: hbbs -r ${RUSTDESK_RELAY_HOST:-rustdesk.${SITE_ADDRESS}:21117} -k _
+    volumes:
+      - ${DATA_PATH}rustdesk:/root
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "21115:21115"
+      - "21116:21116"
+      - "21116:21116/udp"
+      - "21118:21118"
+    restart: unless-stopped
+    depends_on:
+      - hbbr
+
+  hbbr:
+    image: rustdesk/rustdesk-server:latest
+    container_name: rustdesk-hbbr
+    command: hbbr -k _
+    volumes:
+      - ${DATA_PATH}rustdesk:/root
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "21117:21117"
+      - "21119:21119"
+    restart: unless-stopped

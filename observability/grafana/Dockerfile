@@ -31,6 +31,7 @@ RUN if [ -f /etc/alpine-release ]; then \
 # ==============================================================================
 # 1. 数据源增强:
 #    - yesoreyeram-infinity-datasource: 万能数据源，支持 HTTP/REST, JSON, CSV, GraphQL 等接入
+#    - victoriametrics-datasource: VictoriaMetrics 官方指标数据源插件 (支持原生 MetricsQL 语法补全与高级特性)
 #    - victoriametrics-logs-datasource: VictoriaLogs 官方日志检索与聚合数据源插件（强依赖）
 # 2. 高级可视化与大屏图表:
 #    - volkovlabs-echarts-panel: Apache ECharts 渲染面板，支持桑基图、雷达图、关系拓扑及高级定制
@@ -39,13 +40,17 @@ RUN if [ -f /etc/alpine-release ]; then \
 #    - marcusolsson-dynamictext-panel: 支持 Markdown/HTML/Handlebars 动态模板渲染卡片
 RUN for plugin in \
         yesoreyeram-infinity-datasource \
+        victoriametrics-datasource \
         victoriametrics-logs-datasource \
         volkovlabs-echarts-panel \
         marcusolsson-hourly-heatmap-panel \
         marcusolsson-dynamictext-panel \
     ; do \
         grafana-cli plugins install "$plugin"; \
-    done
+    done && \
+    chown -R 472:0 /var/lib/grafana && \
+    chmod -R 755 /var/lib/grafana && \
+    rm -rf /tmp/* /var/tmp/*
 
 # ==============================================================================
 # SECTION 3: UI 界面与白标定制 (静态清理与定制)
@@ -66,7 +71,7 @@ COPY --chown=472:0 grafana.ini /etc/grafana/grafana.ini
 COPY --chown=472:0 provisioning/ /etc/grafana/provisioning/
 COPY --chown=472:0 dashboards/ /etc/grafana/provisioning/dashboards/
 
-RUN chmod -R 755 /etc/grafana /var/lib/grafana
+RUN chmod -R 755 /etc/grafana
 
 # ==============================================================================
 # SECTION 5: 运行时环境与安全规范

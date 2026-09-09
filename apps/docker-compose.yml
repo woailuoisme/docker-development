@@ -5,11 +5,13 @@
   # - homepage/docker-compose.yml           # Homepage 个人导航与服务状态仪表盘
   # - docs/docker-compose.yml               # 项目在线技术文档站点 (VuePress)
   # - drawio/docker-compose.yml             # Draw.io 在线流程图与架构图设计
+  # - drawdb/docker-compose.yml             # DrawDB 在线关系数据库与 SQL 模式图设计
   # - excalidraw/docker-compose.yml         # Excalidraw 现代手绘风格白板协作
   # - gotenberg/docker-compose.yml          # Gotenberg 无头浏览器 HTML/Office 转 PDF
   # - librespeed/docker-compose.yml         # LibreSpeed 私有网络测速服务
   # - tuwunel/docker-compose.yml            # Tuwunel Matrix 去中心化聊天服务器
   # - sshwifty/docker-compose.yml           # Sshwifty 网页版轻量 SSH 终端客户端
+  # - rustdesk/docker-compose.yml           # RustDesk 自建远程桌面信令与数据中继服务
   # - chatwoot/docker-compose.yml           # Chatwoot 开源全渠道客户即时沟通系统
   # - openclaw/docker-compose.yml           # OpenClaw 本地 AI Agent 智能体沙箱网关
   # - go-access/docker-compose.yml          # GoAccess 实时 Web 访问日志分析

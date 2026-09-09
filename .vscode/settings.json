@@ -53,7 +53,9 @@
         "docker-compose*.yml": "dockercompose",
         "docker-compose*.yaml": "dockercompose",
         "justfile": "makefile",
-        "*.hadolint*": "yaml"
+        "*.hadolint*": "yaml",
+        // 身份认证与模板配置 (Authelia 基于 Go text/template 渲染)
+        "**/iam/authelia/**/configuration.yml": "gotemplate"
     },
     // ==========================================
     // 3. 代码格式化与编辑习惯 (规范缩进与换行)
@@ -89,6 +91,10 @@
         "editor.insertSpaces": true,
         "editor.formatOnSave": true
     },
+    "[gotemplate]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
+    },
     // ==========================================
     // 4. Linter 与静态分析 (ShellCheck & Hadolint 集成)
     // ==========================================
@@ -100,12 +106,22 @@
     // ==========================================
     "css.lint.unknownAtRules": "ignore",
     // ==========================================
-    // 6. YAML Schema 映射 (精准消除 services.yaml 等误判)
+    // 6. YAML Schema 映射 (消除 Traefik v2 误判与 SchemaStore 滞后报警)
     // ==========================================
     "yaml.schemas": {
         "./.vscode/homepage-schema.json": [
             "homepage/**",
             "**/homepage/config/**"
+        ],
+        "https://json.schemastore.org/traefik-v3.json": [
+            "gateways/traefik/traefik.yml",
+            "gateways/traefik/traefik.yaml",
+            "**/traefik/traefik.yml",
+            "**/traefik/traefik.yaml"
+        ],
+        "https://www.schemastore.org/traefik-v3-file-provider.json": [
+            "gateways/traefik/dynamic/**",
+            "**/traefik/dynamic/**"
         ]
     }
 }

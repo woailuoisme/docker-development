@@ -7,7 +7,7 @@ services:
     environment:
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
     ports:
-      - "${SEARCH_PORT:-7700}:7700"
+      - "${MEILI_PORT:-7700}:7700"
     volumes:
       - ${DATA_PATH}meili_data:/meili_data
       - ${CONFIG_PATH}meilisearch/config.toml:/meili_config/config.toml:ro

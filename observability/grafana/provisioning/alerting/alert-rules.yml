@@ -1,18 +1,26 @@
+# ==============================================================================
+# Grafana 告警规则自动化预配 (Alert Rules Provisioning)
+# 规范：Grafana Unified Alerting (apiVersion: 1)
+# 作用：容器启动时自动将预设的告警规则加载至数据库，无需手动在 Web 页面配置
+# ==============================================================================
 apiVersion: 1
 
 groups:
   - orgId: 1
-    name: iot-vending-alerts
-    folder: IoT Alerts
-    interval: 1m
+    name: iot-vending-alerts               # 告警规则组名称
+    folder: IoT Alerts                     # 存放该组规则的 Grafana 文件夹名称
+    interval: 1m                           # 评估触发周期 (每 1 分钟执行一次 SQL 检测)
     rules:
-      # 1. 冷冻温区超温告警
+      # ------------------------------------------------------------------------
+      # 规则 1: 冷冻温区超温告警 (P1 关键业务告警)
+      # 场景：检测售卖机 4 个冷冻温区温度是否连续超过 -10℃ 警戒线
+      # ------------------------------------------------------------------------
       - uid: high-temperature-alert
         title: "[P1] 冷冻温区超温告警"
-        condition: A
+        condition: A                       # 触发告警的查询语句别名 (refId)
         data:
           - refId: A
-            relativeTimeRange: { from: 300, to: 0 }
+            relativeTimeRange: { from: 300, to: 0 } # 查询最近 5 分钟 (300秒) 的时序窗口
             datasourceUid: iot-vending-timescaledb
             model:
               rawSql: |
@@ -21,21 +29,24 @@ groups:
                 WHERE $__timeFilter(time) 
                 AND (freezer_temp_0 > -10 OR freezer_temp_1 > -10 OR freezer_temp_2 > -10 OR freezer_temp_3 > -10)
               refId: A
-        for: 5m
+        for: 5m                            # 持续超温 5 分钟后正式转为 Firing 状态，抑制偶发毛刺波动
         annotations:
           summary: "设备 {{ $labels.device_no }} 冷冻温区异常"
           description: "检测到冷冻温区温度超过安全阈值(-10℃)，请立即检查压缩机状态。"
         labels:
-          severity: critical
-        isPaused: true
+          severity: critical               # 告警等级：用于通知策略路由匹配
+        isPaused: true                     # 默认处于暂停状态（需要联调时可在 UI 解除或改为 false）
 
-      # 2. 设备离线告警
+      # ------------------------------------------------------------------------
+      # 规则 2: 设备意外离线告警 (P0 致命告警)
+      # 场景：售卖机心跳检测超时，判定网络中断、断电或系统死机
+      # ------------------------------------------------------------------------
       - uid: vm-offline-alert
         title: "[P0] 设备意外离线"
         condition: A
         data:
           - refId: A
-            relativeTimeRange: { from: 900, to: 0 }
+            relativeTimeRange: { from: 900, to: 0 } # 查询最近 15 分钟 (900秒) 的设备状态记录
             datasourceUid: iot-vending-timescaledb
             model:
               rawSql: |
@@ -43,21 +54,24 @@ groups:
                 FROM vm_status
                 WHERE status = 'offline' AND $__timeFilter(time)
               refId: A
-        for: 10m
+        for: 10m                           # 离线持续 10 分钟后触发，避免因短暂重连产生误报
         annotations:
           summary: "设备 {{ $labels.device_no }} 已离线"
           description: "设备响应心跳超时超过10分钟，怀疑网络中断或电源故障。"
         labels:
-          severity: emergency
-        isPaused: true
+          severity: emergency              # 告警等级：紧急 (Emergency)
+        isPaused: true                     # 默认处于暂停状态
 
-      # 3. 暴力破坏告警
+      # ------------------------------------------------------------------------
+      # 规则 3: 设备遭受暴力破坏告警 (P0 物理安全与防盗告警)
+      # 场景：机载加速度传感器检测到异常剧烈撞击或破坏事件
+      # ------------------------------------------------------------------------
       - uid: vm-vandalism-alert
         title: "[P0] 暴力破坏告警"
         condition: A
         data:
           - refId: A
-            relativeTimeRange: { from: 60, to: 0 }
+            relativeTimeRange: { from: 60, to: 0 }  # 查询最近 1 分钟 (60秒) 的物理事件
             datasourceUid: iot-vending-timescaledb
             model:
               rawSql: |
@@ -65,7 +79,7 @@ groups:
                 FROM vm_events
                 WHERE event_type = 'VANDALISM_ALERT' AND $__timeFilter(time)
               refId: A
-        for: 0m # 立即触发
+        for: 0m                            # 持续时间 0m：无缓冲立即触发！
         annotations:
           summary: "设备 {{ $labels.device_no }} 遭受暴力撞击"
           description: "加速度计检测到剧烈震动，可能存在人为破坏，请查阅抓拍视频。"

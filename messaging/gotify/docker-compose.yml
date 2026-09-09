@@ -4,11 +4,11 @@ services:
     container_name: gotify
     restart: always
     ports:
-      - "8380:80"
+      - "${GOTIFY_PORT:-8380}:80"
     environment:
       - GOTIFY_DEFAULTUSER_NAME=${GOTIFY_DEFAULTUSER_NAME}
       - GOTIFY_DEFAULTUSER_PASS=${GOTIFY_DEFAULTUSER_PASS}
-      - TZ=Asia/Shanghai
+      - TZ=${TIMEZONE:-Asia/Shanghai}
     volumes:
       - "${DATA_PATH}gotify:/app/data"
     networks:

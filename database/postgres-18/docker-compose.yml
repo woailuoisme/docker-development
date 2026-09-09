@@ -22,5 +22,13 @@ services:
       - ${CONFIG_PATH}database/postgres-18/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ${CONFIG_PATH}database/postgres-18/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB:-postgres} -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
     networks:
       - backend
+

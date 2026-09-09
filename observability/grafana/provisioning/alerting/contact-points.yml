@@ -1,14 +1,24 @@
+# ==============================================================================
+# Grafana 告警通知触达渠道 (Contact Points Provisioning)
+# 规范：Grafana Unified Alerting (apiVersion: 1)
+# 作用：定义告警触发后的投递终点（如 Gotify、Webhook、邮件、钉钉、企业微信等）
+# ==============================================================================
 apiVersion: 1
 
 contactPoints:
-#  - orgId: 1
-#    name: gotify
-#    receivers:
-#      - uid: gotify-webhook
-#        type: webhook
-#        settings:
-#          url: http://gotify:80/message
-#          httpMethod: POST
-#          maxAlerts: 0
-#        secureSettings:
-#          authorization_header: ${GOTIFY_APP_TOKEN}
+  # ----------------------------------------------------------------------------
+  # 示例：Gotify 消息推送服务配置
+  # 如需激活：取消下方配置的注释，并确保 GOTIFY_APP_TOKEN 环境变量已在 .env 中正确配置
+  # ----------------------------------------------------------------------------
+  # - orgId: 1
+  #   name: gotify                         # 触达点名称，与 notification-policies.yml 中的 receiver 对应
+  #   receivers:
+  #     - uid: gotify-webhook              # 接收器唯一标识
+  #       type: webhook                    # 通知类型：标准 HTTP Webhook
+  #       disableResolveMessage: false     # 是否在故障恢复时发送恢复通知
+  #       settings:
+  #         url: http://gotify:80/message  # Gotify 服务内部通信地址 (加入同一 Docker backend 网络)
+  #         httpMethod: POST               # HTTP 请求方法
+  #         maxAlerts: 0                   # 单次请求包含的最大告警数 (0 表示不作限制)
+  #       secureSettings:
+  #         authorization_header: ${GOTIFY_APP_TOKEN} # 注入 Gotify App Token 凭据头

@@ -8,15 +8,16 @@ include:
   # - pgbouncer/docker-compose.yml          # PgBouncer 轻量级高性能连接池 (Debian 基础)
   # - pgdog/docker-compose.yml              # PgDog 智能负载与分片路由连接池 (Rust 实现)
   # - pgbackrest/docker-compose.yml         # pgBackRest 企业级物理备份与 WAL 归档 (PITR)
+  # - pgbackups/docker-compose.yml          # PostgreSQL 本地自动化逻辑备份与定时快照 (pg_dump)
 
   # --- 键值缓存与内存库 (In-Memory & Cache) ---
-  - redis/docker-compose.yml                # Redis 经典内存数据结构服务 (默认启用)
+  # - redis/docker-compose.yml                # Redis 经典内存数据结构服务 (备用)
   - valkey/docker-compose.yml               # Valkey 高性能开源内存缓存 (默认启用)
 
   # --- 专用、分析、向量与多模型数据库 (Specialty & NoSQL) ---
   - meilisearch/docker-compose.yml          # Meilisearch 毫秒级全文搜索引擎 (默认启用)
   # - qdrant/docker-compose.yml             # Qdrant 向量数据库 (AI / Embedding / RAG)
-  # - clickhouse/docker-compose.yml         # ClickHouse 极速 OLAP 列式分析数据库
+  - clickhouse/docker-compose.yml         # ClickHouse 极速 OLAP 列式分析数据库 (轻量低内存调优)
   # - mongodb/docker-compose.yml            # MongoDB 文档型 NoSQL 数据库
   # - surrealdb/docker-compose.yml          # SurrealDB 原生多模型数据库 (文档/图/关系/实时)
 

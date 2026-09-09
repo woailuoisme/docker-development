@@ -8,7 +8,7 @@ http:
     # 1. HTTPS Dashboard 路由 (Host 规则采用 Go 模板读取 SITE_ADDRESS)
     # --------------------------------------------------------------------------
     traefik-dashboard:
-      rule: "Host(`traefik.{{ env \"SITE_ADDRESS\" }}`)"
+      rule: 'Host(`traefik.{{ env "SITE_ADDRESS" }}`)'
       entryPoints:
         - websecure
       service: api@internal
@@ -23,7 +23,7 @@ http:
     # 2. HTTP Dashboard 路由 (配合 web 入口重定向或本地直连)
     # --------------------------------------------------------------------------
     traefik-dashboard-http:
-      rule: "Host(`traefik.{{ env \"SITE_ADDRESS\" }}`)"
+      rule: 'Host(`traefik.{{ env "SITE_ADDRESS" }}`)'
       entryPoints:
         - web
       service: api@internal

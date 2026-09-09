@@ -1,56 +1,68 @@
-#!/bin/sh
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-# 定义颜色
+# 终端色彩输出
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}Starting mkcert generator...${NC}"
+echo -e "${GREEN}==> 启动 mkcert 本地证书自动化生成器...${NC}"
 
-# 1. 处理 Root CA
-# mkcert 默认将 CA 存储在 CAROOT 环境变量指定的位置，或者 ~/.local/share/mkcert
-export CAROOT=/root/.local/share/mkcert
+# 1. 处理 Root CA 持久化
+export CAROOT="/root/.local/share/mkcert"
+mkdir -p "${CAROOT}"
 
-# 确保存储目录存在
-mkdir -p "$CAROOT"
-
-if [ -f "$CAROOT/rootCA.pem" ]; then
-	echo -e "${YELLOW}Existing Root CA found at $CAROOT${NC}"
+if [ -f "${CAROOT}/rootCA.pem" ] && [ -f "${CAROOT}/rootCA-key.pem" ]; then
+	echo -e "${YELLOW}[CA] 检测到持久化 Root CA 证书已存在于 ${CAROOT}${NC}"
 else
-	echo -e "${YELLOW}No Root CA found. Generating new Root CA...${NC}"
+	echo -e "${YELLOW}[CA] 未找到现有 Root CA，正在初始化生成新本地根证书...${NC}"
 	mkcert -install
 fi
 
-# 2. 将 Root CA 复制到输出目录，供用户安装到宿主机
-# 假设 /ssl 挂载到了 ../nginx-simple/ssl
+# 2. 将 Root CA 复制到统一输出目录供宿主机导入与服务挂载
 TARGET_CA_DIR="/ssl/ca"
-mkdir -p "$TARGET_CA_DIR"
+mkdir -p "${TARGET_CA_DIR}"
+cp "${CAROOT}/rootCA.pem" "${TARGET_CA_DIR}/rootCA.pem"
 
-cp "$CAROOT/rootCA.pem" "$TARGET_CA_DIR/rootCA.pem"
-echo -e "${GREEN}Root CA copied to $TARGET_CA_DIR/rootCA.pem${NC}"
-echo -e "${YELLOW}IMPORTANT: Please install this Root CA on your host machine to trust these certificates.${NC}"
-echo -e "  Mac: sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain $TARGET_CA_DIR/rootCA.pem"
-echo -e "  Linux: sudo cp $TARGET_CA_DIR/rootCA.pem /usr/local/share/ca-certificates/rootCA.crt && sudo update-ca-certificates"
+echo -e "${GREEN}[CA] Root CA 已成功分发至: ${TARGET_CA_DIR}/rootCA.pem${NC}"
+echo -e "${BLUE}[CA] 宿主机信任提示:${NC}"
+echo -e "  - macOS: just trust-mkcert (或: sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ${TARGET_CA_DIR}/rootCA.pem)"
+echo -e "  - Linux: sudo cp ${TARGET_CA_DIR}/rootCA.pem /usr/local/share/ca-certificates/mkcert-rootCA.crt && sudo update-ca-certificates"
 
-# 3. 生成域名证书
-DOMAINS=${DOMAINS:-"localhost 127.0.0.1 ::1"}
-CERT_NAME="local"
-TARGET_CERT_DIR="/ssl/live/$CERT_NAME"
+# 3. 组装域名列表（含顶级通配符与本地回环）
+SITE_ADDRESS="${SITE_ADDRESS:-test.local}"
+EXTRA_DOMAINS="${DOMAINS:-}"
 
-echo -e "${GREEN}Generating certificates for domains: $DOMAINS${NC}"
-mkdir -p "$TARGET_CERT_DIR"
+# 基础 SAN 列表：基础域名、泛域名、localhost、回环 IP 以及 *.local 泛域名
+BASE_DOMAINS="${SITE_ADDRESS} *.${SITE_ADDRESS} localhost 127.0.0.1 ::1 *.local"
+ALL_DOMAINS="${BASE_DOMAINS} ${EXTRA_DOMAINS}"
 
-# 生成证书
-# 直接输出到目标目录
-mkcert -cert-file "$TARGET_CERT_DIR/fullchain.pem" \
-	-key-file "$TARGET_CERT_DIR/privkey.pem" \
-	$DOMAINS
+# 解析为 Bash 数组避免展开注水与解析异常
+read -ra DOMAIN_LIST <<< "${ALL_DOMAINS}"
 
-echo -e "${GREEN}Certificates generated at:${NC}"
-echo -e "  Cert: $TARGET_CERT_DIR/fullchain.pem"
-echo -e "  Key:  $TARGET_CERT_DIR/privkey.pem"
+echo -e "${GREEN}[CERT] 正在为以下域名签发全量 SAN 证书:${NC}"
+for domain in "${DOMAIN_LIST[@]}"; do
+	echo -e "  - ${domain}"
+done
 
-# 保持容器运行一段时间以便查看日志，或者直接退出
-# 如果作为一次性任务运行，直接退出即可
-echo -e "${GREEN}Task completed successfully.${NC}"
+# 4. 生成统一标准的证书文件（对齐 Traefik 与 Nginx 挂载路径）
+TARGET_CERT_DIR="/ssl/live/${SITE_ADDRESS}"
+mkdir -p "${TARGET_CERT_DIR}"
+
+mkcert \
+	-cert-file "${TARGET_CERT_DIR}/fullchain.pem" \
+	-key-file "${TARGET_CERT_DIR}/privkey.pem" \
+	"${DOMAIN_LIST[@]}"
+
+# 同时同步至 /ssl/live/local 兼容旧路径与默认回退
+LOCAL_CERT_DIR="/ssl/live/local"
+mkdir -p "${LOCAL_CERT_DIR}"
+cp "${TARGET_CERT_DIR}/fullchain.pem" "${LOCAL_CERT_DIR}/fullchain.pem"
+cp "${TARGET_CERT_DIR}/privkey.pem" "${LOCAL_CERT_DIR}/privkey.pem"
+
+echo -e "${GREEN}✔ 证书签发与分发完成:${NC}"
+echo -e "  - 站点主证书: ${TARGET_CERT_DIR}/fullchain.pem"
+echo -e "  - 站点私钥:   ${TARGET_CERT_DIR}/privkey.pem"
+echo -e "  - 本地镜像:   ${LOCAL_CERT_DIR}/fullchain.pem"
+echo -e "${GREEN}==> 所有证书任务已成功执行完成。${NC}"

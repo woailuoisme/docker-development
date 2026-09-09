@@ -40,4 +40,4 @@ iam/authelia/config/db.sqlite3
 **/mosquitto/config/passwd
 
 **/simulators/nodejs/node_modules
-
+.agents/skills

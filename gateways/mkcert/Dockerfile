@@ -5,10 +5,12 @@ LABEL maintainer="seaside <531773730@qq.com>"
 # 安装 mkcert 和必要的依赖
 # mkcert 需要 nss-tools 来支持 Firefox (可选) 和 openssl
 RUN apk add --no-cache \
-    mkcert \
+    bash \
     nss-tools \
     openssl \
-    ca-certificates
+    ca-certificates \
+  && apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing \
+    mkcert
 
 # 设置工作目录
 WORKDIR /app

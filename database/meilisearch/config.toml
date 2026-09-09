@@ -33,3 +33,5 @@ experimental_reduce_indexing_memory_usage = true
 experimental_max_number_of_batched_tasks = 10
 # 限制并发查询队列长度，避免瞬时搜索洪峰导致 OOM
 experimental_search_queue_size = 100
+# 开启原生 Prometheus 指标暴露接口 (/metrics，0MB 额外 Exporter 容器开销)
+experimental_enable_metrics = true

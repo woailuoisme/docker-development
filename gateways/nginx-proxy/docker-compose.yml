@@ -1,0 +1,16 @@
+services:
+  nginx-proxy:
+    container_name: nginx-proxy
+    image: jlesage/nginx-proxy-manager:latest
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+    ports:
+      - "8181:8181"
+      - "8080:8080"
+      - "4443:4443"
+    volumes:
+      - ${DATA_PATH}nginx-proxy:/config:rw
+    networks:
+      - frontend
+      - backend

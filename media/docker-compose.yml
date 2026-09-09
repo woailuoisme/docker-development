@@ -1,8 +1,13 @@
 # ==============================================================================
-# 音视频与实时流媒体服务技术栈模块化编排
-# 可根据实际开发需求，选择启用 MediaMTX 全协议网关、LiveKit WebRTC SFU 或 SRS 6
+# 音视频与多媒体处理服务技术栈模块化编排
+# 可根据实际开发需求，选择启用 MediaMTX 全协议网关、LiveKit WebRTC SFU、SRS 6 或 imgproxy
 # ==============================================================================
-# include:
-#   - mediamtx/docker-compose.yml # MediaMTX 全协议流媒体服务 (RTSP / RTMP / WebRTC / HLS)
-  # - livekit/docker-compose.yml  # LiveKit 现代化分布式 WebRTC SFU 服务器
-  # - srs/docker-compose.yml      # SRS 6 工业级高性能流媒体服务器
+include:
+  - imgproxy/docker-compose.yml        # imgproxy [Go/C] (~140MB) 高性能实时图片缩放、格式转换与图像处理服务器 (默认启用)
+  # - mediamtx/docker-compose.yml       # MediaMTX [Go] (~40MB) 全协议流媒体服务 (RTSP / RTMP / WebRTC / HLS) (按需启用)
+  # - livekit/docker-compose.yml        # LiveKit [Go] (~80MB) 现代化分布式 WebRTC SFU 服务器 (按需启用)
+  # - srs/docker-compose.yml            # SRS 6 [C++] (~75MB) 工业级高性能流媒体服务器 (按需启用)
+  # - gotenberg/docker-compose.yml      # Gotenberg [Go] (~1.9GB 含Chromium/LibreOffice) 无头文档转 PDF API (按需启用)
+  # - stirling-pdf/docker-compose.yml   # Stirling-PDF [Java] (~1.7GB 含OCR/LibreOffice) 全功能本地 PDF 工具箱 (按需启用)
+  # - piper/docker-compose.yml          # Piper [Python/C++] (~150MB) 极速轻量本地神经语音合成 TTS (按需启用)
+  # - paddleocr/docker-compose.yml      # RapidOCR / PP-OCRv4 [Python/C++] (~300MB) 轻量高精度中文/通用图片文字识别 API & Swagger (按需启用)

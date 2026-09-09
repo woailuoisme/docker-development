@@ -1,24 +1,35 @@
+# ==============================================================================
+# Grafana 告警通知分发策略 (Notification Policies Provisioning)
+# 规范：Grafana Unified Alerting (apiVersion: 1)
+# 作用：定义告警的聚合、抑制周期与分发路由树 (Routing Tree)
+# ==============================================================================
 apiVersion: 1
 
 policies:
-#  - orgId: 1
-#    receiver: gotify
-#    group_by:
-#      - alertname
-#      - grafana_folder
-#    group_wait: 10s
-#    group_interval: 5m
-#    repeat_interval: 4h
-#    routes:
-#      - receiver: gotify
-#        matchers:
-#          - severity = warning
-#        group_wait: 10s
-#        group_interval: 5m
-#        repeat_interval: 12h
-#      - receiver: gotify
-#        matchers:
-#          - severity = critical
-#        group_wait: 5s
-#        group_interval: 2m
-#        repeat_interval: 4h
+  # ----------------------------------------------------------------------------
+  # 示例：Gotify 分发路由策略树
+  # 如需激活：取消下方配置的注释，并配合 contact-points.yml 中的 gotify 接收端使用
+  # ----------------------------------------------------------------------------
+  # - orgId: 1
+  #   receiver: gotify                     # 根路由默认接收端
+  #   group_by:                            # 告警聚合维度（相同 alertname 与文件夹的告警将被打包发送）
+  #     - alertname
+  #     - grafana_folder
+  #   group_wait: 10s                      # 新告警产生后的缓冲等待时间（等待同组更多告警以便合并）
+  #   group_interval: 5m                   # 同组内有新告警产生时的通知发送间隔
+  #   repeat_interval: 4h                  # 告警持续未解决时的重复提醒周期
+  #   routes:
+  #     # 子路由 1: warning 级别告警 (降频通知，避免刷屏)
+  #     - receiver: gotify
+  #       matchers:
+  #         - severity = warning           # 匹配标签 severity 为 warning 的告警
+  #       group_wait: 10s
+  #       group_interval: 5m
+  #       repeat_interval: 12h               # 每 12 小时提醒一次
+  #     # 子路由 2: critical 级别告警 (紧急高频触达)
+  #     - receiver: gotify
+  #       matchers:
+  #         - severity = critical          # 匹配标签 severity 为 critical 的告警
+  #       group_wait: 5s                     # 快速响应缓冲
+  #       group_interval: 2m                 # 加快同组聚合发送
+  #       repeat_interval: 4h                # 每 4 小时持续复核提醒

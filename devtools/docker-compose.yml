@@ -3,6 +3,7 @@
 # ==============================================================================
 include:
   - mailpit/docker-compose.yml              # Mailpit 邮件测试与本地抓包服务 (默认启用)
+  - zot/docker-compose.yml                  # Zot OCI 原生容器镜像仓库与 Web UI (默认启用)
   # - gitea/docker-compose.yml              # Gitea 私有 Git 代码托管仓库
   # - woodpecker/docker-compose.yml         # Woodpecker 轻量容器化 CI/CD 流水线
   # - dokploy/docker-compose.yml            # Dokploy 自托管 PaaS 应用部署平台

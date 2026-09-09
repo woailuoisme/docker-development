@@ -1,0 +1,35 @@
+services:
+  vmagent:
+    image: victoriametrics/vmagent:v1.151.0
+    container_name: vmagent
+    restart: always
+    ports:
+      - "${VMAGENT_PORT:-8429}:8429"
+    command:
+      - "-promscrape.config=/etc/prometheus/prometheus.yml"
+      - "-remoteWrite.url=http://victoria-metrics:8428/api/v1/write"
+      - "-remoteWrite.tmpDataPath=/tmpData"
+      - "-httpListenAddr=:8429"
+      - "-memory.allowedPercent=60"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DATA_PATH}victoria-agent:/tmpData
+      - ${CONFIG_PATH}observability/victoria-agent/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-}
+      - GARAGE_METRICS_TOKEN=${GARAGE_METRICS_TOKEN:-VZaAJqzH0ZhWjOGSen95AEyOgJEVYf/engNWdKIxoo4=}
+    networks:
+      - backend
+    depends_on:
+      - victoria-metrics
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8429/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M

@@ -1,23 +1,29 @@
+# ==============================================================================
+# Grafana 数据源预配：TimescaleDB / PostgreSQL 时序数据库
+# 规范：Grafana Datasource Provisioning (apiVersion: 1)
+# 作用：连接 PostgreSQL/TimescaleDB 数据库，用于物联网售卖机遥测与业务监控大屏
+# ==============================================================================
 apiVersion: 1
 
+# 启动时先清理旧数据源定义，防止修改参数后产生残留重复
 deleteDatasources:
   - name: iot-vending-timescaledb
     orgId: 1
 
 datasources:
-  - name: IoT Vending Machine
-    type: postgres
-    uid: iot-vending-timescaledb
-    access: proxy
-    url: postgres:5432
-    user: postgres
-    database: lunchbox
-    basicAuth: false
-    isDefault: false
+  - name: IoT Vending Machine               # 数据源在 Grafana 界面显示的显示名称
+    type: postgres                          # 数据源类型：标准 PostgreSQL 驱动
+    uid: iot-vending-timescaledb            # 数据源唯一不变的 UID (用于仪表盘内 panel 查询绑定)
+    access: proxy                           # 访问模式：proxy (由 Grafana 后端服务代理请求，不直连前端浏览器)
+    url: postgres:5432                      # 数据库容器连接地址 (Docker 内部网络服务名:端口)
+    user: postgres                          # 数据库连接用户名
+    database: lunchbox                      # 连接的数据库名称
+    basicAuth: false                        # 禁用 HTTP Basic 鉴权
+    isDefault: false                        # 不作为默认全局数据源
     jsonData:
-      database: lunchbox
-      sslmode: 'disable'
-      postgresVersion: 1500 # Use 1500 as safe stable version
-      timescaledb: true
+      database: lunchbox                    # 数据库名
+      sslmode: 'disable'                    # 内网通信禁用 SSL 加密，降低握手与 CPU 开销
+      postgresVersion: 1500                 # 指定 PostgreSQL 兼容协议版本 (15.x 为稳态基准)
+      timescaledb: true                     # 开启 TimescaleDB 插件专有时序语法支持 ($__timeGroup 等宏函数)
     secureJsonData:
-      password: '598f18a1c99d539ced6631add2b428b3'
+      password: '598f18a1c99d539ced6631add2b428b3' # 数据库访问密码密文 (受 Grafana 密钥保管保护)

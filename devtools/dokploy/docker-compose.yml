@@ -1,6 +1,6 @@
 services:
   dokploy:
-    image: dokploy/dokploy:latest
+    image: dokploy/dokploy:v0.30.6
     restart: always
     init: true
     extra_hosts:

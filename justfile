@@ -1,11 +1,18 @@
 set dotenv-load := true
+set default-list := true
 
 # 路径定义
 caddy_root_cert := "./data/caddy/pki/authorities/local/root.crt"
 
 # 快捷别名
+alias default := list
+alias l := list
 alias fmt := fmt-md
 alias validate-docker-compose := lint-compose
+
+# 列出所有可用命令
+list:
+    @just --list
 
 # 运行全量代码与配置检测
 lint: lint-sh lint-docker lint-caddy lint-compose lint-actions lint-md
@@ -52,6 +59,32 @@ trust-cert:
     else
         echo "错误: 找不到证书文件 {{ caddy_root_cert }}"
         echo "请确保 Caddy 服务已经启动并生成了证书。"
+    fi
+
+# 调用 mkcert 容器生成全量本地泛域名证书与 Root CA
+gen-cert:
+    docker compose run --rm mkcert
+
+# 安装 mkcert Root CA 根证书到 macOS 系统钥匙串 (或提示 Linux 导入方式)
+trust-mkcert:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    CA_FILE="${DATA_PATH:-./data/}ssl/ca/rootCA.pem"
+    if [ ! -f "${CA_FILE}" ]; then
+        echo "错误: 未检测到 Root CA 证书文件: ${CA_FILE}"
+        echo "请先执行 'just gen-cert' 生成证书。"
+        exit 1
+    fi
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "正在将 mkcert Root CA 导入 macOS 系统钥匙串..."
+        sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "${CA_FILE}"
+        echo "✔ mkcert Root CA 导入并信任成功！"
+    elif [[ "$OSTYPE" == "linux"* ]]; then
+        echo "Linux 系统请执行以下命令安装 Root CA："
+        echo "sudo cp \"${CA_FILE}\" /usr/local/share/ca-certificates/mkcert-rootCA.crt && sudo update-ca-certificates"
+    else
+        echo "请将 ${CA_FILE} 导入您操作系统的受信任根证书授权机构。"
     fi
 
 # 手动在线重组指定表的膨胀 (例如: just pg-repack lunchbox users)

@@ -1,29 +1,47 @@
+# 启用 HTTP 响应流式传输（提升 Grafana 查询大规模 Trace 时的速度与内存体验）
 stream_over_http_enabled: true
 
+# ==============================================================================
+# SECTION 1: 核心服务器基础设置
+# ==============================================================================
 server:
-  http_listen_port: 3200
-  log_level: info
+  http_listen_port: 3200 # Tempo HTTP API、就绪检测及 Prometheus 指标监听端口
+  log_level: info        # 日志输出级别 (debug/info/warn/error)
 
+# ==============================================================================
+# SECTION 2: Distributor (数据接收与路由分发)
+# ==============================================================================
 distributor:
   receivers:
     otlp:
       protocols:
         grpc:
-          endpoint: 0.0.0.0:4317
+          endpoint: 0.0.0.0:4317 # 原生 OpenTelemetry (OTLP) gRPC 摄取端点
         http:
-          endpoint: 0.0.0.0:4318
+          endpoint: 0.0.0.0:4318 # 原生 OpenTelemetry (OTLP) HTTP 摄取端点
 
+# ==============================================================================
+# SECTION 3: Ingester (链路摄取与内存缓冲落盘)
+# ==============================================================================
 ingester:
-  max_block_duration: 5m
+  max_block_duration: 5m      # 单个 Block 在内存中的最长保留周期，超时强制切块刷盘
+  trace_idle_period: 10s      # Trace 链路空闲静默期：10s 内无新 Span 即判定结束并刷盘，降低常驻内存
+  max_block_bytes: 104857600  # 单个内存 Block 上限 (100MB)，避免极端高频 Trace 堆积打爆内存
 
+# ==============================================================================
+# SECTION 4: Compactor (历史块合并与生命周期清理)
+# ==============================================================================
 compactor:
   compaction:
-    block_retention: 48h
+    block_retention: 48h      # 本地链路数据保留时长（默认 48 小时）
 
+# ==============================================================================
+# SECTION 5: Storage (Trace 存储引擎与本地路径定义)
+# ==============================================================================
 storage:
   trace:
-    backend: local
+    backend: local            # 存储后端模式：local (本地文件系统)
     wal:
-      path: /tmp/tempo/wal
+      path: /tmp/tempo/wal    # 预写日志 (WAL) 路径，用于节点异常宕机时恢复未落盘数据
     local:
-      path: /tmp/tempo/blocks
+      path: /tmp/tempo/blocks # 归档并压缩后的 Trace Blocks 持久化存储目录

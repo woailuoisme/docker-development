@@ -6,8 +6,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - ARCANE_VERSION=v1.17.4
     ports:
       - '3552:3552'
     volumes:

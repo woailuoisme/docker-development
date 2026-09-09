@@ -1,0 +1,27 @@
+services:
+  stirling-pdf:
+    image: frooodle/s-pdf:2.14.3-ultra-lite
+    container_name: stirling-pdf
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      # 8080: Stirling-PDF Web UI 与 REST API 服务端口
+      - "${STIRLING_PDF_PORT:-8089}:8080"
+    environment:
+      - SECURITY_ENABLE_LOGIN=${STIRLING_PDF_ENABLE_LOGIN:-false}
+      - SYSTEM_DEFAULTLOCALE=${STIRLING_PDF_LOCALE:-zh-CN}
+    volumes:
+      - ${DATA_PATH:-./data/}stirling-pdf/tessdata:/usr/share/tessdata
+      - ${DATA_PATH:-./data/}stirling-pdf/configs:/configs
+      - ${DATA_PATH:-./data/}stirling-pdf/customFiles:/customFiles
+      - ${LOG_PATH:-./logs/}stirling-pdf:/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/info/status"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - frontend
+      - backend

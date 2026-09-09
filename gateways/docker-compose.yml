@@ -14,9 +14,12 @@ include:
 
   # --- Nginx Web 反代与生态系列 (Nginx Ecosystem) ---
   # - nginx/docker-compose.yml              # Nginx 标准全功能反向代理 (含模块化 snippets 与虚拟主机)
-  # - npm/docker-compose.yml                # Nginx Proxy Manager (NPM 可视化管理后台)
+  # - nginx-proxy/docker-compose.yml                # Nginx Proxy Manager (NPM 可视化管理后台)
 
   # --- SSL / TLS 证书自动化管理工具 (SSL/TLS Certificates) ---
-  # - certbot/docker-compose.yml            # Let's Encrypt 官方 Certbot 证书管理
-  # - acme/docker-compose.yml               # acme.sh 自动化泛域名证书申请容器
-  # - mkcert/docker-compose.yml             # 本地开发环境自签受信任证书生成器
+  # - lego/docker-compose.yml               # goacme/lego 现代化 Go 原生 ACME 自动证书管理 (推荐)
+  # - mkcert/docker-compose.yml               # 本地开发环境自签受信任证书生成器
+
+
+  # --- 入侵检测与应用防火墙 (IDS & WAF Security) ---
+  # - crowdsec/docker-compose.yml           # CrowdSec 自动化入侵防御与 AppSec WAF 引擎

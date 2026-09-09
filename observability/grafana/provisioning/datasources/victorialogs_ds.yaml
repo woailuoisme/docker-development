@@ -1,12 +1,17 @@
+# ==============================================================================
+# Grafana 数据源预配：VictoriaLogs 日志检索与分析存储
+# 规范：Grafana Datasource Provisioning (apiVersion: 1)
+# 作用：连接 VictoriaLogs 高压缩日志服务，基于官方专用插件提供原生 LogsQL 查询
+# ==============================================================================
 apiVersion: 1
 
 datasources:
-  - name: VictoriaLogs
-    type: victoriametrics-logs-datasource
-    uid: victorialogs
-    access: proxy
-    url: http://victoria-logs:9428
-    isDefault: false
+  - name: VictoriaLogs                      # 数据源显示名称
+    type: victoriametrics-logs-datasource   # 数据源类型：VictoriaLogs 官方专用插件 (由 Dockerfile 预装)
+    uid: victorialogs                       # 数据源唯一 UID (供仪表盘面板日志组件绑定)
+    access: proxy                           # 访问模式：proxy 后端代理
+    url: http://victoria-logs:9428          # VictoriaLogs 服务内部 HTTP 端口
+    isDefault: false                        # 不作为全局默认数据源
     jsonData:
-      maxLines: 1000
-    editable: true
+      maxLines: 1000                        # 单次 LogsQL 查询默认召回的最大日志行数
+    editable: true                          # 允许在前端界面查看或微调数据源属性

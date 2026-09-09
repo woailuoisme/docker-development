@@ -19,11 +19,12 @@ tls:
       sniStrict: false
 
   # --------------------------------------------------------------------------
-  # 静态证书加载 (支持 Go 模板变量语法渲染环境域名)
-  # 默认挂载于 /etc/traefik/certs/ (${CONFIG_PATH}gateways/certbot/conf)
+  # 本地 / 自定义静态证书加载 (支持 Go 模板语法自动加载当前环境变量域名证书)
+  # 本地开发环境下自动加载 ${DATA_PATH}ssl 证书提供受信任访问；
+  # 生产环境下指定了 certResolver 的路由将自动优先使用 Let's Encrypt 证书
   # --------------------------------------------------------------------------
-  # certificates:
-  #   - certFile: "/etc/traefik/certs/live/{{ env \"SITE_ADDRESS\" }}/fullchain.pem"
-  #     keyFile: "/etc/traefik/certs/live/{{ env \"SITE_ADDRESS\" }}/privkey.pem"
-  #     stores:
-  #       - default
+  certificates:
+    - certFile: '/etc/traefik/certs/live/{{ env "SITE_ADDRESS" }}/fullchain.pem'
+      keyFile: '/etc/traefik/certs/live/{{ env "SITE_ADDRESS" }}/privkey.pem'
+      stores:
+        - default

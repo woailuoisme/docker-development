@@ -41,12 +41,15 @@ import proxy-app-auth logs.{$SITE_ADDRESS} victoria-logs:9428
 
 #import proxy-app-subpath msg.{$SITE_ADDRESS} msg gotify:80
 #import proxy-app mq.{$SITE_ADDRESS} rabbitmq:15672
+#import proxy-app-auth redpanda.{$SITE_ADDRESS} redpanda-console:8080
 
 #import proxy-app-auth home.{$SITE_ADDRESS} homepage:3000
 #import proxy-app-auth docs.{$SITE_ADDRESS} docs:80
 import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
 import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
 import proxy-app vault.{$SITE_ADDRESS} vaultwarden:80
+import proxy-app registry.{$SITE_ADDRESS} zot:5000
+#import proxy-app img.{$SITE_ADDRESS} imgproxy:8080
 
 # 子路径服务聚合仅适用于支持baseURL的应用）
 #lot.{$SITE_ADDRESS} {
@@ -57,6 +60,7 @@ import proxy-app vault.{$SITE_ADDRESS} vaultwarden:80
 # import proxy-app ssh.{$SITE_ADDRESS}  ssh:8182
 # import proxy-app app.{$SITE_ADDRESS}  chatNext:3000
 #import proxy-app chat.{$SITE_ADDRESS} chatwoot:3000
+#import proxy-app rustdesk.{$SITE_ADDRESS} rustdesk-hbbs:21118
 
 # 显式声明通配符主机名，让 Caddy 申请并复用 *.{$SITE_ADDRESS} 证书。
 # 未匹配到具体服务的子域名直接中止连接，避免暴露默认响应。

@@ -13,7 +13,8 @@ services:
     command:
       - "--docker_only=true"
       - "--housekeeping_interval=15s"
-      - "--disable_metrics=disk,tcp,udp,percpu,sched,process"
+      - "--disable_metrics=disk,diskIO,tcp,udp,percpu,sched,process,hugetlb,referenced_memory,cpu_topology,resctrl,accelerator"
+      - "--whitelisted_container_labels=com.docker.compose.project,com.docker.compose.service"
     networks:
       - backend
     expose:
@@ -21,5 +22,5 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 128M
+          cpus: '0.3'
+          memory: 96M

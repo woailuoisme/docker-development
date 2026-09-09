@@ -1,11 +1,15 @@
+# ==============================================================================
+# Grafana 仪表盘自动化预配 (Dashboards Provisioning)
+# 作用：定义仪表盘自动化发现器 (Provider)，启动时自动从指定目录载入 JSON 看板文件
+# ==============================================================================
 apiVersion: 1
 
 providers:
-  - name: 'IoT Vending Machine'
-    orgId: 1
-    folder: 'IoT'
-    type: file
-    disableDeletion: false
-    editable: true
+  - name: 'IoT Vending Machine'             # Provider 标识名称
+    orgId: 1                               # 所属组织 ID
+    folder: 'IoT'                          # 导入到 Grafana 后的目标分类文件夹名称
+    type: file                             # 来源类型：本地文件系统 (file)
+    disableDeletion: false                 # 允许在 Web UI 界面临时删除或更新看板
+    editable: true                         # 允许在 Web UI 界面临时编辑看板属性
     options:
-      path: /etc/grafana/provisioning/dashboards
+      path: /etc/grafana/provisioning/dashboards # 容器内扫描 JSON 看板文件的绝对路径

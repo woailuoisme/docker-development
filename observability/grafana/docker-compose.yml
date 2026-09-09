@@ -22,6 +22,10 @@ services:
       - GF_SERVER_DOMAIN=${GF_SERVER_DOMAIN:-localhost}
       - GF_LOG_CONSOLE_FORMAT=console
       - GF_LOG_CONSOLE_USE_COLORS=true
+      - GF_DATABASE_MAX_OPEN_CONN=10
+      - GF_DATABASE_MAX_IDLE_CONN=5
+      - GF_DATABASE_CONN_MAX_LIFETIME=14400
+      - GOMEMLIMIT=384MiB
       - GOTIFY_APP_TOKEN=${GOTIFY_APP_TOKEN}
     tty: true
     stdin_open: true
@@ -35,3 +39,5 @@ services:
         limits:
           cpus: '1.0'
           memory: 512M
+        reservations:
+          memory: 128M

@@ -1,0 +1,103 @@
+# ==============================================================================
+# vmagent 全局指标抓取配置文件
+# 语法 100% 兼容 Prometheus 抓取规范，抓取后统一推送到 VictoriaMetrics
+# ==============================================================================
+global:
+  scrape_interval: 15s     # 默认抓取间隔
+  scrape_timeout: 10s      # 抓取超时时间
+
+  external_labels:
+    monitor: 'lunchbox-vmagent'
+    environment: 'development'
+
+scrape_configs:
+  # 1. 监控 vmagent 自身运行状态与队列积压
+  - job_name: 'vmagent'
+    static_configs:
+      - targets: ['vmagent:8429']
+
+  # 2. 监控 VictoriaMetrics 核心存储引擎
+  - job_name: 'victoria-metrics'
+    static_configs:
+      - targets: ['victoria-metrics:8428']
+
+  # 3. 监控 VictoriaLogs 日志引擎指标与检索状态
+  - job_name: 'victoria-logs'
+    static_configs:
+      - targets: ['victoria-logs:9428']
+
+  # 4. 监控 vmalert 告警规则引擎
+  - job_name: 'vmalert'
+    static_configs:
+      - targets: ['vmalert:8880']
+
+  # 5. 监控宿主机核心硬件与 OS 资源 (Node Exporter)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # 6. 监控 Docker 容器资源占用 (cAdvisor)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # 7. 监控 Valkey / Redis 键值缓存 (redis-exporter)
+  - job_name: 'valkey'
+    static_configs:
+      - targets: ['valkey-exporter:9121']
+
+  # 8. 监控 PostgreSQL 关系型数据库 (postgres-exporter)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # 9. 监控 Caddy 网关流量与响应延时
+  - job_name: 'caddy'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['caddy:2019']
+
+  # 10. 监控 Vector 统一日志与数据管道吞吐
+  - job_name: 'vector'
+    static_configs:
+      - targets: ['vector:8686']
+
+  # 11. 监控 Garage 分布式 S3 对象存储 (原生内置端点，0 额外容器开销)
+  - job_name: 'garage'
+    metrics_path: '/metrics'
+    bearer_token: '%{GARAGE_METRICS_TOKEN:-VZaAJqzH0ZhWjOGSen95AEyOgJEVYf/engNWdKIxoo4=}'
+    static_configs:
+      - targets: ['garage:3903']
+
+  # 12. 监控 Meilisearch 搜索引擎 (原生内置端点，0 额外容器开销)
+  - job_name: 'meilisearch'
+    metrics_path: '/metrics'
+    bearer_token: '%{MEILI_MASTER_KEY:-}'
+    static_configs:
+      - targets: ['meilisearch:7700']
+
+  # 13. 监控 Centrifugo 实时长连接网关 (原生内置端点，0 额外容器开销)
+  - job_name: 'centrifugo'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['centrifugo:8000']
+
+  # 14. 监控 Telegraf 物联网指标中继与 Mosquitto 运行状态 (原生内置端点，0 额外容器开销)
+  - job_name: 'telegraf'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['telegraf:8080']
+
+  # 15. 监控 Traefik 边缘网关与路由流量 (原生内置端点，0 额外容器开销)
+  - job_name: 'traefik'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['traefik:8082']
+
+  # 16. 监控 Authelia 统一身份认证与单点登录状态 (登录成功/失败/2FA/限流)
+  - job_name: 'authelia'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['authelia:9959']
+
+

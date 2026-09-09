@@ -1,0 +1,33 @@
+services:
+  vmalert:
+    image: victoriametrics/vmalert:v1.151.0
+    container_name: vmalert
+    restart: always
+    ports:
+      - "${VMALERT_PORT:-8880}:8880"
+    command:
+      - "-rule=/etc/alerts/*.yml"
+      - "-datasource.url=http://victoria-metrics:8428"
+      - "-remoteWrite.url=http://victoria-metrics:8428"
+      - "-remoteRead.url=http://victoria-metrics:8428"
+      - "-evaluationInterval=15s"
+      - "-httpListenAddr=:8880"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${CONFIG_PATH}observability/victoria-alert/alerts.yml:/etc/alerts/alerts.yml:ro
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+    networks:
+      - backend
+    depends_on:
+      - victoria-metrics
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8880/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M

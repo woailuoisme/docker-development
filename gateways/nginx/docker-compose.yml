@@ -7,7 +7,7 @@ services:
     restart: always
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
-      # - PHP_UPSTREAM=${PHP_UPSTREAM:-php-fpm:9000}
+      - PHP_UPSTREAM=${PHP_UPSTREAM:-php-fpm:9000}
       - API_UPSTREAM=${API_UPSTREAM:-api:8080}
       - FRONTEND_UPSTREAM=${FRONTEND_UPSTREAM:-frontend:3000}
       - TZ=${TIMEZONE:-Asia/Shanghai}

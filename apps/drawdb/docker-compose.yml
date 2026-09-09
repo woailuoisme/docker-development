@@ -1,0 +1,10 @@
+services:
+  drawdb:
+    image: ghcr.io/drawdb-io/drawdb:latest
+    container_name: drawdb
+    restart: unless-stopped
+    ports:
+      - "12080:80"
+    networks:
+      - frontend
+      - backend

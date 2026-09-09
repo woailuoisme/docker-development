@@ -1,0 +1,25 @@
+services:
+  crowdsec:
+    container_name: crowdsec
+    image: ghcr.io/crowdsecurity/crowdsec:latest
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      # 初始安装规则集合: Traefik解析器 + AppSec虚拟补丁 + AppSec通用规则 + HTTP CVE规则
+      - COLLECTIONS=crowdsecurity/traefik crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules crowdsecurity/http-cve
+      # 声明式自动注册 Traefik Bouncer 密钥，免手动运行 cscli
+      - BOUNCER_KEY_traefik=${CROWDSEC_BOUNCER_KEY:-crowdsec-traefik-bouncer-dev-secret-key-32ch}
+    volumes:
+      - ${DATA_PATH}crowdsec/data:/var/lib/crowdsec/data
+      - ${DATA_PATH}crowdsec/config:/etc/crowdsec
+      - ${CONFIG_PATH}gateways/crowdsec/config/acquis.d:/etc/crowdsec/acquis.d:ro
+      - ${LOG_PATH}traefik:/var/log/traefik:ro
+    # 容器间走 backend 内部网络通信 (crowdsec:8080 与 crowdsec:7422)，无需暴露宿主机端口，避免 8080 端口冲突
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "cscli version > /dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s

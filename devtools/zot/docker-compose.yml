@@ -1,0 +1,18 @@
+# docker-compose.yml
+services:
+  zot:
+    image: ghcr.io/project-zot/zot:latest
+    container_name: zot
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - ./zot-config.json:/etc/zot/config.json:ro
+      - ./htpasswd:/etc/zot/htpasswd:ro
+      - ${DATA_PATH}zot/registry:/var/lib/registry
+    networks:
+      - frontend
+      - backend
+    labels:
+      - "diun.enable=true"
+      - "com.centurylinklabs.watchtower.enable=true"

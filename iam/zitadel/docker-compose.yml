@@ -20,7 +20,7 @@
 
 services:
   zitadel-api:
-    image: ghcr.io/zitadel/zitadel:${ZITADEL_VERSION:-v4.17.2}
+    image: ghcr.io/zitadel/zitadel:v4.17.2
     container_name: zitadel-api
     restart: always
     user: "0"
@@ -52,15 +52,18 @@ services:
       # 访问日志标准输出
       ZITADEL_LOGSTORE_ACCESS_STDOUT_ENABLED: "true"
 
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test:
         - CMD
         - /app/zitadel
         - ready
       interval: 10s
-      timeout: 30s
-      retries: 12
-      start_period: 20s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
     volumes:
       - ${DATA_PATH}zitadel/bootstrap:/zitadel/bootstrap:rw
     networks:
@@ -68,7 +71,7 @@ services:
       - backend
 
   zitadel-login:
-    image: ghcr.io/zitadel/zitadel-login:${ZITADEL_VERSION:-v4.17.2}
+    image: ghcr.io/zitadel/zitadel-login:v4.17.2
     container_name: zitadel-login
     restart: always
     user: "0"

@@ -1,0 +1,16 @@
+services:
+  piper:
+    image: rhasspy/wyoming-piper:2.4.3
+    container_name: piper
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    command: ["--voice", "${PIPER_VOICE:-zh_CN-huayan-medium}"]
+    ports:
+      # 10200: Wyoming Piper 神经语音合成服务端口
+      - "${PIPER_PORT:-10200}:10200"
+    volumes:
+      - ${DATA_PATH:-./data/}piper/data:/data
+    networks:
+      - frontend
+      - backend

@@ -1,0 +1,35 @@
+services:
+  vmbackup:
+    image: victoriametrics/vmbackup:v1.151.0
+    container_name: vmbackup
+    restart: always
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        INTERVAL=$${BACKUP_INTERVAL_SECONDS:-86400}
+        echo "[vmbackup] 备份守护服务已启动，执行周期: $${INTERVAL} 秒"
+        while true; do
+          echo "[vmbackup] 开始执行时序数据备份: $$(date)"
+          /vmbackup-prod \
+            -storageDataPath=/storage \
+            -snapshot.createURL=http://victoria-metrics:8428/snapshot/create \
+            -dst=fs:///backup/latest
+          echo "[vmbackup] 备份已完成，等待下一个执行周期..."
+          sleep "$$INTERVAL"
+        done
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DATA_PATH}victoria:/storage:ro
+      - ${DATA_PATH}victoria-backup:/backup
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - BACKUP_INTERVAL_SECONDS=${BACKUP_INTERVAL_SECONDS:-86400}
+    networks:
+      - backend
+    depends_on:
+      - victoria-metrics
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M

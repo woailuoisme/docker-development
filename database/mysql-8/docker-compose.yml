@@ -12,7 +12,7 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       TZ: ${TIMEZONE:-Asia/Shanghai}
     ports:
-      - "43306:3306"
+      - "${MYSQL_PORT:-43306}:3306"
     volumes:
       - ${DATA_PATH}mysql8:/var/lib/mysql
       - ${CONFIG_PATH}database/mysql-8/conf.d:/etc/mysql/conf.d

@@ -1,18 +1,23 @@
 services:
   traefik:
     container_name: traefik
-    image: traefik:v3.3
+    image: traefik:v3.7
     restart: unless-stopped
     init: true
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
       - TZ=${TIMEZONE:-Asia/Shanghai}
+      - AUTHELIA_HOST=${AUTHELIA_HOST:-authelia:9091}
+      - CROWDSEC_BOUNCER_KEY=${CROWDSEC_BOUNCER_KEY:-crowdsec-traefik-bouncer-dev-secret-key-32ch}
+      - CF_DNS_API_TOKEN=${CF_API_TOKEN:-}
+      - TRAEFIK_CERTIFICATESRESOLVERS_LETSENCRYPT_ACME_EMAIL=${LEGO_EMAIL:-admin@${SITE_ADDRESS:-example.com}}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${CONFIG_PATH}gateways/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ${CONFIG_PATH}gateways/traefik/dynamic:/etc/traefik/dynamic:ro
-      - ${CONFIG_PATH}gateways/certbot/conf:/etc/traefik/certs:ro
+      - ${DATA_PATH}ssl:/etc/traefik/certs:ro
       - ${DATA_PATH}traefik/acme:/etc/traefik/acme
+      - ${DATA_PATH}traefik/plugins-storage:/plugins-storage
       - ${LOG_PATH}traefik:/var/log/traefik
     ports:
       - "${TRAEFIK_PORT:-80}:80"

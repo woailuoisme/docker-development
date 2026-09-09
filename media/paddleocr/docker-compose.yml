@@ -1,0 +1,22 @@
+services:
+  paddleocr:
+    build:
+      context: .
+    container_name: paddleocr
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      # 5000: RapidOCR (PP-OCRv4) REST API & Swagger UI (/docs)
+      - "${PADDLEOCR_PORT:-8092}:5000"
+    volumes:
+      - ${DATA_PATH:-./data/}paddleocr:/root/.cache
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:5000/docs\")' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - frontend
+      - backend

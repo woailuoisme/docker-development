@@ -41,9 +41,9 @@ include:
   - messaging/docker-compose.yml            # 统一消息队列、实时推送与队列看板 (Centrifugo / NATS / RabbitMQ / Notifications / Monitors)
 
   # ============================================================================
-  # 4. 实时流媒体与音视频 (Media Streaming & WebRTC)
+  # 4. 实时流媒体与多媒体服务 (Media Streaming & Processing)
   # ============================================================================
-  - media/docker-compose.yml                # 音视频与实时流媒体服务技术栈 (MediaMTX / LiveKit / SRS 6)
+  - media/docker-compose.yml                # 音视频与多媒体处理技术栈 (MediaMTX / LiveKit / SRS 6 / imgproxy)
 
   # ============================================================================
   # 5. 物联网与智能硬件编排 (IoT & Edge Computing)
@@ -76,4 +76,4 @@ include:
   # 10. 业务应用与自建服务 (Self-Hosted Apps & Productivity)
   # ============================================================================
   # - cms/docker-compose.yml                # 开源无头 CMS 与快速应用开发后端 (Directus / PocketBase / WordPress)
-  # - apps/docker-compose.yml               # 协作办公、知识库与个人自建效率服务 (Homepage / Docs / Draw.io / Excalidraw / Gotenberg / LibreSpeed / Tuwunel / Sshwifty / Chatwoot / GoAccess / Uptime Kuma)
+  # - apps/docker-compose.yml               # 协作办公、知识库与个人自建效率服务 (Homepage / Docs / Draw.io / DrawDB / Excalidraw / Gotenberg / LibreSpeed / Tuwunel / Sshwifty / Chatwoot / GoAccess / Uptime Kuma / RustDesk)
