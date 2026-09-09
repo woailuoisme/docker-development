@@ -21,7 +21,7 @@ services:
       - RESEND_API_KEY=${RESEND_API_KEY}
       - RESEND_USER_NAME=${RESEND_USER_NAME:-resend}
     healthcheck:
-      test: ["CMD", "authelia", "healthcheck"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:9091/api/health"]
       interval: 30s
       timeout: 5s
       retries: 3

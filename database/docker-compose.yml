@@ -17,7 +17,7 @@ include:
   # --- 专用、分析、向量与多模型数据库 (Specialty & NoSQL) ---
   - meilisearch/docker-compose.yml          # Meilisearch 毫秒级全文搜索引擎 (默认启用)
   # - qdrant/docker-compose.yml             # Qdrant 向量数据库 (AI / Embedding / RAG)
-  - clickhouse/docker-compose.yml         # ClickHouse 极速 OLAP 列式分析数据库 (轻量低内存调优)
+  # - clickhouse/docker-compose.yml         # ClickHouse 极速 OLAP 列式分析数据库 (轻量低内存调优)
   # - mongodb/docker-compose.yml            # MongoDB 文档型 NoSQL 数据库
   # - surrealdb/docker-compose.yml          # SurrealDB 原生多模型数据库 (文档/图/关系/实时)
 
