@@ -1,0 +1,45 @@
+services:
+  trivy:
+    image: aquasec/trivy:${TRIVY_VERSION:-latest}
+    container_name: trivy
+    restart: unless-stopped
+    command:
+      - server
+      - --listen
+      - 0.0.0.0:4954
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - TRIVY_CACHE_DIR=/root/.cache/trivy
+      - TRIVY_DEBUG=${TRIVY_DEBUG:-false}
+      - TRIVY_INSECURE=${TRIVY_INSECURE:-false}
+      - TRIVY_AUTH_TOKEN=${TRIVY_AUTH_TOKEN:-}
+    volumes:
+      # 漏洞数据库与制品缓存持久化（杜绝重复下载海量离线 DB）
+      - ${DATA_PATH:-./data/}trivy/cache:/root/.cache/trivy
+      # 报告导出目录（支持 HTML、JSON、SARIF 格式持久化）
+      - ${DATA_PATH:-./data/}trivy/reports:/root/reports
+      # 挂载自定义声明式配置文件与忽略规则
+      - ${CONFIG_PATH:-./}security/trivy/trivy.yaml:/root/trivy.yaml:ro
+      - ${CONFIG_PATH:-./}security/trivy/.trivyignore:/root/.trivyignore:ro
+      # 挂载宿主机 Docker 套接字（支持直接扫描宿主机本地 Docker 镜像）
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # 挂载当前仓库代码与配置（支持 IaC 与项目组件安全审计）
+      - ${CONFIG_PATH:-./}:/workspace/project:ro
+      # 挂载应用代码目录（支持依赖项安全扫描）
+      - ${APP_CODE_PATH:-./}:/workspace/app:ro
+    ports:
+      - "${TRIVY_PORT:-4954}:4954"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:4954/healthz"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    networks:
+      - backend
+      - frontend
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2048M

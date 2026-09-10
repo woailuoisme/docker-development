@@ -1,0 +1,34 @@
+services:
+  fail2ban:
+    image: crazymax/fail2ban:${FAIL2BAN_VERSION:-1.1.0}
+    container_name: fail2ban
+    restart: unless-stopped
+    # 采用主机网络栈，直接纳管宿主机与 Docker 网络防火墙规则
+    network_mode: host
+    # 授予 Linux 内核网络配置特权 (iptables 规则增删改查)
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - F2B_LOG_TARGET=STDOUT
+      - F2B_LOG_LEVEL=${FAIL2BAN_LOG_LEVEL:-INFO}
+      - F2B_DB_PURGE_AGE=${FAIL2BAN_DB_PURGE_AGE:-1d}
+      - IPTABLES_MODE=${FAIL2BAN_IPTABLES_MODE:-auto}
+    volumes:
+      # Fail2ban 运行时 SQLite 状态数据库持久化 (跨重启保留封禁记录)
+      - ${DATA_PATH:-./data/}fail2ban/db:/data/db
+      # 声明式 Jails 规则、自定义 Filter 与 Action 挂载
+      - ${CONFIG_PATH:-./}security/fail2ban/config/jail.d:/data/jail.d:ro
+      - ${CONFIG_PATH:-./}security/fail2ban/config/filter.d:/data/filter.d:ro
+      - ${CONFIG_PATH:-./}security/fail2ban/config/action.d:/data/action.d:ro
+      # 监控 Caddy 与 Nginx Web 网关访问日志 (只读挂载)
+      - ${LOG_PATH:-./logs/}caddy:/var/log/caddy:ro
+      - ${LOG_PATH:-./logs/}nginx:/var/log/nginx:ro
+      # 监控宿主机系统日志 (如 auth.log / secure 用于 SSH 爆破防范)
+      - /var/log:/var/log/host:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M

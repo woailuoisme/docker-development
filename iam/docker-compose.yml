@@ -7,3 +7,4 @@ include:
   # - vaultwarden/docker-compose.yml        # Vaultwarden (Bitwarden 轻量私有密码管理器)
   # - casdoor/docker-compose.yml            # Casdoor (OAuth 2.0 / OIDC 单点登录身份平台)
   # - infisical/docker-compose.yml          # Infisical 企业级秘密与访问凭据管理平台
+  # - open-bao/docker-compose.yml           # OpenBao 开源安全凭据与敏感数据治理引擎 (Linux Foundation / HashiCorp Vault 开源分支)

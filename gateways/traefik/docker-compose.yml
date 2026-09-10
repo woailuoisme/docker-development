@@ -9,6 +9,8 @@ services:
       - TZ=${TIMEZONE:-Asia/Shanghai}
       - AUTHELIA_HOST=${AUTHELIA_HOST:-authelia:9091}
       - CROWDSEC_BOUNCER_KEY=${CROWDSEC_BOUNCER_KEY:-crowdsec-traefik-bouncer-dev-secret-key-32ch}
+      - CROWDSEC_LAPI_HOST=${CROWDSEC_LAPI_HOST:-crowdsec:8080}
+      - CROWDSEC_APPSEC_HOST=${CROWDSEC_APPSEC_HOST:-crowdsec:7422}
       - CF_DNS_API_TOKEN=${CF_API_TOKEN:-}
       - TRAEFIK_CERTIFICATESRESOLVERS_LETSENCRYPT_ACME_EMAIL=${LEGO_EMAIL:-admin@${SITE_ADDRESS:-example.com}}
     volumes:

@@ -1,0 +1,36 @@
+services:
+  open-bao:
+    image: openbao/openbao:${OPENBAO_VERSION:-2.6.2}
+    container_name: open-bao
+    restart: unless-stopped
+    command:
+      - server
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - BAO_ADDR=http://127.0.0.1:8200
+      - BAO_API_ADDR=http://${OPENBAO_HOST:-open-bao}:8200
+    volumes:
+      # Raft 存储引擎状态持久化目录（存储加密密文与节点一致性状态）
+      - ${DATA_PATH:-./data/}open-bao/data:/openbao/file
+      # 核心声明式配置文件只读挂载
+      - ${CONFIG_PATH:-./}iam/open-bao/config/openbao.hcl:/openbao/config/openbao.hcl:ro
+      # 审计日志与系统日志持久化挂载
+      - ${LOG_PATH:-./logs/}open-bao:/openbao/logs
+    ports:
+      - "${OPENBAO_PORT:-8200}:8200"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8200/v1/sys/health?uninitcode=200&sealedcode=200"]
+      interval: 15s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    networks:
+      - backend
+      - frontend
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1024M

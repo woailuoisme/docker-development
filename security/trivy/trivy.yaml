@@ -1,0 +1,55 @@
+# ==============================================================================
+# Aqua Security Trivy 统一扫描配置 (Trivy Configuration)
+# ==============================================================================
+
+# 缓存配置
+cache:
+  backend: fs
+  dir: /root/.cache/trivy
+
+# 漏洞数据库镜像源（按优先级降序排列，优化国内与海外网络拉取速度）
+db:
+  repository:
+    - mirror.gcr.io/aquasec/trivy-db:2
+    - ghcr.io/aquasecurity/trivy-db:2
+  java-repository:
+    - mirror.gcr.io/aquasec/trivy-java-db:1
+    - ghcr.io/aquasecurity/trivy-java-db:1
+  skip-update: false
+
+# 扫描探测能力配置
+scan:
+  scanners:
+    - vuln          # 已知 CVE 漏洞探测
+    - misconfig     # IaC 与配置文件错误配置审计 (Dockerfile / Compose)
+    - secret        # 硬编码敏感信息与密钥检测
+    - license       # 开源许可证合规扫描
+  parallel: 5
+  skip-dirs:
+    - "data"
+    - "node_modules"
+    - "vendor"
+    - ".git"
+
+# 漏洞过滤与严重级别
+severity:
+  - UNKNOWN
+  - LOW
+  - MEDIUM
+  - HIGH
+  - CRITICAL
+
+# 忽略规则与免修补设置
+vulnerability:
+  ignore-unfixed: false     # 是否忽略官方尚未发布修复补丁的漏洞 (设为 true 可过滤无解漏洞)
+
+# 默认报告格式 (table / json / template / cyclonedx / spdx)
+format: table
+
+# 忽略规则清单路径
+ignorefile: /root/.trivyignore
+
+# 服务端配置 (Server Mode)
+server:
+  addr: "0.0.0.0:4954"
+  token-header: "Trivy-Token"

@@ -108,7 +108,7 @@
 ## 📁 目录结构说明
 
 ```text
-gateways/crowdsec/
+security/crowdsec/
 ├── Dockerfile                  # 定制镜像构建文件 (预装 Hub 规则集、固化配置与内置健康探活)
 ├── docker-compose.yml          # 服务编排 (环境变数、存储卷、资源限制)
 ├── README.md                   # 架构说明与运维操作手册

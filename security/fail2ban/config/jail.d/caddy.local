@@ -1,0 +1,20 @@
+# ==============================================================================
+# Fail2ban Jail: Caddy 反向代理网关安全防护 (caddy)
+# ==============================================================================
+# 监控 Caddy 访问日志中的恶意嗅探与暴力扫描。
+# 关键拦截机制：
+# 由于 Docker 容器发布端口 (例如 80/443) 走宿主机 NAT PREROUTING -> FORWARD 转发链，
+# 传统 INPUT 链拦截无法阻止外部发往容器的请求。
+# 本规则显式指定 action 拦截 DOCKER-USER 链，确保在 Docker 转发前精准丢弃恶意源 IP。
+
+[caddy]
+enabled  = true
+port     = http,https
+filter   = caddy-scanner
+logpath  = /var/log/caddy/access.log
+maxretry = 5
+findtime = 10m
+bantime  = 1h
+
+# 针对 Docker 容器转发流量的专属拦截动作 (作用于 DOCKER-USER 链)
+action   = iptables-multiport[name=caddy, port="http,https", chain="DOCKER-USER"]

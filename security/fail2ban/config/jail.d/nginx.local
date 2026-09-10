@@ -1,0 +1,19 @@
+# ==============================================================================
+# Fail2ban Jail: Nginx 反向代理网关安全防护 (nginx)
+# ==============================================================================
+# 监控 Nginx 访问日志中的恶意嗅探与暴力扫描。
+# 关键拦截机制：
+# 针对 Docker 容器端口转发流量，显式指定拦截 DOCKER-USER 链，确保在 Docker 转发前阻断恶意源 IP。
+# 默认处于未启用状态 (enabled = false)，若项目启用 Nginx 反向代理，可将其置为 true。
+
+[nginx]
+enabled  = false
+port     = http,https
+filter   = caddy-scanner
+logpath  = /var/log/nginx/*access.log
+maxretry = 5
+findtime = 10m
+bantime  = 1h
+
+# 针对 Docker 容器转发流量的专属拦截动作 (作用于 DOCKER-USER 链)
+action   = iptables-multiport[name=nginx, port="http,https", chain="DOCKER-USER"]

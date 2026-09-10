@@ -1,0 +1,2 @@
+# 自定义 Fail2ban 动作目录 (Custom Actions)
+# 可在此目录放置自定义 .conf 动作文件，启动时将被 Fail2ban 自动载入 /etc/fail2ban/action.d/

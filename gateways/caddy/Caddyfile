@@ -52,6 +52,8 @@ import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
 import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
 # import proxy-app vault.{$SITE_ADDRESS} vaultwarden:80
 import proxy-app registry.{$SITE_ADDRESS} zot:5000
+#import proxy-app-auth trivy.{$SITE_ADDRESS} trivy:4954
+#import proxy-app-auth bao.{$SITE_ADDRESS} open-bao:8200
 #import proxy-app img.{$SITE_ADDRESS} imgproxy:8080
 
 # 子路径服务聚合仅适用于支持baseURL的应用）

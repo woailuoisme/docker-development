@@ -172,10 +172,10 @@ http:
           enabled: false
           crowdsecMode: stream
           crowdsecLapiScheme: http
-          crowdsecLapiHost: "crowdsec:8080"
+          crowdsecLapiHost: '{{ env "CROWDSEC_LAPI_HOST" | default "crowdsec:8080" }}'
           crowdsecLapiKey: '{{ env "CROWDSEC_BOUNCER_KEY" | default "crowdsec-traefik-bouncer-dev-secret-key-32ch" }}'
           crowdsecAppsecEnabled: false
-          crowdsecAppsecHost: "crowdsec:7422"
+          crowdsecAppsecHost: '{{ env "CROWDSEC_APPSEC_HOST" | default "crowdsec:7422" }}'
           crowdsecAppsecFailureBlock: false
           crowdsecAppsecUnreachableBlock: false
           clientTrustedIPs:

@@ -126,3 +126,51 @@ pg-backup-restore-test:
 	docker stop pg-restore-test >/dev/null
 	rm -rf "${RESTORE_DIR}"
 	echo "✔ 恢复演练通过：备份数据完整可用"
+
+# 使用 Trivy 扫描 Docker 镜像安全漏洞 (例如: just scan-image nginx:alpine)
+scan-image image:
+    ./security/trivy/scan.sh image {{ image }}
+
+# 使用 Trivy 扫描本地基础设施 IaC 配置缺陷 (Docker Compose / Dockerfile 等)
+scan-iac:
+    ./security/trivy/scan.sh config
+
+# 使用 Trivy 扫描应用源码依赖漏洞与硬编码密钥
+scan-app:
+    ./security/trivy/scan.sh fs
+
+# 使用 Trivy 生成镜像的 CycloneDX SBOM 软件物料清单 (例如: just scan-sbom nginx:alpine)
+scan-sbom image:
+    ./security/trivy/scan.sh sbom {{ image }}
+
+# 查看 OpenBao 密钥管理服务状态
+bao-status:
+    ./iam/open-bao/manage.sh status
+
+# 初始化 OpenBao 密钥管理服务并保存恢复密钥
+bao-init:
+    ./iam/open-bao/manage.sh init
+
+# 解封 OpenBao 密钥管理服务 (Unseal)
+bao-unseal:
+    ./iam/open-bao/manage.sh unseal
+
+# 执行 OpenBao CLI 命令 (例如: just bao-cli kv put secret/test key=value)
+bao-cli *args:
+    ./iam/open-bao/manage.sh cli {{ args }}
+
+# 查看 Fail2ban 防火墙封禁服务状态
+f2b-status jail="":
+    ./security/fail2ban/manage.sh status {{ jail }}
+
+# 列出所有 Fail2ban Jail 当前已封禁的 IP 清单
+f2b-banned:
+    ./security/fail2ban/manage.sh banned
+
+# 手动从 Fail2ban 解除对指定 IP 的封禁 (例如: just f2b-unban 192.168.1.100 caddy)
+f2b-unban ip jail="caddy":
+    ./security/fail2ban/manage.sh unban {{ jail }} {{ ip }}
+
+# 执行 fail2ban-client 原生指令 (例如: just f2b-client ping)
+f2b-client *args:
+    ./security/fail2ban/manage.sh client {{ args }}

@@ -1,0 +1,20 @@
+# ==============================================================================
+# Fail2ban Jail: 宿主机 SSH 暴力破解防范 (sshd)
+# ==============================================================================
+# 监控宿主机挂载的系统认证日志 (/var/log/host/auth.log 或 /var/log/host/secure)。
+# 关键拦截机制：
+# 宿主机原生 SSH 服务 (默认端口 22) 监听宿主机网络栈，流量抵达 host 的 INPUT 链。
+# 本规则显式指定 action 拦截 INPUT 链，在宿主机系统入口直接 DROP 爆破源 IP。
+
+[sshd]
+enabled  = true
+port     = ssh
+filter   = sshd
+logpath  = /var/log/host/auth.log
+           /var/log/host/secure
+maxretry = 5
+findtime = 10m
+bantime  = 1h
+
+# 针对宿主机原生端口直连流量的拦截动作 (作用于 INPUT 链)
+action   = iptables-multiport[name=sshd, port="ssh", chain="INPUT"]

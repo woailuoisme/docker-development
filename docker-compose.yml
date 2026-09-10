@@ -20,7 +20,7 @@ volumes:
 # ==============================================================================
 include:
   # ============================================================================
-  # 1. 网络网关与安全反代 (Gateway & Security)
+  # 1. 网络网关与反向代理 (Gateways & Ingress)
   # ============================================================================
   - gateways/docker-compose.yml             # 统一网络网关、反向代理、DNS与证书工具链 (Caddy / Dnsmasq / Cloudflared / Traefik / 3X-UI / S-UI / Nginx / Certs)
 
@@ -70,10 +70,15 @@ include:
   # ============================================================================
   # 9. 身份平台与访问管理 (Identity & Access Management / IAM)
   # ============================================================================
-  - iam/docker-compose.yml                  # 统一身份认证与凭证管理平台 (Authelia / Vaultwarden / Casdoor / ZITADEL / Infisical)
+  - iam/docker-compose.yml                  # 统一身份认证与凭证管理平台 (Authelia / Vaultwarden / Casdoor / ZITADEL / Infisical / OpenBao)
 
   # ============================================================================
   # 10. 业务应用与自建服务 (Self-Hosted Apps & Productivity)
   # ============================================================================
   # - cms/docker-compose.yml                # 开源无头 CMS 与快速应用开发后端 (Directus / PocketBase / WordPress)
   # - apps/docker-compose.yml               # 协作办公、知识库与个人自建效率服务 (Homepage / Docs / Draw.io / DrawDB / Excalidraw / Gotenberg / LibreSpeed / Tuwunel / Sshwifty / Chatwoot / GoAccess / Uptime Kuma / RustDesk)
+
+  # ============================================================================
+  # 11. 安全防护、主机入侵防御与合规审计 (Security & Compliance)
+  # ============================================================================
+  # - security/docker-compose.yml           # 统一安全防护套件 (CrowdSec / Fail2ban / Trivy)
