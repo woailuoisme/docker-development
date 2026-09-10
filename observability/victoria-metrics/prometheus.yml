@@ -53,3 +53,10 @@ scrape_configs:
   - job_name: 'vector'
     static_configs:
       - targets: ['vector:8686']
+
+  # 9. 监控 CrowdSec 入侵防御与行为决策引擎 (活跃封禁/告警/LAPI吞吐)
+  - job_name: 'crowdsec'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['crowdsec:6060']
+

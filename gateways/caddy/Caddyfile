@@ -1,5 +1,8 @@
 {
+	order coraza_waf first
+	# import snippets/crowdsec-global.conf # <-- 开启 CrowdSec 引擎与通信
 	import snippets/global-log.conf
+	import snippets/filesystem-s3.conf
 	acme_dns cloudflare {env.CF_API_TOKEN}
 	admin 0.0.0.0:2019
 }
@@ -47,7 +50,7 @@ import proxy-app-auth logs.{$SITE_ADDRESS} victoria-logs:9428
 #import proxy-app-auth docs.{$SITE_ADDRESS} docs:80
 import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
 import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
-import proxy-app vault.{$SITE_ADDRESS} vaultwarden:80
+# import proxy-app vault.{$SITE_ADDRESS} vaultwarden:80
 import proxy-app registry.{$SITE_ADDRESS} zot:5000
 #import proxy-app img.{$SITE_ADDRESS} imgproxy:8080
 

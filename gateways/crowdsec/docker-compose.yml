@@ -1,25 +1,29 @@
 services:
   crowdsec:
+    build:
+      context: .
     container_name: crowdsec
-    image: ghcr.io/crowdsecurity/crowdsec:latest
     restart: unless-stopped
     environment:
       - TZ=${TIMEZONE:-Asia/Shanghai}
-      # 初始安装规则集合: Traefik解析器 + AppSec虚拟补丁 + AppSec通用规则 + HTTP CVE规则
-      - COLLECTIONS=crowdsecurity/traefik crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules crowdsecurity/http-cve
-      # 声明式自动注册 Traefik Bouncer 密钥，免手动运行 cscli
-      - BOUNCER_KEY_traefik=${CROWDSEC_BOUNCER_KEY:-crowdsec-traefik-bouncer-dev-secret-key-32ch}
+      # 启用 SQLite WAL (Write-Ahead Logging) 模式，大幅提升并发读写吞吐，杜绝数据库锁冲突
+      - USE_WAL=true
+      # 声明式自动注册双网关 Bouncer 认证密钥 (免手动运行 cscli)
+      - BOUNCER_KEY_traefik=${CROWDSEC_BOUNCER_KEY_TRAEFIK:-${CROWDSEC_BOUNCER_KEY:-crowdsec-traefik-bouncer-dev-secret-key-32ch}}
+      - BOUNCER_KEY_caddy=${CROWDSEC_BOUNCER_KEY_CADDY:-crowdsec-caddy-bouncer-dev-secret-key-32ch}
     volumes:
+      # 持久化数据与动态配置
       - ${DATA_PATH}crowdsec/data:/var/lib/crowdsec/data
       - ${DATA_PATH}crowdsec/config:/etc/crowdsec
-      - ${CONFIG_PATH}gateways/crowdsec/config/acquis.d:/etc/crowdsec/acquis.d:ro
+      # 挂载双网关访问日志 (只读采集)
       - ${LOG_PATH}traefik:/var/log/traefik:ro
-    # 容器间走 backend 内部网络通信 (crowdsec:8080 与 crowdsec:7422)，无需暴露宿主机端口，避免 8080 端口冲突
+      - ${LOG_PATH}caddy:/var/log/caddy:ro
+    # 容器间走 backend 内部网络通信 (LAPI:8080, AppSec:7422, Metrics:6060)，无需暴露宿主机端口
     networks:
       - backend
-    healthcheck:
-      test: ["CMD-SHELL", "cscli version > /dev/null 2>&1 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+

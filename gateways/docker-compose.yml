@@ -5,7 +5,7 @@ include:
   # --- 核心网关与本地 DNS (Core Gateway & DNS) ---
   - dnsmasq/docker-compose.yml              # Dnsmasq 本地 DNS 泛解析服务 (默认启用)
   - caddy/docker-compose.yml                # Caddy 2 网关反代与自动证书 (默认启用)
-  - traefik/docker-compose.yml            # Traefik 云原生微服务反向代理
+  # - traefik/docker-compose.yml            # Traefik 云原生微服务反向代理
 
   # --- 安全穿透隧道与备选网关 (Tunnels & Alternative Gateways) ---
   # - cloudflared/docker-compose.yml          # Cloudflare Zero Trust 远程安全穿透隧道 (默认启用)

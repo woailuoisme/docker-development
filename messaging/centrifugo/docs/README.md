@@ -71,7 +71,7 @@ docker compose up -d valkey centrifugo
 push.{$SITE_ADDRESS} {
 	import ../snippets/request-log.conf
 	import ../snippets/security.conf
-	import ../snippets/waf.conf
+	import ../snippets/waf/waf.conf
 	encode zstd gzip
 
 	# 1. 安全策略：强行拦截公网对监控指标 /metrics 的直接请求

@@ -3,7 +3,7 @@
 # ==============================================================================
 include:
   - authelia/docker-compose.yml           # Authelia 单点登录与双因子鉴权 (SSO/2FA) (默认启用)
-  # - vaultwarden/docker-compose.yml        # Vaultwarden (Bitwarden 轻量私有密码管理器)
   - zitadel/docker-compose.yml            # ZITADEL (云原生身份认证与授权平台) (启用)
-  - casdoor/docker-compose.yml            # Casdoor (OAuth 2.0 / OIDC 单点登录身份平台)
+  # - vaultwarden/docker-compose.yml        # Vaultwarden (Bitwarden 轻量私有密码管理器)
+  # - casdoor/docker-compose.yml            # Casdoor (OAuth 2.0 / OIDC 单点登录身份平台)
   # - infisical/docker-compose.yml          # Infisical 企业级秘密与访问凭据管理平台
