@@ -6,8 +6,9 @@ services:
     restart: always
     # 共享内存：需 ≥ shared_buffers (256MB)，预留余量给并行查询/超表的动态共享内存段 (DSM)
     shm_size: 512mb
-    ports:
-      - "${POSTGRES_PORT:-45432}:5432"
+    # 不再发布宿主端口：宿主 5432 交给 gateways/caddy 的 layer4 入口（pg.<域名>，强制 TLS）
+    # —— 此前发布为 0.0.0.0:5432 且 ssl = off，等于明文暴露到所有网卡。
+    # 应用侧不受影响（走 backend 内网 postgres:5432）；宿主/外部访问走 Caddy 的 5432。
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -17,11 +18,15 @@ services:
       - TIMESCALE_DATABASES=${TIMESCALE_DATABASES:-lunchbox}
       # 是否在首次初始化数据库时创建 IoT 售货机业务表结构（默认不初始化，按需启用）
       - ENABLE_IOT_VENDING_SCHEMA=${ENABLE_IOT_VENDING_SCHEMA:-false}
+      # PgBouncer auth_query 的引导密码（04-pgbouncer-auth.sh 用它创建 pgbouncer_auth 角色）
+      # 必须与 pgbouncer 服务使用同一个值，见 database/pgbouncer/README.md
+      - PGBOUNCER_AUTH_PASSWORD=${PGBOUNCER_AUTH_PASSWORD}
     volumes:
       - ${DATA_PATH}postgres18:/var/lib/postgresql
       - ${CONFIG_PATH}database/postgres-18/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ${CONFIG_PATH}database/postgres-18/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB:-postgres} -U ${POSTGRES_USER:-postgres}"]
       interval: 5s
@@ -31,4 +36,3 @@ services:
 
     networks:
       - backend
-

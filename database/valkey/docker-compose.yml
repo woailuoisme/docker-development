@@ -9,9 +9,11 @@ services:
       - VALKEY_PASSWORD=${REDIS_PASSWORD}
     # 低配双保险：maxmemory 256mb + 容器层限额（预留自身结构开销）
     mem_limit: 384mb
+    # 不再发布宿主端口：宿主 6379 交给 gateways/caddy 的 layer4 入口（valkey.<域名>，强制 TLS）
+    # —— 只有这样客户端 URL 才能省略端口（Redis 协议默认端口即 6379）。
+    # 容器之间不受影响（走 backend 内网 valkey:6379）。
     ports:
-      # 仅宿主机本机可访问（本机开发工具），不对局域网暴露；容器间走 backend 网络
-      - "127.0.0.1:6379:6379"
+      - "6379:6379"
     volumes:
       - ${DATA_PATH}valkey:/data
     networks:

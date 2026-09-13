@@ -1,20 +1,22 @@
 services:
   nats:
-    image: nats:2.14.3-alpine
+    image: nats:2.14-alpine
     container_name: nats
     restart: always
     ports:
-      - "4222:4222" # Client connections
-      - "8222:8222" # Monitoring
+      - "4222:4222" # Client connections（受 NATS_USER/NATS_PASSWORD 保护）
+      - "8222:8222" # Monitoring（NATS 对该端点无内置鉴权，当前暴露面为已知风险，见 README.md）
     command:
       - "--config"
       - "/etc/nats/nats.conf"
     volumes:
       - ./nats.conf:/etc/nats/nats.conf:ro
-      - ${DATA_PATH}/nats:/data
+      - ${DATA_PATH}nats:/data
     environment:
-      NATS_USER: ${NATS_USER:-app}
-      NATS_PASSWORD: ${NATS_PASSWORD:-change-me-password}
+      # 必需变量：刻意不提供兜底默认值。原先的 ${NATS_PASSWORD:-change-me-password}
+      # 会让弱口令静默生效，缺失时直接报错才是想要的行为（见 README.md）
+      NATS_USER: ${NATS_USER:?NATS_USER 必须设置}
+      NATS_PASSWORD: ${NATS_PASSWORD:?NATS_PASSWORD 必须设置}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz"]
       interval: 10s
@@ -23,3 +25,59 @@ services:
       start_period: 5s
     networks:
       - backend
+
+  # ---------------------------------------------------------------------------
+  # 一次性初始化：把 .env 的 NATS 凭据渲染成 NUI 的 context 文件
+  #
+  # NUI 不支持用环境变量配置连接，只认 --nats-cli-contexts 指定目录下的 <名字>.json
+  # （源码 pkg/clicontext：单层扫描、仅 .json、无任何环境变量展开，字段为明文）。
+  # 因此连接必须由文件承载。由本服务渲染可保证口令单一来源（.env），
+  # 轮换口令后重新 up 即自动同步，且 data/nui 被删也能复现连接。
+  #
+  # 渲染目标是 ${DATA_PATH}nui-clicontexts —— 该目录位于 .gitignore 的 /data/ 下，不进版本库。
+  # ---------------------------------------------------------------------------
+  nui-context-init:
+    image: busybox:1.37.0
+    container_name: nui-context-init
+    restart: "no"
+    environment:
+      NATS_USER: ${NATS_USER:?NATS_USER 必须设置}
+      NATS_PASSWORD: ${NATS_PASSWORD:?NATS_PASSWORD 必须设置}
+    volumes:
+      - ${DATA_PATH}nui-clicontexts:/clicontexts
+    command:
+      - sh
+      - -c
+      - |
+        set -eu
+        esc() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+        printf '{\n  "description": "默认连接（由 nui-context-init 从 .env 渲染）",\n  "url": "nats://nats:4222",\n  "user": "%s",\n  "password": "%s"\n}\n' "$(esc "$NATS_USER")" "$(esc "$NATS_PASSWORD")" > /clicontexts/default.json
+        echo "rendered /clicontexts/default.json"
+
+  # ---------------------------------------------------------------------------
+  # 管理界面：https://nats.{$SITE_ADDRESS}（经 Caddy 反代 + Authelia 双因子）
+  # ---------------------------------------------------------------------------
+  nui:
+    image: ghcr.io/nats-nui/nui:0.9.3 # GHCR tag 无 v 前缀；latest / 0.9 指向同一 digest
+    container_name: nui
+    restart: unless-stopped
+    # 不发布宿主机端口：NUI 自身没有任何认证，公开发布等于多一个绕过 Authelia 的
+    # 无认证 NATS 管理入口。仅由 Caddy 经 frontend 网络反代。
+    # 不设 user:：官方 entrypoint 按 id -u 自行降权到 nui(1001)，显式设其它 uid 会因 su 需要 tty 而失败。
+    # 不依赖 nats 可达（连接由 context 文件导入）；但必须等 context 渲染完成，否则启动时导入不到。
+    volumes:
+      - ${DATA_PATH}nui:/db # 官方 entrypoint 硬编码 --db-path=/db；该 flag 默认值为 :memory:（不持久化）
+      # 官方 -nats-cli-contexts 默认值为 ./clicontexts（WORKDIR 为 /），不挂载会导致每次启动都打一条
+      # 「找不到目录」的 ERROR。此处挂载后由 nui-context-init 写入 default.json。
+      - ${DATA_PATH}nui-clicontexts:/clicontexts
+    depends_on:
+      nui-context-init:
+        condition: service_completed_successfully
+    networks:
+      - backend # 用于访问 nats:4222 / nats:8222
+      - frontend # 用于被 Caddy 反代
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M

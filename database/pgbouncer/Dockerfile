@@ -2,7 +2,6 @@ FROM debian:trixie-slim
 LABEL maintainer="seaside <531773730@qq.com>"
 
 # 构建参数
-ARG CHANGE_SOURCE=false
 ARG TIMEZONE=Asia/Shanghai
 # pgbouncer 版本号 (来自 PostgreSQL apt 仓库)
 ARG PGBOUNCER_VERSION=1.25.2-1.pgdg13+1
@@ -11,38 +10,23 @@ ARG PGBOUNCER_VERSION=1.25.2-1.pgdg13+1
 # PgBouncer 环境变量默认值
 # ============================================================================
 
-ENV POSTGRES_HOST=postgres \
-    POSTGRES_PORT=5432 \
-    POSTGRES_DB=lunchbox \
-    POSTGRES_USER=postgres \
-    POSTGRES_PASSWORD="" \
-    PGBOUNCER_ADMIN_USER="" \
-    PGBOUNCER_ADMIN_PASSWORD="" \
-    PGBOUNCER_EXTRA_USERS="" \
+ENV DATABASE_URL="" \
+    PGBOUNCER_AUTH_PASSWORD="" \
     TZ=${TIMEZONE}
 
-# ============================================================================
-# 系统配置
-# ============================================================================
 
-# 1. 切换镜像源 (Debian Trixie)
-RUN if [ "$CHANGE_SOURCE" = "true" ]; then \
-        sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources; \
-    fi
-
-# 2. 安装 pgbouncer 和必要工具 (移除未使用的 gettext-base 和 bash 依赖)
+# 2. 安装 pgbouncer 与 psql (postgresql-client 提供 psql 与 pg_isready，用于端到端健康探针)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        ca-certificates \
-        curl \
-        gnupg \
-        lsb-release \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release \
     && curl -fSsL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && apt-get update && apt-get install -y --no-install-recommends \
-        pgbouncer=${PGBOUNCER_VERSION} \
-        postgresql-client-18 \
-        tzdata \
-        netcat-openbsd \
+    pgbouncer=${PGBOUNCER_VERSION} \
+    postgresql-client-18 \
+    tzdata \
     && ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime \
     && echo "${TIMEZONE}" > /etc/timezone \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -62,9 +46,15 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 15432
 
-# 优化的健康检查 - 使用 nc 检查 TCP 端口
+# 健康检查 - psql 端到端探测：一次验证 TCP + 认证 + 池分配 + 后端查询
+#
+# 必须走连接池而非直连后端：DATABASE_URL 指向后端 postgres:5432，因此用 URL 的
+# query 参数把 host/port 覆盖为池自身的监听地址。已实测（libpq 18）：query 参数
+# 优先级高于 authority；而 -h/-p 命令行关键字**不生效**（会被 URL 覆盖）。
+# 探针同时使用业务凭据，因此也覆盖了 auth_query 这条链路。
+# 丢弃标准输出但保留 stderr，便于在 docker inspect 中看到认证/连接错误
 HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
-    CMD ["sh", "-c", "nc -z 127.0.0.1 15432 || exit 1"]
+    CMD ["sh", "-c", "psql \"$DATABASE_URL?host=127.0.0.1&port=15432\" -c 'SELECT 1' > /dev/null"]
 
 # 切换到非 root 用户
 USER pgbouncer

@@ -3,7 +3,7 @@
 # ==============================================================================
 include:
   - centrifugo/docker-compose.yml  # Centrifugo WebSocket 实时推送与消息广播引擎 (默认启用)
-  # - nats/docker-compose.yml        # NATS 轻量高性能发布订阅与 JetStream 消息中间件 (默认启用)
+  - nats/docker-compose.yml        # NATS 轻量高性能发布订阅与 JetStream 消息中间件 + nui 管理界面 (默认启用)
   # - rabbitmq/docker-compose.yml     # RabbitMQ 企业级 AMQP 消息队列与管理面板 (按需启用)
   # - redpanda/docker-compose.yml     # Redpanda 现代高吞吐 Kafka 兼容流事件平台与 Console 看板 (按需启用)
   # - gotify/docker-compose.yml       # Gotify 私有自建推送通知服务 (按需启用)

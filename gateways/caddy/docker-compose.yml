@@ -13,6 +13,14 @@ services:
       - "80:80"
       - "443:443"
       - "443:443/udp"
+      # layer4 代理的数据库入口（见 Caddyfile 的 layer4 块与 layer4/postgres.conf）
+      # 5432 一个端口承载两个上游，按 SNI 分流 —— 客户端因此不必写端口：
+      #   pg.<域名>        → postgres:5432（直连；postgres 自身已不再发布宿主端口）
+      #   pgp.<域名> → pgbouncer:15432（池化，行为差异见 layer4/postgres.conf）
+      # - "5432:5432"
+      # 缓存入口：同样只占协议默认端口，客户端因此不必写端口
+      #   valkey.<域名> → valkey:6379（Caddy 终止 TLS；valkey 自身已不再发布宿主端口）
+      # - "6379:6379"
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       - ${CONFIG_PATH}gateways/caddy:/etc/caddy

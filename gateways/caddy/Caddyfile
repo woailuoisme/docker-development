@@ -5,6 +5,17 @@
 	import snippets/filesystem-s3.conf
 	acme_dns cloudflare {env.CF_API_TOKEN}
 	admin 0.0.0.0:2019
+
+	# layer4（TCP 代理）：配置**必须**写在 global options 内，且只能用文件路径 import
+	# —— snippet 在此处无法展开（已实测：File to import not found）。
+	# 这些文件放在 layer4/ 而**不能**放 templates/：templates/* 会被顶层 glob 导入，
+	# 其中的 layer4 块会被当作站点地址解析，而 `proxy` 不是 HTTP 指令 → 解析失败。
+	# 各端点的说明见 layer4/ 目录下对应文件的头部注释
+	# layer4 {
+	# 	# 数据库入口：单端口（5432）承载 postgres 直连与 pgbouncer 池化两个上游，按 SNI 分流
+	# 	import layer4/postgres.conf
+	# 	import layer4/valkey.conf
+	# }
 }
 
 import sites/*
@@ -45,6 +56,9 @@ import proxy-app-auth logs.{$SITE_ADDRESS} victoria-logs:9428
 #import proxy-app-subpath msg.{$SITE_ADDRESS} msg gotify:80
 #import proxy-app mq.{$SITE_ADDRESS} rabbitmq:15672
 #import proxy-app-auth redpanda.{$SITE_ADDRESS} redpanda-console:8080
+# NATS 管理界面 (nui)：刻意不加鉴权——NUI 自身无登录，该入口对任何能解析此域名的人开放。
+# 这是经明确决策接受的风险，详见 messaging/nats/README.md
+import proxy-app nats.{$SITE_ADDRESS} nui:31311
 
 #import proxy-app-auth home.{$SITE_ADDRESS} homepage:3000
 #import proxy-app-auth docs.{$SITE_ADDRESS} docs:80
