@@ -13,7 +13,8 @@ services:
     command:
       - "--docker_only=true"
       - "--housekeeping_interval=15s"
-      - "--disable_metrics=disk,diskIO,tcp,udp,percpu,sched,process,hugetlb,referenced_memory,cpu_topology,resctrl,accelerator"
+      # 注意：cadvisor v0.60.5 已移除 accelerator 指标，写上会导致启动即退出（invalid value ... unsupported metric）
+      - "--disable_metrics=disk,diskIO,tcp,udp,percpu,sched,process,hugetlb,referenced_memory,cpu_topology,resctrl"
       - "--whitelisted_container_labels=com.docker.compose.project,com.docker.compose.service"
     networks:
       - backend

@@ -1,0 +1,187 @@
+# ==============================================================================
+# vmalert 告警规则单元测试 (vmalert-tool unittest)
+# ==============================================================================
+# 用途：在**改规则之前**验证「该响的会响、不该响的不响」，而不是等它线上沉默。
+# 运行：just vm-alert-test
+#
+# 与 Prometheus promtool 格式兼容，唯一差异：表达式测试字段名叫
+# `metricsql_expr_test`（不是 promql_expr_test），因为 vmalert 执行的是 MetricsQL。
+#
+# 时间语义：测试起点 time() == 946684800（2000-01-01 UTC），eval_time 是**相对**时长。
+# evaluation_interval 是**全局**的 —— 它覆盖 alerts.yml 里各 group 自己的 interval。
+#
+# 每个 tests[] 条目是一组**隔离模拟**（独立灌入 input_series 后评估），
+# 因此各规则互不干扰；每条用例都成对写「未到 for 时不触发 / 到点后触发」。
+# ==============================================================================
+
+rule_files:
+  - alerts.yml
+
+evaluation_interval: 1m
+
+tests:
+  # ---------------------------------------------------------------------------
+  # InstanceDown：验证 for: 1m 的挂起期语义
+  # ---------------------------------------------------------------------------
+  - interval: 1m
+    input_series:
+      - series: 'up{job="node-exporter", instance="node-exporter:9100"}'
+        values: '1 1 0+0x10'
+    alert_rule_test:
+      # t=2m 首次命中 up==0，进入 pending，此时**不应**触发
+      - eval_time: 2m
+        groupname: infrastructure_alerts
+        alertname: InstanceDown
+        exp_alerts: []
+      # t=3m 挂起已满 1m → 触发
+      - eval_time: 3m
+        groupname: infrastructure_alerts
+        alertname: InstanceDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: node-exporter
+              instance: node-exporter:9100
+            exp_annotations:
+              summary: "服务目标不可达 (实例: node-exporter:9100)"
+              description: "目标 node-exporter 持续 1 分钟未能响应指标抓取，服务可能已崩溃或网络断开。"
+
+  # ---------------------------------------------------------------------------
+  # HostHighCpuLoad：验证 rate 窗口与 for: 5m
+  #   空闲计数器每分钟 +6 秒 → rate = 6/60 = 0.1 → 100 - 10 = 90 > 85
+  #   注意：rate(x[5m]) 只需窗口内 ≥2 个样本即出值（不等窗口填满），
+  #   因此 t=1m 就已经命中表达式 → pending 起点是 1m，for: 5m → t=6m 触发。
+  # ---------------------------------------------------------------------------
+  - interval: 1m
+    input_series:
+      - series: 'node_cpu_seconds_total{mode="idle", instance="host:9100"}'
+        values: '0+6x12'
+    alert_rule_test:
+      - eval_time: 5m
+        groupname: infrastructure_alerts
+        alertname: HostHighCpuLoad
+        exp_alerts: []
+      - eval_time: 6m
+        groupname: infrastructure_alerts
+        alertname: HostHighCpuLoad
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: host:9100
+            exp_annotations:
+              summary: "宿主机 CPU 使用率过高 (实例: host:9100)"
+              description: "宿主机 CPU 使用率持续 5 分钟超过 85%（当前值: 90.00%）。"
+
+  # ---------------------------------------------------------------------------
+  # HostMemoryUnderPressure：可用内存占比 < 10%（50/1000 = 5%）
+  # ---------------------------------------------------------------------------
+  - interval: 1m
+    input_series:
+      - series: 'node_memory_MemTotal_bytes{instance="host:9100"}'
+        values: '1000x20'
+      - series: 'node_memory_MemAvailable_bytes{instance="host:9100"}'
+        values: '50x20'
+    alert_rule_test:
+      - eval_time: 4m
+        groupname: infrastructure_alerts
+        alertname: HostMemoryUnderPressure
+        exp_alerts: []
+      - eval_time: 6m
+        groupname: infrastructure_alerts
+        alertname: HostMemoryUnderPressure
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: host:9100
+            exp_annotations:
+              summary: "宿主机可用内存不足 (实例: host:9100)"
+              description: "宿主机可用内存持续 5 分钟低于 10%（当前值: 5.00%）。"
+
+  # ---------------------------------------------------------------------------
+  # HostDiskSpaceLow：根分区剩余 100/1000 = 10% < 15%
+  # ---------------------------------------------------------------------------
+  - interval: 1m
+    input_series:
+      - series: 'node_filesystem_size_bytes{mountpoint="/", instance="host:9100"}'
+        values: '1000x20'
+      - series: 'node_filesystem_avail_bytes{mountpoint="/", instance="host:9100"}'
+        values: '100x20'
+    alert_rule_test:
+      - eval_time: 4m
+        groupname: infrastructure_alerts
+        alertname: HostDiskSpaceLow
+        exp_alerts: []
+      - eval_time: 6m
+        groupname: infrastructure_alerts
+        alertname: HostDiskSpaceLow
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              mountpoint: "/"
+              instance: host:9100
+            exp_annotations:
+              summary: "根分区磁盘剩余空间过低 (实例: host:9100)"
+              description: "根目录可用磁盘空间持续 5 分钟低于 15%（当前值: 10.00%）。"
+
+  # ---------------------------------------------------------------------------
+  # ContainerHighMemoryUsage：900/1000 = 90% > 85%，for: 3m
+  # ---------------------------------------------------------------------------
+  - interval: 1m
+    input_series:
+      - series: 'container_memory_usage_bytes{name="vector", id="/docker/abc"}'
+        values: '900x20'
+      - series: 'container_spec_memory_limit_bytes{name="vector", id="/docker/abc"}'
+        values: '1000x20'
+    alert_rule_test:
+      - eval_time: 2m
+        groupname: container_alerts
+        alertname: ContainerHighMemoryUsage
+        exp_alerts: []
+      - eval_time: 4m
+        groupname: container_alerts
+        alertname: ContainerHighMemoryUsage
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              name: vector
+              id: "/docker/abc"
+            exp_annotations:
+              summary: "容器内存接近上限 (容器: vector)"
+              description: "容器 vector 内存占用已持续 3 分钟超过配额的 85%（当前值: 90.00%）。"
+
+  # ---------------------------------------------------------------------------
+  # VictoriaMetricsWriteErrors：rate > 0，for: 2m
+  # ---------------------------------------------------------------------------
+  - interval: 1m
+    input_series:
+      - series: 'vm_rows_ignored_total{reason="invalid_metric", instance="victoria-metrics:8428"}'
+        values: '0+1x12'
+    alert_rule_test:
+      - eval_time: 2m
+        groupname: victoriametrics_alerts
+        alertname: VictoriaMetricsWriteErrors
+        exp_alerts: []
+      - eval_time: 4m
+        groupname: victoriametrics_alerts
+        alertname: VictoriaMetricsWriteErrors
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              reason: invalid_metric
+              instance: victoria-metrics:8428
+            exp_annotations:
+              summary: "VictoriaMetrics 丢弃写入数据"
+              description: "VictoriaMetrics 正在忽略或丢弃指标写入（当前速率: 0.016666666666666666 条/秒），请检查磁盘容量或时序合法性。"
+
+  # ---------------------------------------------------------------------------
+  # 反向用例：无丢弃时**必须保持沉默**（防止误报，也防止表达式恒真）
+  # ---------------------------------------------------------------------------
+  - interval: 1m
+    input_series:
+      - series: 'vm_rows_ignored_total{reason="invalid_metric", instance="victoria-metrics:8428"}'
+        values: '0x12'
+    alert_rule_test:
+      - eval_time: 6m
+        groupname: victoriametrics_alerts
+        alertname: VictoriaMetricsWriteErrors
+        exp_alerts: []

@@ -33,6 +33,10 @@ registry.ini
 certbot/conf/renewal/
 ssh/
 iam/authelia/config/db.sqlite3
+# OpenBao 初始化凭据（含 unseal key 与 root token）
+iam/open-bao/.keys.json
+# OpenBao 应用侧 AppRole 凭据（role_id / secret_id）
+iam/open-bao/.approle-credentials.txt
 
 **/pgbouncer/userlist.txt
 .kiro

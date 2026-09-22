@@ -12,6 +12,13 @@ services:
       - "-remoteRead.url=http://victoria-metrics:8428"
       - "-evaluationInterval=15s"
       - "-httpListenAddr=:8880"
+      # 只评估 + 在 Web UI 展示，不对外发送告警：
+      # 本栈的告警投递由 Grafana Alerting 负责（observability/grafana/provisioning/alerting/）。
+      # 注意：不设 notifier 时 vmalert 会 fatal 退出
+      #   「config contains alerting rules but neither -notifier.url nor -notifier.config
+      #     nor -notifier.blackhole aren't set」
+      # 这正是它此前无法启用的原因（规则文件含 alerting 规则，而 compose 未配 notifier）。
+      - "-notifier.blackhole"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ${CONFIG_PATH}observability/victoria-alert/alerts.yml:/etc/alerts/alerts.yml:ro

@@ -4,6 +4,6 @@
 # ==============================================================================
 include:
   - node-exporter/docker-compose.yml      # 宿主机核心硬件与 OS 基础指标探针
-  - cadvisor/docker-compose.yml           # 容器资源开销精简探针 (--docker_only=true)
+  # - cadvisor/docker-compose.yml         # 容器资源开销精简探针 (--docker_only=true)：暂停使用，恢复时需同步启用 observability/docker-compose.yml 与 victoria-agent 抓取任务
   - valkey-exporter/docker-compose.yml    # Valkey / Redis 缓存指标探针
   - postgres-exporter/docker-compose.yml  # PostgreSQL 关系型数据库指标探针

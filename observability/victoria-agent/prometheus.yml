@@ -7,7 +7,8 @@ global:
   scrape_timeout: 10s      # 抓取超时时间
 
   external_labels:
-    monitor: 'lunchbox-vmagent'
+    # 与 VM 原生抓取时期沿用同一 monitor 标签：切换抓取者后历史曲线不断层
+    monitor: 'lunchbox-monitor'
     environment: 'development'
 
 scrape_configs:
@@ -36,10 +37,11 @@ scrape_configs:
     static_configs:
       - targets: ['node-exporter:9100']
 
-  # 6. 监控 Docker 容器资源占用 (cAdvisor)
-  - job_name: 'cadvisor'
-    static_configs:
-      - targets: ['cadvisor:8080']
+  # 6. 监控 Docker 容器资源占用 (cAdvisor)：容器暂停使用，故此处一并注释（否则会持续刷抓取失败告警）
+  #    影响：container_* 指标不存在，ContainerHighMemoryUsage 规则保持沉默；恢复时两处一起取消注释
+  # - job_name: 'cadvisor'
+  #   static_configs:
+  #     - targets: ['cadvisor:8080']
 
   # 7. 监控 Valkey / Redis 键值缓存 (redis-exporter)
   - job_name: 'valkey'
@@ -63,16 +65,19 @@ scrape_configs:
       - targets: ['vector:8686']
 
   # 11. 监控 Garage 分布式 S3 对象存储 (原生内置端点，0 额外容器开销)
+  #     ⚠ 不要写 bearer_token: '%{...}' —— 那是 shell 语法，抓取配置不支持变量展开，
+  #       整串会被当字面量发出导致 401（实测）。token 由 just vm-scrape-secrets 从 .env
+  #       生成到挂载的密钥文件，仓库内不留明文。
   - job_name: 'garage'
     metrics_path: '/metrics'
-    bearer_token: '%{GARAGE_METRICS_TOKEN:-VZaAJqzH0ZhWjOGSen95AEyOgJEVYf/engNWdKIxoo4=}'
+    bearer_token_file: '/etc/promscrape-secrets/garage_metrics_token'
     static_configs:
       - targets: ['garage:3903']
 
-  # 12. 监控 Meilisearch 搜索引擎 (原生内置端点，0 额外容器开销)
+  # 12. 监控 Meilisearch 搜索引擎 (需被测服务开启 MEILI_EXPERIMENTAL_ENABLE_METRICS=true)
   - job_name: 'meilisearch'
     metrics_path: '/metrics'
-    bearer_token: '%{MEILI_MASTER_KEY:-}'
+    bearer_token_file: '/etc/promscrape-secrets/meili_master_key'
     static_configs:
       - targets: ['meilisearch:7700']
 
@@ -82,29 +87,39 @@ scrape_configs:
     static_configs:
       - targets: ['centrifugo:8000']
 
-  # 14. 监控 Telegraf 物联网指标中继与 Mosquitto 运行状态 (原生内置端点，0 额外容器开销)
-  - job_name: 'telegraf'
-    metrics_path: '/metrics'
-    static_configs:
-      - targets: ['telegraf:8080']
-
-  # 15. 监控 Traefik 边缘网关与路由流量 (原生内置端点，0 额外容器开销)
-  - job_name: 'traefik'
-    metrics_path: '/metrics'
-    static_configs:
-      - targets: ['traefik:8082']
-
-  # 16. 监控 Authelia 统一身份认证与单点登录状态 (登录成功/失败/2FA/限流)
+  # 14. 监控 Authelia 统一身份认证与单点登录状态 (登录成功/失败/2FA/限流)
   - job_name: 'authelia'
     metrics_path: '/metrics'
     static_configs:
       - targets: ['authelia:9959']
 
-  # 17. 监控 CrowdSec 入侵防御与行为决策引擎 (活跃封禁/告警/LAPI吞吐/解析器命中)
+  # 15. 监控 CrowdSec 入侵防御与行为决策引擎 (活跃封禁/告警/LAPI吞吐/解析器命中)
   - job_name: 'crowdsec'
     metrics_path: '/metrics'
     static_configs:
       - targets: ['crowdsec:6060']
+
+  # 16. 监控 VictoriaTraces 链路引擎与摄取状态
+  #     该镜像是无 shell 的 scratch 镜像，容器内无法做 healthcheck，
+  #     故由本抓取 + vmalert 的 `up == 0` 规则承担健康判定（自 victoria-metrics 配置合并而来）
+  - job_name: 'victoria-traces'
+    static_configs:
+      - targets: ['victoria-traces:10428']
+
+  # 17. Telegraf 物联网指标中继：iot/telegraf 当前未启用，启用后取消注释
+  # - job_name: 'telegraf'
+  #   metrics_path: '/metrics'
+  #   static_configs:
+  #     - targets: ['telegraf:8080']
+
+  # 18. Jaeger v2 自身运行指标（内建 OTel Collector 的 Prometheus 端点，见 jaeger/config.yaml）
+  #     jaeger/ 当前未启用，启用后再取消注释，否则会持续刷抓取失败
+  # - job_name: 'jaeger'
+  #   metrics_path: '/metrics'
+  #   static_configs:
+  #     - targets: ['jaeger:8888']
+
+  # Traefik 边缘网关：不再抓取 —— 该服务未运行，且 worktree 中已由 gateways/haproxy 取代
 
 
 

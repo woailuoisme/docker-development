@@ -1,0 +1,42 @@
+# ==============================================================================
+# Grafana 数据源预配：VictoriaTraces 分布式链路追踪（替代原 Tempo）
+# 规范：Grafana Datasource Provisioning (apiVersion: 1)
+# 作用：VictoriaTraces 提供 Jaeger Query Service JSON API，因此使用 Grafana
+#       官方 Jaeger 数据源接入（无需 VictoriaMetrics 专用插件）
+# ==============================================================================
+apiVersion: 1
+
+# 迁移清理：原先 Tempo 数据源由 tempo_ds.yaml 提供，该文件已删除；
+# 显式声明删除，避免 Grafana 里残留一个指向已停用服务的 Tempo 数据源
+deleteDatasources:
+  - name: Tempo
+    orgId: 1
+
+datasources:
+  - name: VictoriaTraces                     # 数据源显示名称
+    type: jaeger                             # VictoriaTraces 讲 Jaeger Query JSON API，故用官方 Jaeger 数据源
+    uid: victoriatraces                      # 唯一 UID（供面板/关联配置引用）
+    access: proxy                            # 后端代理访问
+    url: http://victoria-traces:10428/select/jaeger  # 数据源会自动追加 /api/...，故此处到 /select/jaeger 为止
+    isDefault: false                         # 不作为默认数据源（默认是 VictoriaMetrics）
+    jsonData:
+      # ------------------------------------------------------------------------
+      # Traces to Logs 联动（从链路跳转查看关联日志）
+      # 注意：原 tempo_ds.yaml 这里把 datasourceUid 写成了 `loki`，而本栈并没有
+      # Loki（日志数据源是 VictoriaLogs，uid=victorialogs），且查询写的是 Loki
+      # 语法 —— 因此该联动此前一直是坏的。这里改成 VictoriaLogs + LogsQL。
+      #
+      # 前提条件（尚未完成）：日志里必须真实带上 trace_id 字段。
+      # 目前 Vector 只采集容器 stdout/stderr 原样行，不做 trace_id 提取，
+      # 所以本联动要等「应用接入 OTel + 日志输出 trace_id + Vector 提取该字段」
+      # 之后才会真正返回结果。
+      # ------------------------------------------------------------------------
+      tracesToLogsV2:
+        datasourceUid: victorialogs           # 日志数据源：VictoriaLogs
+        spanStartTimeShift: "-1h"             # 关联日志的时间窗：Trace 开始前 1 小时
+        spanEndTimeShift: "1h"                # Trace 结束后 1 小时
+        tags: ["service.name"]                # 作为日志过滤标签的 Trace Tag
+        filterByTraceID: true                 # 按 Trace ID 过滤
+        filterBySpanID: false                 # 不按 Span ID 过滤，扩大召回面
+        customQuery: true                     # 使用自定义 LogsQL 查询
+        query: 'trace_id:"$${__trace.id}"'    # LogsQL 字段过滤语法（$$ 是 provisioning 的转义，实为 ${__trace.id}）

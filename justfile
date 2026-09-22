@@ -127,6 +127,30 @@ pg-backup-restore-test:
 	rm -rf "${RESTORE_DIR}"
 	echo "✔ 恢复演练通过：备份数据完整可用"
 
+# 运行 vmalert 告警规则单元测试 (vmalert-tool；逻辑见 scripts/victoria.sh)
+vm-alert-test:
+	./scripts/victoria.sh alert-test
+
+# 手动触发一次 VictoriaMetrics 时序库备份 (逻辑见 scripts/victoria.sh)
+vm-backup-now:
+	./scripts/victoria.sh backup-now
+
+# 恢复演练：从备份恢复到隔离目录并用临时 VictoriaMetrics 实例验证数据可用 (不触碰生产数据)
+vm-backup-restore-test:
+	./scripts/victoria.sh backup-restore-test
+
+# 灾难恢复：用最新备份重建生产时序库 (先留存旧数据，可人工回滚)
+vm-restore:
+	./scripts/victoria.sh restore
+
+# 生成 vmagent 的抓取鉴权文件 (garage / meilisearch token 从 .env 注入，仓库内不留明文)
+vm-scrape-secrets:
+	./scripts/victoria.sh scrape-secrets
+
+# 交互式查询 VictoriaLogs 日志 (vlogscli；支持补全、历史、\tail 实时跟踪，退出输入 q)
+logs-query:
+	./scripts/victoria.sh logs-query
+
 # 使用 Trivy 扫描 Docker 镜像安全漏洞 (例如: just scan-image nginx:alpine)
 scan-image image:
     ./security/trivy/scan.sh image {{ image }}
@@ -143,21 +167,27 @@ scan-app:
 scan-sbom image:
     ./security/trivy/scan.sh sbom {{ image }}
 
-# 查看 OpenBao 密钥管理服务状态
+# 查看 OpenBao 密钥管理服务状态 (未初始化/已封存时也返回成功，便于直接看状态)
 bao-status:
-    ./iam/open-bao/manage.sh status
+    docker exec -e BAO_ADDR=http://127.0.0.1:8200 open-bao bao status || true
 
-# 初始化 OpenBao 密钥管理服务并保存恢复密钥
+# 初始化 OpenBao 密钥管理服务并保存恢复密钥 (凭据已存在时不覆盖，避免丢失唯一副本)
 bao-init:
-    ./iam/open-bao/manage.sh init
+    @test ! -f iam/open-bao/.keys.json || { echo "iam/open-bao/.keys.json 已存在，请先备份或移走再初始化"; exit 1; }
+    docker exec -e BAO_ADDR=http://127.0.0.1:8200 open-bao bao operator init -key-shares=1 -key-threshold=1 -format=json > iam/open-bao/.keys.json
+    chmod 600 iam/open-bao/.keys.json
 
-# 解封 OpenBao 密钥管理服务 (Unseal)
+# 解封 OpenBao 密钥管理服务 (Unseal，密钥取自 iam/open-bao/.keys.json)
 bao-unseal:
-    ./iam/open-bao/manage.sh unseal
+    docker exec -e BAO_ADDR=http://127.0.0.1:8200 open-bao bao operator unseal "$(jq -r '.unseal_keys_b64[0]' iam/open-bao/.keys.json)"
 
 # 执行 OpenBao CLI 命令 (例如: just bao-cli kv put secret/test key=value)
 bao-cli *args:
-    ./iam/open-bao/manage.sh cli {{ args }}
+    docker exec -i -e BAO_ADDR=http://127.0.0.1:8200 -e BAO_TOKEN="$(jq -r '.root_token' iam/open-bao/.keys.json)" open-bao bao {{ args }}
+
+# 供给 OpenBao 引擎、策略与 AppRole (幂等，可反复执行)
+bao-setup:
+    ./iam/open-bao/setup.sh
 
 # 查看 Fail2ban 防火墙封禁服务状态
 f2b-status jail="":

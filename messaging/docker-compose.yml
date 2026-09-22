@@ -8,5 +8,5 @@ include:
   # - redpanda/docker-compose.yml     # Redpanda 现代高吞吐 Kafka 兼容流事件平台与 Console 看板 (按需启用)
   # - gotify/docker-compose.yml       # Gotify 私有自建推送通知服务 (按需启用)
   # - ntfy/docker-compose.yml         # ntfy 基于 HTTP 的轻量订阅推送服务 (按需启用)
-  # - asynqmon/docker-compose.yml     # Asynq Go 异步任务队列监控面板 (按需启用)
   # - bullboard/docker-compose.yml    # BullMQ 队列可视化看板 (按需启用)
+  - asynqmon/docker-compose.yml     # Asynq Go 异步任务队列监控面板 (按需启用)

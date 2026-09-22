@@ -22,6 +22,8 @@ ignored:
   - DL3064  # Potentially sensitive data should not be used in the ARG or ENV commands
   # 允许使用非数字用户名/组名（如 USER root、USER www-data）
   - DL3066  # Non-numeric user-id may not be resolvable by host system
+  # 允许显式切换为 root 用户（常见于基础镜像基于非 root 时安装依赖与权限初始化）
+  - DL3002  # Last USER should not be root
   # ShellCheck 集成：允许常见的 Dockerfile Shell 脚本模式
   - SC2015  # 允许 A && B || C 模式（常见于 Dockerfile RUN）
   - SC2046  # Dockerfile RUN 中常见有意的命令展开

@@ -52,6 +52,12 @@ import proxy-app-auth s3-admin.{$SITE_ADDRESS} garage-webui:3909
 import proxy-app grafana.{$SITE_ADDRESS} grafana:3000
 import proxy-app-auth prom.{$SITE_ADDRESS} victoria-metrics:8428
 import proxy-app-auth logs.{$SITE_ADDRESS} victoria-logs:9428
+# vmalert 内置 UI（规则组 / 规则详情 / 告警状态）；另可由 VM 通过 -vmalert.proxyURL 反代进 vmui
+import proxy-app-auth alert.{$SITE_ADDRESS} vmalert:8880
+# VictoriaTraces 自带 vmui（链路查询 UI，路径 /select/vmui）与 Jaeger 查询 API（Grafana 数据源用）
+import proxy-app-auth traces.{$SITE_ADDRESS} victoria-traces:10428
+# Jaeger UI + Jaeger Query API（官方 jaegertracing/jaeger 镜像，自带 badger 存储）
+#import proxy-app-auth jaeger.{$SITE_ADDRESS} jaeger:16686
 
 #import proxy-app-subpath msg.{$SITE_ADDRESS} msg gotify:80
 #import proxy-app mq.{$SITE_ADDRESS} rabbitmq:15672

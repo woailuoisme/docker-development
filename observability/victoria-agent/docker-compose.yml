@@ -15,10 +15,11 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ${DATA_PATH}victoria-agent:/tmpData
       - ${CONFIG_PATH}observability/victoria-agent/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # 抓取鉴权密钥（garage / meilisearch）：由 `just vm-scrape-secrets` 从 .env 生成，
+      # 仓库与镜像里都不出现明文（原先把 Garage token 写死在配置与 compose 的默认值里）
+      - ${DATA_PATH}victoria-agent/secrets:/etc/promscrape-secrets:ro
     environment:
       - TZ=${TIMEZONE:-Asia/Shanghai}
-      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-}
-      - GARAGE_METRICS_TOKEN=${GARAGE_METRICS_TOKEN:-VZaAJqzH0ZhWjOGSen95AEyOgJEVYf/engNWdKIxoo4=}
     networks:
       - backend
     depends_on:

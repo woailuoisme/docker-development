@@ -33,5 +33,6 @@ fi
 create_db_if_not_exists "zitadel"
 create_db_if_not_exists "chatwoot"
 create_db_if_not_exists "casdoor"
+create_db_if_not_exists "infisical"
 
 echo "Database administrator tasks completed."

@@ -1,0 +1,25 @@
+services:
+  typesense:
+    # 最新稳定版；31.0 目前只有 31.0.rc*（预发布），故不采用
+    image: typesense/typesense:30.2
+    container_name: typesense
+    restart: always
+    # --api-key 由 .env 注入：Typesense 缺 key 会拒绝启动（fail fast，不会裸奔）
+    # --enable-cors 供浏览器直连使用；CORS 不等于放开访问，API key 仍然必需
+    command: "--data-dir /data --api-key=${TYPESENSE_API_KEY:-} --enable-cors"
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+    ports:
+      # 仅宿主机本机可访问（本机开发工具）；需要对外时再加 Caddy vhost（typesense.<域名>）
+      - "127.0.0.1:${TYPESENSE_PORT:-8108}:8108"
+    volumes:
+      # 与其他服务一致使用 ${DATA_PATH}（.gitignore 已忽略 data/）；
+      # 不要用仓库内相对路径（./typesense-data 会被 git 跟踪，数据不应进版本库）
+      - ${DATA_PATH}typesense:/data
+    networks:
+      - backend
+
+    # 健康检查待启用后补：GET /health 返回 {"ok":true} 且无需 API key，
+    # 但需先确认镜像内是否有 curl/wget——本文件从未运行过，故不预先假设。
+    #
+    # 注意：Typesense 把索引常驻内存，本机内存偏小时需关注实际占用。

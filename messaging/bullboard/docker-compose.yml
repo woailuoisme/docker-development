@@ -1,7 +1,7 @@
 services:
   bullboard:
     container_name: bullboard
-    image: venatum/bull-board:3.3
+    image: venatum/bull-board:latest
     restart: unless-stopped
     environment:
       REDIS_HOST: valkey

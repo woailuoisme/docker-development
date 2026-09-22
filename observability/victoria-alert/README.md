@@ -100,3 +100,21 @@ curl -X POST http://localhost:8880/-/reload
 ```bash
 docker run --rm -v $(pwd)/alerts.yml:/rules.yml victoriametrics/vmalert:v1.151.0 -rule=/rules.yml -dryRun
 ```
+
+### 5. 规则行为单元测试 (vmalert-tool)
+
+语法检查只能证明规则「写得出来」，证明不了它「会响」。`alerts_test.yml` 用 `vmalert-tool` 喂入合成时序并断言告警结果：
+
+```bash
+just vm-alert-test
+# 等价（justfile 只是委托）：./scripts/victoria.sh alert-test
+```
+
+覆盖全部 6 条规则，且每条都成对断言**未到 `for` 时不触发 / 到点后触发**，再加一条反向用例（无写错误时必须保持沉默）。断言内容含 `exp_labels` 与 `exp_annotations`，因此 `$value` 模板写错也会被测出来。
+
+两个注意点：
+
+- `evaluation_interval` 是全局参数，会**覆盖** `alerts.yml` 里各 group 自己的 `interval`。
+- `rate(x[5m])` 只需窗口内 ≥2 个样本即出值（不等窗口填满），所以 `HostHighCpuLoad` 的挂起起点是 `1m` 而非 `5m`（测试文件内已注明）。
+
+> ⚠️ **测试通过 ≠ 线上会响**：`HostHighCpuLoad`、`HostMemoryUnderPressure`、`HostDiskSpaceLow` 依赖 `node_*` 指标，`ContainerHighMemoryUsage` 依赖 `container_*` 指标，而 `exporters/*`（node-exporter、cadvisor）**当前未纳入聚合编排**，这些指标在 VictoriaMetrics 中并不存在 —— 即 4 条规则在真实环境中永远不会触发。要让它生效需先启用对应 exporter。`InstanceDown`（`up == 0`）与 `VictoriaMetricsWriteErrors`（`vm_rows_ignored_total`）不受影响。

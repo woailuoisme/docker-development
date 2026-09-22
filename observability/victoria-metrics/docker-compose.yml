@@ -9,12 +9,12 @@ services:
       - "--storageDataPath=/storage"
       - "--retentionPeriod=3M"
       - "--httpListenAddr=:8428"
-      - "--promscrape.config=/etc/prometheus/prometheus.yml"
+      # 抓取职责已移交 vmagent（observability/victoria-agent/）：这里不再配 -promscrape.config，
+      # 否则同一目标会被两个 scraper 各抓一份 —— 实测每个 job 出现 2 条 up 序列，up==0 告警双发
       - "--memory.allowedPercent=60"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ${DATA_PATH}victoria:/storage
-      - ${CONFIG_PATH}observability/victoria-metrics/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     environment:
       - TZ=${TIMEZONE:-Asia/Shanghai}
     networks:

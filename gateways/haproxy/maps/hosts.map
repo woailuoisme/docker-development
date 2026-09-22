@@ -1,0 +1,15 @@
+# ==============================================================================
+# HAProxy 域名与后端服务映射表 (Domain to Backend Map)
+# 作用类似于 Nginx 虚拟主机 (server_name) 与 Caddy 的站点反代映射
+# 匹配规则：map_dom 支持精确域名匹配与子域名匹配
+# 格式：<主机域名> <后端名称>
+# 支持环境变量占位符: ${SITE_ADDRESS}
+# ==============================================================================
+
+# Laravel / PHP 高性能应用路由
+dev.${SITE_ADDRESS}       be_octane
+rest.${SITE_ADDRESS}      be_octane
+api.${SITE_ADDRESS}       be_octane
+
+# MinIO 对象存储与控制台路由
+mo.${SITE_ADDRESS}        be_minio

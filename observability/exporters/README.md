@@ -6,12 +6,12 @@
 
 ## 📌 组件架构与功能概述
 
-集群共包含 4 个独立探针容器，通过 `docker-compose.yml` 的 `include:` 机制统一编排：
+集群当前启用 3 个探针容器（cAdvisor 暂停启用），通过 `docker-compose.yml` 的 `include:` 机制统一编排：
 
 | 探针名称 | 容器名称 | 内部端口 | 监控对象 | 核心采集指标 |
 | :--- | :--- | :--- | :--- | :--- |
 | **Node Exporter** | `node-exporter` | `9100` | 宿主机硬件与 OS | CPU 使用率、物理内存开销、磁盘 I/O 与容量、网络吞吐、系统负载 |
-| **cAdvisor** | `cadvisor` | `8080` | Docker 容器运行时 | 容器级 CPU 节流与开销、内存工作集/限制、容器网络 I/O |
+| **cAdvisor** | `cadvisor` | `8080` | Docker 容器运行时 | 容器级 CPU 节流与开销、内存工作集/限制、容器网络 I/O（暂停启用） |
 | **Valkey Exporter** | `valkey-exporter` | `9121` | Valkey / Redis 缓存 | 命中率、连接数、内存碎片率、命令吞吐 (QPS)、慢查询统计 |
 | **Postgres Exporter**| `postgres-exporter` | `9187` | PostgreSQL 数据库 | 活跃连接数、事务提交与回滚率、锁等待、死锁计数、缓冲区命中率 |
 
@@ -52,7 +52,10 @@ flowchart LR
   - `--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)`：排除只读虚拟文件系统，大幅降低时序基数。
 - **资源限制**：CPU `0.2` 核，内存 `64M`。
 
-### 2. cAdvisor (`cadvisor/`)
+### 2. cAdvisor (`cadvisor/`) — 暂停启用
+
+> 编排入口已注释（`exporters/docker-compose.yml`、`observability/docker-compose.yml`），vmagent 抓取任务同步停用。
+> 恢复时需三处一并取消注释，否则 `container_*` 指标缺失会导致 `ContainerHighMemoryUsage` 规则永久沉默。
 
 - **镜像**：`ghcr.io/google/cadvisor:v0.60.5`
 - **特权模式**：`privileged: true`（确保安全读取 cgroups v1/v2 统计）。
@@ -92,10 +95,10 @@ flowchart LR
 
 ```bash
 # 启动全部 Exporters
-docker compose up -d node-exporter cadvisor valkey-exporter postgres-exporter
+docker compose up -d node-exporter valkey-exporter postgres-exporter
 
 # 查看探针运行状态
-docker compose ps node-exporter cadvisor valkey-exporter postgres-exporter
+docker compose ps node-exporter valkey-exporter postgres-exporter
 
 # 重启指定探针
 docker compose restart valkey-exporter
@@ -109,8 +112,8 @@ docker compose restart valkey-exporter
 # 验证 Node Exporter 指标
 docker compose exec -T victoria-metrics wget -q -O - http://node-exporter:9100/metrics | head -n 20
 
-# 验证 cAdvisor 容器监控指标
-docker compose exec -T victoria-metrics wget -q -O - http://cadvisor:8080/metrics | grep container_cpu_usage_seconds_total | head -n 10
+# 验证 cAdvisor 容器监控指标（需先恢复 cadvisor 编排，当前暂停启用）
+# docker compose exec -T victoria-metrics wget -q -O - http://cadvisor:8080/metrics | grep container_cpu_usage_seconds_total | head -n 10
 
 # 验证 Valkey Exporter 指标
 docker compose exec -T victoria-metrics wget -q -O - http://valkey-exporter:9121/metrics | grep valkey_up

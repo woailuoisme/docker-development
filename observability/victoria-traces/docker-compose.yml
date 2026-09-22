@@ -1,0 +1,35 @@
+services:
+  victoria-traces:
+    image: victoriametrics/victoria-traces:v0.11.1
+    container_name: victoria-traces
+    restart: always
+    ports:
+      - "${VICTORIA_TRACES_PORT:-10428}:10428"             # HTTP：查询 API（Jaeger JSON API 在 /select/jaeger/api）+ 自带 vmui 查询 UI（/select/vmui）+ 自身指标
+      - "${VICTORIA_TRACES_OTLP_GRPC_PORT:-4317}:4317"     # OTLP gRPC 摄取（应用侧上报链路）
+    command:
+      - "--storageDataPath=/storage"
+      - "--retentionPeriod=7d"
+      - "--httpListenAddr=:10428"
+      # OTLP 摄取默认**关闭**，必须显式开启；且 OTLP 的 TLS 默认**开启**（需要证书文件），
+      # 内网明文上报必须显式关闭。这两条都实测过（见 observability/README.md）。
+      - "--otlpGRPCListenAddr=:4317"
+      - "--otlpGRPC.tls=false"
+      - "--memory.allowedPercent=60"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DATA_PATH}victoria-traces:/storage
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+    networks:
+      - backend
+    # 无容器内健康检查：官方镜像是**无 shell、无 wget/curl 的 scratch 镜像**
+    # （实测报错 `exec: "wget": executable file not found in $PATH`，同理 sh 也不存在）。
+    # 因此改为由 VictoriaMetrics 抓取 :10428/metrics + vmalert 的 `up == 0` 规则兜底，
+    # 见 observability/victoria-metrics/prometheus.yml 的 victoria-traces job。
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
+        reservations:
+          memory: 64M

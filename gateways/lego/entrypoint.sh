@@ -56,9 +56,11 @@ export_certificates() {
 	cp -f "${cert_src}" "${SSL_OUTPUT}/fullchain.pem"
 	cp -f "${key_src}" "${SSL_OUTPUT}/privkey.pem"
 	[ -f "${ISSUER_FILE}" ] && cp -f "${ISSUER_FILE}" "${SSL_OUTPUT}/chain.pem"
-	chmod 600 "${SSL_OUTPUT}/privkey.pem" 2> /dev/null || true
+	# 为 HAProxy 生成标准合并证书 (Fullchain + Privkey)
+	cat "${cert_src}" "${key_src}" > "${SSL_OUTPUT}/haproxy.pem"
+	chmod 600 "${SSL_OUTPUT}/privkey.pem" "${SSL_OUTPUT}/haproxy.pem" 2> /dev/null || true
 	chmod 644 "${SSL_OUTPUT}/fullchain.pem" 2> /dev/null || true
-	log_success "标准证书已就绪: ${SSL_OUTPUT}/{fullchain.pem,privkey.pem}"
+	log_success "标准证书已就绪: ${SSL_OUTPUT}/{fullchain.pem,privkey.pem,haproxy.pem}"
 }
 
 # 2. 通过 Docker Socket 重载下游容器
@@ -69,15 +71,21 @@ reload_downstream() {
 		return 0
 	fi
 
-	log_info "通过 Docker Socket 向容器 '${RELOAD_CONTAINER}' 发送 HUP 信号..."
-	local http_code
-	http_code=$(curl -s -o /dev/null -w "%{http_code}" --unix-socket /var/run/docker.sock -X POST "http://localhost/containers/${RELOAD_CONTAINER}/kill?signal=HUP" || echo "000")
+	local IFS=','
+	read -r -a containers <<< "${RELOAD_CONTAINER}"
+	for container in "${containers[@]}"; do
+		container=$(echo "${container}" | tr -d '[:space:]')
+		[ -z "${container}" ] && continue
+		log_info "通过 Docker Socket 向容器 '${container}' 发送 HUP 信号..."
+		local http_code
+		http_code=$(curl -s -o /dev/null -w "%{http_code}" --unix-socket /var/run/docker.sock -X POST "http://localhost/containers/${container}/kill?signal=HUP" || echo "000")
 
-	case "${http_code}" in
-		204) log_success "已成功向容器 '${RELOAD_CONTAINER}' 发送重载信号 (HTTP 204)。" ;;
-		404) log_warning "下游容器 '${RELOAD_CONTAINER}' 未找到 (HTTP 404)，请核对容器名称。" ;;
-		*) log_warning "重载请求返回异常 HTTP 状态码: ${http_code}" ;;
-	esac
+		case "${http_code}" in
+			204) log_success "已成功向容器 '${container}' 发送重载信号 (HTTP 204)。" ;;
+			404) log_warning "下游容器 '${container}' 未找到 (HTTP 404)，请核对容器名称。" ;;
+			*) log_warning "重载请求返回异常 HTTP 状态码: ${http_code}" ;;
+		esac
+	done
 }
 
 # 3. Lego v5 原生 --deploy-hook 回调入口

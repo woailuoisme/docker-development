@@ -81,4 +81,4 @@ include:
   # ============================================================================
   # 11. 安全防护、主机入侵防御与合规审计 (Security & Compliance)
   # ============================================================================
-  # - security/docker-compose.yml           # 统一安全防护套件 (CrowdSec / Fail2ban / Trivy)
+  - security/docker-compose.yml           # 统一安全防护套件 (CrowdSec / Fail2ban / Trivy)
