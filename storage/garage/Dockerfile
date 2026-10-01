@@ -1,4 +1,4 @@
-ARG GARAGE_VERSION=v2.3.0
+ARG GARAGE_VERSION=v2.4.1
 FROM dxflrs/garage:${GARAGE_VERSION}
 
 # 移除 COPY garage.toml 以避免敏感凭证（如 admin_token / rpc_secret）泄露。
@@ -6,7 +6,7 @@ FROM dxflrs/garage:${GARAGE_VERSION}
 
 # 容器健康检查：利用内置二进制直接查询本地节点状态
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=20s \
-  CMD ["/garage", "status"]
+    CMD ["/garage", "status"]
 
 ENTRYPOINT ["/garage"]
 CMD ["server"]

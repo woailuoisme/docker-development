@@ -3,18 +3,23 @@
 # 可根据实际开发需求，保留或注释对应的监控、日志与追踪组件
 # ==============================================================================
 include:
-  - grafana/docker-compose.yml       # Grafana 统一可视化多源数据看板
-  - vector/docker-compose.yml        # Vector 高性能全能可观测性数据管道 (核心日志/指标采集与中继)
+  # - grafana/docker-compose.yml       # Grafana 统一可视化多源数据看板
   # - tempo/docker-compose.yml         # Grafana Tempo 分布式链路追踪存储 (已被 victoria-traces 取代，目录暂留供回退)
-  - victoria-logs/docker-compose.yml    # VictoriaLogs 极速轻量日志存储引擎
-  - victoria-traces/docker-compose.yml  # VictoriaTraces 链路追踪存储 (OTLP 摄取 + Jaeger 查询 API)
+  # - vector/docker-compose.yml        # Vector 高性能全能可观测性数据管道 (核心日志/指标采集与中继)
+  # - victoria-logs/docker-compose.yml    # VictoriaLogs 极速轻量日志存储引擎
+  # - victoria-traces/docker-compose.yml  # VictoriaTraces 链路追踪存储 (OTLP 摄取 + Jaeger 查询 API)
   # - jaeger/docker-compose.yml           # Jaeger v2 官方镜像 (链路库 + UI 一体，按需启用；启用步骤见 jaeger/README.md)
-  - victoria-metrics/docker-compose.yml # VictoriaMetrics 核心 TSDB 时序数据库与原生抓取引擎
-  - victoria-agent/docker-compose.yml       # VictoriaMetrics 生态轻量指标抓取代理与缓冲中继
-  - victoria-alert/docker-compose.yml       # VictoriaMetrics 规则评估与报警触发服务 (自带 Web UI)
+  # - signoz/docker-compose.yml           # SigNoz 全栈可观测平台 (Traces/Logs/Metrics，自带 ClickHouse；按需启用，OTLP/HTTP 宿主端口 4318)
+  # - open-observe/docker-compose.yml     # OpenObserve 全栈可观测 (Logs/Metrics/Traces 单容器，按需启用；需在 .env 设置 OPENOBSERVE_ROOT_EMAIL/PASSWORD)
+  # - victoria-metrics/docker-compose.yml # VictoriaMetrics 核心 TSDB 时序数据库与原生抓取引擎
+  # - victoria-agent/docker-compose.yml       # VictoriaMetrics 生态轻量指标抓取代理与缓冲中继
+  # - victoria-alert/docker-compose.yml       # VictoriaMetrics 规则评估与报警触发服务 (自带 Web UI)
   # 备份与恢复不是常驻服务：改用 scripts/victoria.sh（just vm-backup-now / vm-backup-restore-test / vm-restore）
   # 监控探针 (vmagent 的抓取目标)：缺失时会造成「抓取失败刷日志 + 对应告警规则永久沉默」
-  - exporters/node-exporter/docker-compose.yml      # 宿主机 CPU/内存/磁盘/网络核心指标
-  - exporters/valkey-exporter/docker-compose.yml    # Valkey 缓存命中率与内存状态
-  - exporters/postgres-exporter/docker-compose.yml  # PostgreSQL 连接数/事务/锁状态
+  # - exporters/node-exporter/docker-compose.yml      # 宿主机 CPU/内存/磁盘/网络核心指标
+  # - exporters/valkey-exporter/docker-compose.yml    # Valkey 缓存命中率与内存状态
+  # - exporters/postgres-exporter/docker-compose.yml  # PostgreSQL 连接数/事务/锁状态
   # - exporters/cadvisor/docker-compose.yml         # Docker 容器资源占用指标 (暂停使用；恢复容器指标与 ContainerHighMemoryUsage 规则时取消注释)
+  - glitchtip/docker-compose.yml        # GlitchTip 错误聚合平台 (Sentry 替代，按需启用；需在 .env 设置 GLITCHTIP_SECRET_KEY)
+  - open-observe/docker-compose.yml     # OpenObserve 全栈可观测 (Logs/Metrics/Traces 单容器；管理员凭证只放 .env)
+  - otel-collector/docker-compose.yml   # OTLP 统一摄取网关 (应用 → OpenObserve；重试/排队/批处理)

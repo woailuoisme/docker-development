@@ -1,16 +1,11 @@
-ARG MEILI_VERSION=v1.53
+ARG MEILI_VERSION=v1.54
 FROM getmeili/meilisearch:${MEILI_VERSION}
 
-ARG TIMEZONE=Asia/Shanghai
-ARG CHANGE_SOURCE=true
-
-RUN if [ "$CHANGE_SOURCE" = "true" ]; then \
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
-    fi
+ARG TZ=Asia/Shanghai
 
 RUN apk add --no-cache tzdata && \
-    ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
-    echo ${TIMEZONE} > /etc/timezone
+    ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && \
+    echo ${TZ} > /etc/timezone
 
 # 复制配置文件
 COPY config.toml /meili_config/config.toml

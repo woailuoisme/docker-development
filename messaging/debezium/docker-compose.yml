@@ -1,0 +1,48 @@
+services:
+  # 【必要】Kafka Connect 运行时（预装全部 Debezium CDC 连接器）
+  # 依赖 messaging/kafka（同一聚合编排下以服务名直连）；连接器注册/管理走 :8083 REST API
+  connect:
+    image: quay.io/debezium/connect:3.7
+    container_name: debezium-connect
+    restart: always
+    ports:
+      - "8083:8083" # Connect REST API：POST /connectors 注册 CDC 任务
+    environment:
+      BOOTSTRAP_SERVERS: kafka:29092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: connect_configs
+      OFFSET_STORAGE_TOPIC: connect_offsets
+      STATUS_STORAGE_TOPIC: connect_statuses
+      # 单节点 kafka 必须为 1，否则内部 topic 副本不足导致启动失败
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      # 默认 /kafka/connect 保留（内置连接器），追加自定义连接器目录
+      CONNECT_PLUGIN_PATH: /kafka/connect,/debezium/plugins
+    volumes:
+      # 自定义连接器 jar 解压后放 ${CONFIG_PATH}debezium/plugins/<connector-name>/ 下
+      - ${CONFIG_PATH}debezium/plugins:/debezium/plugins:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8083/connectors >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      kafka:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    networks:
+      - backend
+
+networks:
+  backend:
+    external: true
+    name: backend

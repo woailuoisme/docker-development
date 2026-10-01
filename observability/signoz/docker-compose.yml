@@ -1,0 +1,139 @@
+services:
+  # 【必要】Web UI / API / 查询
+  signoz:
+    image: signoz/signoz:v0.144.0
+    container_name: signoz
+    restart: unless-stopped
+    depends_on:
+      signoz-clickhouse:
+        condition: service_healthy
+    environment:
+      - SIGNOZ_SQLSTORE_PROVIDER=postgres
+      - SIGNOZ_SQLSTORE_POSTGRES_DSN=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/signoz?sslmode=disable
+      - SIGNOZ_TELEMETRYSTORE_PROVIDER=clickhouse
+      - SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN=tcp://signoz-clickhouse:9000
+    ports:
+      - "13333:8080"
+    networks:
+      - frontend
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+  # 【必要】OTLP 遥测摄入入口
+  signoz-ingester:
+    image: signoz/signoz-otel-collector:v0.144.12
+    container_name: signoz-ingester
+    entrypoint: /bin/sh
+    command: /signoz-otel-collector migrate sync check && /signoz-otel-collector --config=/etc/otel-collector-config.yaml --manager-config=/etc/opamp-config.yaml --copy-path=/var/tmp/collector-config.yaml
+    restart: unless-stopped
+    environment:
+      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://signoz-clickhouse:9000
+      - SIGNOZ_OTEL_COLLECTOR_TIMEOUT=10m
+    ports:
+      - "4318:4318" # 4317(gRPC) 留内网：宿主 4317 已被 victoria-traces 占用
+    volumes:
+      - ${CONFIG_PATH:-./}observability/signoz/ingester/ingester.yaml:/etc/otel-collector-config.yaml:ro
+      - ${CONFIG_PATH:-./}observability/signoz/ingester/opamp.yaml:/etc/opamp-config.yaml:ro
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
+
+  # 【必要】遥测存储（Traces / Logs / Metrics）
+  signoz-clickhouse:
+    image: clickhouse/clickhouse-server:25.12
+    container_name: signoz-clickhouse
+    restart: unless-stopped
+    depends_on:
+      signoz-keeper:
+        condition: service_healthy
+      signoz-user-scripts:
+        condition: service_completed_successfully
+    environment:
+      - CLICKHOUSE_SKIP_USER_SETUP=1
+      - CLICKHOUSE_CONFIG=/etc/clickhouse-server/config.yaml
+    volumes:
+      - ${DATA_PATH:-./data/}signoz/clickhouse:/var/lib/clickhouse
+      - ${DATA_PATH:-./data/}signoz/user-scripts:/var/lib/clickhouse/user_scripts:ro
+      - ${CONFIG_PATH:-./}observability/signoz/clickhouse/config.yaml:/etc/clickhouse-server/config.yaml:ro
+      - ${CONFIG_PATH:-./}observability/signoz/clickhouse/functions.yaml:/etc/clickhouse-server/functions.yaml:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+
+  # 【必要】ClickHouse 复制协调
+  signoz-keeper:
+    image: clickhouse/clickhouse-keeper:25.12-alpine
+    container_name: signoz-keeper
+    entrypoint: /usr/bin/clickhouse-keeper --config-file=/etc/clickhouse-keeper/keeper.yaml
+    restart: unless-stopped
+    volumes:
+      - ${DATA_PATH:-./data/}signoz/keeper:/var/lib/clickhouse-keeper
+      - ${CONFIG_PATH:-./}observability/signoz/keeper/keeper.yaml:/etc/clickhouse-keeper/keeper.yaml:ro
+    healthcheck:
+      test: ["CMD", "clickhouse-keeper-client", "-h", "localhost", "-p", "9181", "-q", "ls"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+  # 【必要·一次性】建表迁移，跑完即退出
+  signoz-migrator:
+    image: signoz/signoz-otel-collector:v0.144.12
+    container_name: signoz-migrator
+    entrypoint: /bin/sh
+    command: /signoz-otel-collector migrate ready && /signoz-otel-collector migrate bootstrap && /signoz-otel-collector migrate sync up && /signoz-otel-collector migrate async up
+    restart: on-failure
+    environment:
+      - SIGNOZ_OTEL_COLLECTOR_CLICKHOUSE_DSN=tcp://signoz-clickhouse:9000
+      - SIGNOZ_OTEL_COLLECTOR_TIMEOUT=10m
+    networks:
+      - backend
+
+  # 【必要·一次性】下载 histogramQuantile 自定义函数脚本，跑完即退出
+  signoz-user-scripts:
+    image: clickhouse/clickhouse-server:25.12
+    container_name: signoz-user-scripts
+    # GitHub 不可达时：手动放置二进制到 data/signoz/user-scripts/histogramQuantile，
+    # 并删除 signoz-clickhouse 的 depends_on 里本服务条目后直接启动
+    restart: on-failure
+    command:
+      - bash
+      - -c
+      - |-
+        version="v0.0.1"
+        node_os=$$(uname -s | tr '[:upper:]' '[:lower:]')
+        node_arch=$$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
+        echo "Fetching histogram-binary for $${node_os}/$${node_arch}"
+        cd /tmp
+        wget -O histogram-quantile.tar.gz "https://github.com/SigNoz/signoz/releases/download/histogram-quantile%2F$${version}/histogram-quantile_$${node_os}_$${node_arch}.tar.gz"
+        tar -xvzf histogram-quantile.tar.gz
+        mv histogram-quantile /var/lib/clickhouse/user_scripts/histogramQuantile
+    volumes:
+      - ${DATA_PATH:-./data/}signoz/user-scripts:/var/lib/clickhouse/user_scripts
+    networks:
+      - backend

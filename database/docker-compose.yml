@@ -4,11 +4,12 @@
 include:
   # --- 关系型数据库 (RDBMS) ---
   - postgres-18/docker-compose.yml          # PostgreSQL 18 (含 TimescaleDB / GIS / 向量) (默认启用)
-  - pgbouncer/docker-compose.yml          # PgBouncer 轻量级高性能连接池 (Debian 基础)
+  # - pgbouncer/docker-compose.yml          # PgBouncer 轻量级高性能连接池 (Debian 基础)
   # - pgbackups/docker-compose.yml          # PostgreSQL 本地自动化逻辑备份与定时快照 (pg_dump)
   # - pgdog/docker-compose.yml              # PgDog 智能负载与分片路由连接池 (Rust 实现)
   # - pgbackrest/docker-compose.yml         # pgBackRest 企业级物理备份与 WAL 归档 (PITR)
   # - mysql-8/docker-compose.yml            # MySQL 8.0 关系型数据库
+  # - peerdb/docker-compose.yml             # PeerDB 实时 CDC 数据管道 (catalog 复用共享 postgres，含 temporal + minio 内网栈)
 
   # --- 键值缓存与内存库 (In-Memory & Cache) ---
   # - redis/docker-compose.yml                # Redis 经典内存数据结构服务 (备用)

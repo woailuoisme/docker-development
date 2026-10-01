@@ -1,0 +1,22 @@
+services:
+  # 【必要】单容器全栈：日志 / 指标 / 链路 / 报警 / UI（内置 SQLite 元数据 + 本地磁盘存储）
+  openobserve:
+    image: openobserve/openobserve:v1.0.4
+    container_name: openobserve
+    restart: always
+    environment:
+      # 初始管理员：邮箱必须带真实域名（admin@localhost 会被拒），缺失会启动失败；凭证只放 .env
+      - ZO_ROOT_USER_EMAIL=${OPENOBSERVE_ROOT_EMAIL:?请在 .env 设置 OPENOBSERVE_ROOT_EMAIL（需带真实域名）}
+      - ZO_ROOT_USER_PASSWORD=${OPENOBSERVE_ROOT_PASSWORD:?请在 .env 设置 OPENOBSERVE_ROOT_PASSWORD}
+    volumes:
+      - ${DATA_PATH:-./data/}open-observe:/data
+    ports:
+      - "5080:5080"
+    networks:
+      - frontend
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G

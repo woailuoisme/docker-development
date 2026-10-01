@@ -4,7 +4,7 @@
 
 ## 📌 项目概述 (Project Overview)
 
-本项目是一套模块化、生产/开发兼顾的 Docker Compose V2 容器化基础设施（基于 `include` 机制解耦）。主要用于 PHP/Laravel (Octane / RoadRunner / FrankenPHP / FPM) 全栈开发、微服务通信、多数据源及常用运维工具链编排。
+本项目是一套模块化、生产/开发兼顾的 Docker Compose V2 容器化基础设施（基于 `include` 机制解耦） 全栈开发、微服务通信、多数据源及常用运维工具链编排。
 
 ---
 
@@ -21,13 +21,27 @@
 
 - **容器命名**：显式指定 `container_name: <service-name>`。
 - **网络归属**：
+
   - 需要外部反向代理访问（接入 Caddy）的服务加入 `frontend`。
   - 服务间内部通信加入 `backend`。
 - **持久化路径**：
+
   - 数据文件统一挂载至 `${DATA_PATH}<service-name>/...`。
   - 配置文件统一挂载至 `${CONFIG_PATH}<service-name>/...`。
   - 日志文件统一挂载至 `${LOG_PATH}<service-name>/...`。
 - **重启策略**：默认 `restart: always` 或 `restart: unless-stopped`。
+- **镜像版本标签**：
+
+  - 上游发布了 minor 标签时用 minor（如 `clickhouse/clickhouse-server:25.12`），不带 patch 号。
+  - 优先选择 `alpine` / `slim` 变体（如 `postgres:18-alpine`）。
+  - 上游未发布对应标签时才退回完整版本号（如 `temporalio/ui:2.54.1`），禁止写不存在的标签——新增前先到 Docker Hub / GHCR 实测确认。
+- **固定值优先**：版本号与宿主端口一律写字面值（`13333:8080`），不用 `${VAR:-default}` 变量形式。
+- **环境变量使用边界**：仅两类内容进 env 变量（写入根 `.env`，已被 `.gitignore` 忽略）：
+
+  1. 敏感数据：密钥、口令、Token（如 `INFISICAL_AUTH_SECRET`）；
+  2. 重要推荐配置：跨服务共享的连接串、路径变量（`DATA_PATH` / `CONFIG_PATH`）、部署时需按环境调整的开关。
+
+  - 普通配置、版本号、端口、内部服务地址（`http://<service>:<port>`）直接写死在 compose 中。
 
 ### 3. Caddy 反向代理接入规范
 

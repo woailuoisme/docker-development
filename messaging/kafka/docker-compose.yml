@@ -1,0 +1,48 @@
+services:
+  # 【必要】Apache Kafka broker：KRaft 单机模式（内置元数据仲裁，无需 ZooKeeper）
+  # 监听器约定：PLAINTEXT(kafka:29092) 供容器网络互访，EXTERNAL(localhost:9092) 供宿主应用
+  kafka:
+    image: apache/kafka:4.2.2
+    container_name: kafka
+    restart: always
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft 单节点
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      # 单节点必须为 1，否则内部 topic 副本不足无法就绪
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # 开发便利；生产应改 false 并显式建 topic
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      # 开发环境限制 JVM 堆，避免吃满容器限额
+      KAFKA_HEAP_OPTS: -Xmx512m -Xms256m
+    volumes:
+      - ${DATA_PATH}kafka:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    networks:
+      - backend
+
+networks:
+  backend:
+    external: true
+    name: backend

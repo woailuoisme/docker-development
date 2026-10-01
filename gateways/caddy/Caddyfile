@@ -35,25 +35,25 @@ import proxy-octane-app-auth rest.{$SITE_ADDRESS} php-roadrunner:8001 /var/www/l
 
 #import proxy-app beszel.{$SITE_ADDRESS} beszel:8090
 
-import proxy-app mo.{$SITE_ADDRESS} minio:9001
-import proxy-app mos.{$SITE_ADDRESS} minio:9000
+# import proxy-app mo.{$SITE_ADDRESS} minio:9001
+# import proxy-app mos.{$SITE_ADDRESS} minio:9000
 
 # Garage S3 标准 API 访问点（支持标准对象操作及虚拟主机样式存储桶解析）
 import proxy-app s3.{$SITE_ADDRESS} garage:3900
-import proxy-app *.s3.{$SITE_ADDRESS} garage:3900
+# import proxy-app *.s3.{$SITE_ADDRESS} garage:3900
 # Garage S3 静态网页托管端点（直接渲染输出存储桶内的网页内容）
 import proxy-app s3.web.{$SITE_ADDRESS} garage:3902
-import proxy-app *.s3.web.{$SITE_ADDRESS} garage:3902
+# import proxy-app *.s3.web.{$SITE_ADDRESS} garage:3902
 # Garage 后台管理 Dashboard 页面（附带身份验证鉴权拦截层）
-import proxy-app-auth s3-admin.{$SITE_ADDRESS} garage-webui:3909
+# import proxy-app-auth s3-admin.{$SITE_ADDRESS} garage-webui:3909
 
 #import proxy-app push.{$SITE_ADDRESS} centrifugo:8000
 #import proxy-app msg.{$SITE_ADDRESS} gotify:80
-import proxy-app grafana.{$SITE_ADDRESS} grafana:3000
-import proxy-app-auth prom.{$SITE_ADDRESS} victoria-metrics:8428
+# import proxy-app grafana.{$SITE_ADDRESS} grafana:3000
+# import proxy-app-auth prom.{$SITE_ADDRESS} victoria-metrics:8428
 import proxy-app-auth logs.{$SITE_ADDRESS} victoria-logs:9428
 # vmalert 内置 UI（规则组 / 规则详情 / 告警状态）；另可由 VM 通过 -vmalert.proxyURL 反代进 vmui
-import proxy-app-auth alert.{$SITE_ADDRESS} vmalert:8880
+# import proxy-app-auth alert.{$SITE_ADDRESS} vmalert:8880
 # VictoriaTraces 自带 vmui（链路查询 UI，路径 /select/vmui）与 Jaeger 查询 API（Grafana 数据源用）
 import proxy-app-auth traces.{$SITE_ADDRESS} victoria-traces:10428
 # Jaeger UI + Jaeger Query API（官方 jaegertracing/jaeger 镜像，自带 badger 存储）
@@ -64,16 +64,19 @@ import proxy-app-auth traces.{$SITE_ADDRESS} victoria-traces:10428
 #import proxy-app-auth redpanda.{$SITE_ADDRESS} redpanda-console:8080
 # NATS 管理界面 (nui)：刻意不加鉴权——NUI 自身无登录，该入口对任何能解析此域名的人开放。
 # 这是经明确决策接受的风险，详见 messaging/nats/README.md
-import proxy-app nats.{$SITE_ADDRESS} nui:31311
+# import proxy-app nats.{$SITE_ADDRESS} nui:31311
 
 #import proxy-app-auth home.{$SITE_ADDRESS} homepage:3000
 #import proxy-app-auth docs.{$SITE_ADDRESS} docs:80
 import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
 import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
 # import proxy-app vault.{$SITE_ADDRESS} vaultwarden:80
-import proxy-app registry.{$SITE_ADDRESS} zot:5000
+# import proxy-app registry.{$SITE_ADDRESS} zot:5000
 #import proxy-app-auth trivy.{$SITE_ADDRESS} trivy:4954
 #import proxy-app-auth bao.{$SITE_ADDRESS} open-bao:8200
+#import proxy-app-auth signoz.{$SITE_ADDRESS} signoz:8080
+#import proxy-app-auth glitchtip.{$SITE_ADDRESS} glitchtip:8000
+#import proxy-app-auth openobserve.{$SITE_ADDRESS} openobserve:5080
 #import proxy-app img.{$SITE_ADDRESS} imgproxy:8080
 
 # 子路径服务聚合仅适用于支持baseURL的应用）

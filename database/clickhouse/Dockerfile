@@ -1,7 +1,7 @@
 # ==============================================================================
 # ClickHouse 26.8 轻量低内存与高稳定性定制镜像
 # ==============================================================================
-FROM clickhouse/clickhouse-server:26.8
+FROM clickhouse/clickhouse-server:26.9
 
 # 复制服务端底层调优与内存硬限制配置 (config.d)
 COPY ./config.d/low_mem_tuning.xml /etc/clickhouse-server/config.d/
