@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       build_all:
-        description: "🚀 构建所有镜像 (caddy-base & postgres)"
+        description: "Build all"
         type: boolean
         default: false
       build_caddy_base:
-        description: "构建 Caddy Base (caddy-base)"
+        description: "Build caddy-base"
         type: boolean
         default: false
       build_postgres:
-        description: "构建 PostgreSQL (postgres)"
+        description: "Build postgres"
         type: boolean
         default: false
 
@@ -33,37 +33,27 @@ jobs:
           add_task() {
             local name="$1"
             local context="$2"
-            local tags="$3"
+            local image="$3"
+            local version="$4"
             MATRIX_JSON=$(echo "$MATRIX_JSON" | jq -c \
               --arg name "$name" \
               --arg context "$context" \
-              --arg tags "$tags" \
-              '. + [{"name": $name, "context": $context, "tags": $tags}]')
+              --arg image "$image" \
+              --arg version "$version" \
+              '. + [{"name": $name, "context": $context, "image": $image, "version": $version}]')
           }
 
           BUILD_ALL=${{ inputs.build_all }}
           BUILD_CADDY=${{ inputs.build_caddy_base }}
           BUILD_PG=${{ inputs.build_postgres }}
 
-          # 若未明确勾选任何单项且未勾选 build_all，则默认全量构建
+          # Default to building all if nothing is specifically selected
           if [[ "$BUILD_ALL" != "true" && "$BUILD_CADDY" != "true" && "$BUILD_PG" != "true" ]]; then
             BUILD_ALL="true"
           fi
 
-          TAGS_CADDY="${REGISTRY_DOCKERHUB}/caddy-base:latest
-          ${REGISTRY_DOCKERHUB}/caddy-base:2.11
-          ${REGISTRY_REDHAT}/caddy-base:latest
-          ${REGISTRY_REDHAT}/caddy-base:2.11"
-
-          TAGS_POSTGRES="${REGISTRY_DOCKERHUB}/postgres:latest
-          ${REGISTRY_DOCKERHUB}/postgres:18
-          ${REGISTRY_DOCKERHUB}/postgres-18:latest
-          ${REGISTRY_REDHAT}/postgres:latest
-          ${REGISTRY_REDHAT}/postgres:18
-          ${REGISTRY_REDHAT}/postgres-18:latest"
-
-          [[ "$BUILD_ALL" == "true" || "$BUILD_CADDY" == "true" ]] && add_task "caddy-base" "./gateways/caddy-base" "$TAGS_CADDY"
-          [[ "$BUILD_ALL" == "true" || "$BUILD_PG" == "true" ]] && add_task "postgres" "./database/postgres-18" "$TAGS_POSTGRES"
+          [[ "$BUILD_ALL" == "true" || "$BUILD_CADDY" == "true" ]] && add_task "caddy-base" "./gateways/caddy-base" "caddy-base" "2.11"
+          [[ "$BUILD_ALL" == "true" || "$BUILD_PG" == "true" ]] && add_task "postgres" "./database/postgres-18" "postgres" "18"
 
           echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
 
@@ -101,4 +91,8 @@ jobs:
           build-args: |
             CHANGE_SOURCE=false
             CHINA=false
-          tags: ${{ matrix.tags }}
+          tags: |
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:latest
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:latest
+            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}

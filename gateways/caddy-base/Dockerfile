@@ -10,8 +10,11 @@ RUN xcaddy build \
     --with github.com/mholt/caddy-l4@v0.1.2 \
     --with github.com/caddy-dns/cloudflare@v0.2.4 \
     --with github.com/caddy-dns/alidns@v1.0.29 \
+    --with github.com/caddy-dns/tencentcloud@v0.4.3 \
+    --with github.com/caddy-dns/dnspod@v0.0.4 \
+    --with github.com/caddy-dns/vultr \
     --with github.com/caddyserver/replace-response \
-    --with github.com/caddyserver/cache-handler@v0.16.0 \
+    --with github.com/caddyserver/cache-handler@v0.17.0 \
     --with github.com/mholt/caddy-ratelimit@v0.1.0 \
     --with github.com/sagikazarmark/caddy-fs-s3@v0.12.0 \
     --with github.com/corazawaf/coraza-caddy/v2@v2.6.1 \
