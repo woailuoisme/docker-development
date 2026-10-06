@@ -1,4 +1,4 @@
-ARG CADDY_VERSION=2.11.4
+ARG CADDY_VERSION=2.11
 
 # 阶段 1: 编译构建
 FROM caddy:${CADDY_VERSION}-builder-alpine AS builder
