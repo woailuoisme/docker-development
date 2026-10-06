@@ -1,0 +1,104 @@
+name: Build Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_all:
+        description: "🚀 构建所有镜像 (caddy-base & postgres)"
+        type: boolean
+        default: false
+      build_caddy_base:
+        description: "构建 Caddy Base (caddy-base)"
+        type: boolean
+        default: false
+      build_postgres:
+        description: "构建 PostgreSQL (postgres)"
+        type: boolean
+        default: false
+
+env:
+  REGISTRY_DOCKERHUB: docker.io/jiaoio
+  REGISTRY_REDHAT: quay.io/jiaoio
+
+jobs:
+  matrix-builder:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          MATRIX_JSON='[]'
+
+          add_task() {
+            local name="$1"
+            local context="$2"
+            local tags="$3"
+            MATRIX_JSON=$(echo "$MATRIX_JSON" | jq -c \
+              --arg name "$name" \
+              --arg context "$context" \
+              --arg tags "$tags" \
+              '. + [{"name": $name, "context": $context, "tags": $tags}]')
+          }
+
+          BUILD_ALL=${{ inputs.build_all }}
+          BUILD_CADDY=${{ inputs.build_caddy_base }}
+          BUILD_PG=${{ inputs.build_postgres }}
+
+          # 若未明确勾选任何单项且未勾选 build_all，则默认全量构建
+          if [[ "$BUILD_ALL" != "true" && "$BUILD_CADDY" != "true" && "$BUILD_PG" != "true" ]]; then
+            BUILD_ALL="true"
+          fi
+
+          TAGS_CADDY="${REGISTRY_DOCKERHUB}/caddy-base:latest
+          ${REGISTRY_DOCKERHUB}/caddy-base:2.11
+          ${REGISTRY_REDHAT}/caddy-base:latest
+          ${REGISTRY_REDHAT}/caddy-base:2.11"
+
+          TAGS_POSTGRES="${REGISTRY_DOCKERHUB}/postgres:latest
+          ${REGISTRY_DOCKERHUB}/postgres:18
+          ${REGISTRY_DOCKERHUB}/postgres-18:latest
+          ${REGISTRY_REDHAT}/postgres:latest
+          ${REGISTRY_REDHAT}/postgres:18
+          ${REGISTRY_REDHAT}/postgres-18:latest"
+
+          [[ "$BUILD_ALL" == "true" || "$BUILD_CADDY" == "true" ]] && add_task "caddy-base" "./gateways/caddy-base" "$TAGS_CADDY"
+          [[ "$BUILD_ALL" == "true" || "$BUILD_PG" == "true" ]] && add_task "postgres" "./database/postgres-18" "$TAGS_POSTGRES"
+
+          echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: matrix-builder
+    if: ${{ fromJson(needs.matrix-builder.outputs.matrix).include[0] != null }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
+
+    name: Build ${{ matrix.name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Registries
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          echo "${{ secrets.REDHAT_REGISTRY_TOKEN }}" | docker login quay.io -u "${{ secrets.REDHAT_REGISTRY_USERNAME }}" --password-stdin
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            CHANGE_SOURCE=false
+            CHINA=false
+          tags: ${{ matrix.tags }}
