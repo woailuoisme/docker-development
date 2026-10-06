@@ -9,7 +9,7 @@ services:
       - MTX_RTSPTRANSPORTS=tcp
       - MTX_WEBRTCADDITIONALHOSTS=${MEDIAMTX_WEBRTC_ADDITIONAL_HOSTS:-127.0.0.1}
     # volumes:
-    #   - ${CONFIG_PATH}mediamtx/mediamtx.yml:/mediamtx.yml:ro
+    #   - ./mediamtx.yml:/mediamtx.yml:ro
     #   - ${DATA_PATH}mediamtx:/recordings
     ports:
       - "${MEDIAMTX_RTSP_PORT:-8554}:8554"        # RTSP

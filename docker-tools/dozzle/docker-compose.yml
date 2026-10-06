@@ -6,7 +6,7 @@ services:
     ports:
       - "8180:8080"
     volumes:
-      - ${CONFIG_PATH}docker-tools/dozzle/users.yml:/data/users.yml
+      - ./users.yml:/data/users.yml
     environment:
       DOZZLE_REMOTE_HOST: tcp://docker-socket-proxy:2375
       #      DOZZLE_AUTH_PROVIDER: simple

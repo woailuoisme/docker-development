@@ -14,7 +14,7 @@ services:
       # "Basic " + base64("账号:密码")，与 OpenObserve 摄取凭证一致
       - O2_AUTH=${O2_AUTH}
     volumes:
-      - ${CONFIG_PATH}observability/otel-collector/config.yml:/etc/otelcol-contrib/config.yaml:ro
+      - ./config.yml:/etc/otelcol-contrib/config.yaml:ro
     depends_on:
       openobserve:
         condition: service_healthy

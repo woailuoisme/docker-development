@@ -15,7 +15,7 @@ services:
       - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST:-app-host}
     volumes:
       - ${DATA_PATH}rabbitmq:/var/lib/rabbitmq
-      # - ${CONFIG_PATH}rabbitmq/config:/etc/rabbitmq
+      # - ./config:/etc/rabbitmq
       - ${LOG_PATH}rabbitmq:/var/log/rabbitmq
     networks:
       - backend

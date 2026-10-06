@@ -10,7 +10,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-# 载入仓库环境变量（独立执行时也要能拿到 DATA_PATH / CONFIG_PATH）
+# 载入仓库环境变量（独立执行时也要能拿到 DATA_PATH）
 if [ -f "${ROOT_DIR}/.env" ]; then
 	set -a
 	# shellcheck disable=SC1091
@@ -21,8 +21,7 @@ fi
 # 路径统一带尾斜杠：兼容 .env 里写 "./data/"、绝对路径、带或不带尾斜杠三种写法
 DATA_DIR="${DATA_PATH:-${ROOT_DIR}/data/}"
 DATA_DIR="${DATA_DIR%/}/"
-CONFIG_DIR="${CONFIG_PATH:-${ROOT_DIR}/}"
-CONFIG_DIR="${CONFIG_DIR%/}/"
+CONFIG_DIR="${ROOT_DIR}/"
 
 # 与 observability/ 下各 compose 保持一致的版本，改名时同步此处
 VM_VERSION="v1.151.0"

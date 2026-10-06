@@ -19,9 +19,9 @@ services:
       # Fail2ban 运行时 SQLite 状态数据库持久化 (跨重启保留封禁记录)
       - ${DATA_PATH:-./data/}fail2ban/db:/data/db
       # 声明式 Jails 规则、自定义 Filter 与 Action 挂载
-      - ${CONFIG_PATH:-./}security/fail2ban/config/jail.d:/data/jail.d:ro
-      - ${CONFIG_PATH:-./}security/fail2ban/config/filter.d:/data/filter.d:ro
-      - ${CONFIG_PATH:-./}security/fail2ban/config/action.d:/data/action.d:ro
+      - ./config/jail.d:/data/jail.d:ro
+      - ./config/filter.d:/data/filter.d:ro
+      - ./config/action.d:/data/action.d:ro
       # 监控 Caddy 与 Nginx Web 网关访问日志 (只读挂载)
       - ${LOG_PATH:-./logs/}caddy:/var/log/caddy:ro
       - ${LOG_PATH:-./logs/}nginx:/var/log/nginx:ro

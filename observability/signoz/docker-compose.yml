@@ -36,8 +36,8 @@ services:
     ports:
       - "4318:4318" # 4317(gRPC) 留内网：宿主 4317 已被 victoria-traces 占用
     volumes:
-      - ${CONFIG_PATH:-./}observability/signoz/ingester/ingester.yaml:/etc/otel-collector-config.yaml:ro
-      - ${CONFIG_PATH:-./}observability/signoz/ingester/opamp.yaml:/etc/opamp-config.yaml:ro
+      - ./ingester/ingester.yaml:/etc/otel-collector-config.yaml:ro
+      - ./ingester/opamp.yaml:/etc/opamp-config.yaml:ro
     networks:
       - backend
     deploy:
@@ -62,8 +62,8 @@ services:
     volumes:
       - ${DATA_PATH:-./data/}signoz/clickhouse:/var/lib/clickhouse
       - ${DATA_PATH:-./data/}signoz/user-scripts:/var/lib/clickhouse/user_scripts:ro
-      - ${CONFIG_PATH:-./}observability/signoz/clickhouse/config.yaml:/etc/clickhouse-server/config.yaml:ro
-      - ${CONFIG_PATH:-./}observability/signoz/clickhouse/functions.yaml:/etc/clickhouse-server/functions.yaml:ro
+      - ./clickhouse/config.yaml:/etc/clickhouse-server/config.yaml:ro
+      - ./clickhouse/functions.yaml:/etc/clickhouse-server/functions.yaml:ro
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
       interval: 30s
@@ -86,7 +86,7 @@ services:
     restart: unless-stopped
     volumes:
       - ${DATA_PATH:-./data/}signoz/keeper:/var/lib/clickhouse-keeper
-      - ${CONFIG_PATH:-./}observability/signoz/keeper/keeper.yaml:/etc/clickhouse-keeper/keeper.yaml:ro
+      - ./keeper/keeper.yaml:/etc/clickhouse-keeper/keeper.yaml:ro
     healthcheck:
       test: ["CMD", "clickhouse-keeper-client", "-h", "localhost", "-p", "9181", "-q", "ls"]
       interval: 30s

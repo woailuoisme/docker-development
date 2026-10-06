@@ -23,8 +23,8 @@ services:
       # 默认 /kafka/connect 保留（内置连接器），追加自定义连接器目录
       CONNECT_PLUGIN_PATH: /kafka/connect,/debezium/plugins
     volumes:
-      # 自定义连接器 jar 解压后放 ${CONFIG_PATH}debezium/plugins/<connector-name>/ 下
-      - ${CONFIG_PATH}debezium/plugins:/debezium/plugins:ro
+      # 自定义连接器 jar 解压后放 ./plugins/<connector-name>/ 下
+      - ./plugins:/debezium/plugins:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8083/connectors >/dev/null || exit 1"]
       interval: 15s

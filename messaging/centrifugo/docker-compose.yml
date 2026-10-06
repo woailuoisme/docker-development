@@ -7,7 +7,7 @@ services:
     ports:
       - "48000:8000"
     volumes:
-      - ${CONFIG_PATH}messaging/centrifugo:/centrifugo
+      - .:/centrifugo
     environment:
       # 默认使用 redis 引擎，但可以在开发环境的 .env 中通过 CENTRIFUGO_ENGINE_TYPE 设定为 memory
       - CENTRIFUGO_ENGINE_TYPE=${CENTRIFUGO_ENGINE_TYPE:-redis}

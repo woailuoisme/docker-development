@@ -6,7 +6,7 @@ services:
     ports:
       - "9091:9091"
     volumes:
-      - ${CONFIG_PATH}iam/authelia/config:/config
+      - ./config:/config
       - ${DATA_PATH}authelia:/data
     environment:
       - X_AUTHELIA_CONFIG_FILTERS=template

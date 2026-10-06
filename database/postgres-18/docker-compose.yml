@@ -19,8 +19,8 @@ services:
       - PGBOUNCER_AUTH_PASSWORD=${PGBOUNCER_AUTH_PASSWORD}
     volumes:
       - ${DATA_PATH}postgres18:/var/lib/postgresql
-      - ${CONFIG_PATH}database/postgres-18/postgresql.conf:/etc/postgresql/postgresql.conf:ro
-      - ${CONFIG_PATH}database/postgres-18/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
     healthcheck:

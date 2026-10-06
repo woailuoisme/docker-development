@@ -9,7 +9,7 @@ services:
       - GIN_MODE=release
       - TZ=${TIMEZONE:-Asia/Shanghai}
     volumes:
-      - ${CONFIG_PATH}iam/casdoor/conf:/conf
+      - ./conf:/conf
       - ${LOG_PATH}casdoor:/logs
     depends_on:
       - postgres

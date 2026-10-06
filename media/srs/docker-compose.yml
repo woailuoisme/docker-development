@@ -9,7 +9,7 @@ services:
     environment:
       - CANDIDATE=${SRS_CANDIDATE:-127.0.0.1}
     volumes:
-      - ${CONFIG_PATH}media/srs/srs.conf:/usr/local/srs/conf/srs.conf:ro
+      - ./srs.conf:/usr/local/srs/conf/srs.conf:ro
       - ${DATA_PATH}srs/objs/nginx/html:/usr/local/srs/objs/nginx/html
     ports:
       # 1935: RTMP 推流与拉流服务

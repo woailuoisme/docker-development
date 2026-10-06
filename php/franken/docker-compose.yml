@@ -9,7 +9,7 @@ services:
       - "12019:2019"
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-      - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
+      - ../../ssh:/home/www-data/.ssh:ro
     environment:
       - APP_PATH=${APP_PATH}
       - APP_ENV=${APP_ENV}

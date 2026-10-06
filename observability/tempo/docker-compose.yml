@@ -6,7 +6,7 @@ services:
     command:
       - "-config.file=/etc/tempo.yaml"
     volumes:
-      - ${CONFIG_PATH}observability/tempo/tempo.yaml:/etc/tempo.yaml:ro
+      - ./tempo.yaml:/etc/tempo.yaml:ro
       - ${DATA_PATH}tempo:/tmp/tempo
     ports:
       - "${TEMPO_PORT:-3200}:3200" # Tempo HTTP 查询 API

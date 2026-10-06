@@ -73,9 +73,9 @@ security/fail2ban/
 | 挂载类型 | 宿主机路径 | 容器内目标路径 | 读写权限 | 说明 |
 | :--- | :--- | :--- | :--- | :--- |
 | **数据持久化** | `${DATA_PATH}fail2ban/db` | `/data/db` | `rw` | 持久化 `fail2ban.sqlite3`，确保重启不丢失封禁记录 |
-| **规则配置** | `${CONFIG_PATH}security/fail2ban/config/jail.d` | `/data/jail.d` | `ro` | 声明式 Jail 规则配置 |
-| **过滤规则** | `${CONFIG_PATH}security/fail2ban/config/filter.d` | `/data/filter.d` | `ro` | 自定义正则表达式过滤配置 |
-| **动作规则** | `${CONFIG_PATH}security/fail2ban/config/action.d` | `/data/action.d` | `ro` | 自定义防火墙处理动作 |
+| **规则配置** | `./config/jail.d` | `/data/jail.d` | `ro` | 声明式 Jail 规则配置 |
+| **过滤规则** | `./config/filter.d` | `/data/filter.d` | `ro` | 自定义正则表达式过滤配置 |
+| **动作规则** | `./config/action.d` | `/data/action.d` | `ro` | 自定义防火墙处理动作 |
 | **网关日志** | `${LOG_PATH}caddy` | `/var/log/caddy` | `ro` | 实时采集 Caddy 访问日志 `access.log` |
 | **网关日志** | `${LOG_PATH}nginx` | `/var/log/nginx` | `ro` | 实时采集 Nginx 访问日志（备选网关） |
 | **系统日志** | `/var/log` | `/var/log/host` | `ro` | 挂载宿主机 `/var/log/auth.log` 或 `/var/log/secure` |

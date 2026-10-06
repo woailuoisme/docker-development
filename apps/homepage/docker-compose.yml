@@ -15,7 +15,7 @@ services:
     ports:
       - "33000:3000"
     volumes:
-      - ${CONFIG_PATH}apps/homepage/config:/app/config
+      - ./config:/app/config
 
     depends_on:
       - docker-socket-proxy

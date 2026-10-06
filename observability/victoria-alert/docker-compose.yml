@@ -21,7 +21,7 @@ services:
       - "-notifier.blackhole"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${CONFIG_PATH}observability/victoria-alert/alerts.yml:/etc/alerts/alerts.yml:ro
+      - ./alerts.yml:/etc/alerts/alerts.yml:ro
     environment:
       - TZ=${TIMEZONE:-Asia/Shanghai}
     networks:

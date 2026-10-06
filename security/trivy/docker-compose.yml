@@ -19,12 +19,12 @@ services:
       # 报告导出目录（支持 HTML、JSON、SARIF 格式持久化）
       - ${DATA_PATH:-./data/}trivy/reports:/root/reports
       # 挂载自定义声明式配置文件与忽略规则
-      - ${CONFIG_PATH:-./}security/trivy/trivy.yaml:/root/trivy.yaml:ro
-      - ${CONFIG_PATH:-./}security/trivy/.trivyignore:/root/.trivyignore:ro
+      - ./trivy.yaml:/root/trivy.yaml:ro
+      - ./.trivyignore:/root/.trivyignore:ro
       # 挂载宿主机 Docker 套接字（支持直接扫描宿主机本地 Docker 镜像）
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # 挂载当前仓库代码与配置（支持 IaC 与项目组件安全审计）
-      - ${CONFIG_PATH:-./}:/workspace/project:ro
+      - ../../:/workspace/project:ro
       # 挂载应用代码目录（支持依赖项安全扫描）
       - ${APP_CODE_PATH:-./}:/workspace/app:ro
     ports:

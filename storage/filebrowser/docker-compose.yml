@@ -12,4 +12,4 @@ services:
     volumes:
       - ${DATA_PATH}filebrowser/files:/srv
       - ${DATA_PATH}filebrowser/database:/database
-      - ${CONFIG_PATH}storage/filebrowser/config:/config
+      - ./config:/config

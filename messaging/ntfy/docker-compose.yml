@@ -8,7 +8,7 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       - /var/cache/ntfy:/var/cache/ntfy
-      - ${CONFIG_PATH}messaging/ntfy:/etc/ntfy
+      - .:/etc/ntfy
     ports:
       - "11180:80"
     restart: always

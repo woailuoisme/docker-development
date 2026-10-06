@@ -31,7 +31,7 @@ services:
       - "${VECTOR_PORT:-8686}:8686"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${CONFIG_PATH}observability/vector/vector.yaml:/etc/vector/vector.yaml:ro
+      - ./vector.yaml:/etc/vector/vector.yaml:ro
       - ${DATA_PATH}vector:/var/lib/vector
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:

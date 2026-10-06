@@ -10,9 +10,9 @@ services:
       - HAPROXY_STATS_USER=${HAPROXY_STATS_USER:-admin}
       - HAPROXY_STATS_PASSWORD=${HAPROXY_STATS_PASSWORD:-admin}
     volumes:
-      - ${CONFIG_PATH}gateways/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-      - ${CONFIG_PATH}gateways/haproxy/conf.d:/usr/local/etc/haproxy/conf.d:ro
-      - ${CONFIG_PATH}gateways/haproxy/maps:/usr/local/etc/haproxy/maps:ro
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./conf.d:/usr/local/etc/haproxy/conf.d:ro
+      - ./maps:/usr/local/etc/haproxy/maps:ro
       - ${DATA_PATH}ssl:/etc/haproxy/ssl:ro
       - ${DATA_PATH}haproxy/certs:/etc/haproxy/certs
       - ${DATA_PATH}haproxy:/var/lib/haproxy

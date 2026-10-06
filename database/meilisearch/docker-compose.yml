@@ -13,7 +13,7 @@ services:
       - "7700:7700"
     volumes:
       - ${DATA_PATH}meili_data:/meili_data
-      - ${CONFIG_PATH}database/meilisearch/config.toml:/meili_config/config.toml:ro
+      - ./config.toml:/meili_config/config.toml:ro
     networks:
       - frontend
       - backend

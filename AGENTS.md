@@ -27,7 +27,7 @@
 - **持久化路径**：
 
   - 数据文件统一挂载至 `${DATA_PATH}<service-name>/...`。
-  - 配置文件统一挂载至 `${CONFIG_PATH}<service-name>/...`。
+  - 配置文件直接使用相对路径挂载（`./...`，相对于各子服务所在目录），无需也禁止使用 `CONFIG_PATH` 环境变量。
   - 日志文件统一挂载至 `${LOG_PATH}<service-name>/...`。
 - **重启策略**：默认 `restart: always` 或 `restart: unless-stopped`。
 - **镜像版本标签**：
@@ -39,7 +39,7 @@
 - **环境变量使用边界**：仅两类内容进 env 变量（写入根 `.env`，已被 `.gitignore` 忽略）：
 
   1. 敏感数据：密钥、口令、Token（如 `INFISICAL_AUTH_SECRET`）；
-  2. 重要推荐配置：跨服务共享的连接串、路径变量（`DATA_PATH` / `CONFIG_PATH`）、部署时需按环境调整的开关。
+  2. 重要推荐配置：跨服务共享的连接串、路径变量（`DATA_PATH` / `LOG_PATH`）、部署时需按环境调整的开关。
 
   - 普通配置、版本号、端口、内部服务地址（`http://<service>:<port>`）直接写死在 compose 中。
 
@@ -113,7 +113,6 @@ just lint-md
 
 - `SITE_ADDRESS`：基础域名（如开发环境 `test.local`）。
 - `DATA_PATH`：持久化数据主目录（如 `./data/` 或 `/var/docker/development/data/`）。
-- `CONFIG_PATH`：配置挂载目录（如 `./` 或 `/var/docker/development/`）。
 - `LOG_PATH`：日志目录（如 `./logs/` 或 `/var/docker/development/logs/`）。
 - `TIMEZONE`：时区（默认 `Asia/Shanghai`）。
 - `APP_CODE_PATH`：应用代码宿主机路径。

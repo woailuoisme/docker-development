@@ -15,8 +15,8 @@ services:
       - "${MYSQL_PORT:-43306}:3306"
     volumes:
       - ${DATA_PATH}mysql8:/var/lib/mysql
-      - ${CONFIG_PATH}database/mysql-8/conf.d:/etc/mysql/conf.d
-      - ${CONFIG_PATH}database/mysql-8/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./conf.d:/etc/mysql/conf.d
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
 
     networks:
       - backend

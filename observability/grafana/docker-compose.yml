@@ -8,8 +8,8 @@ services:
       - "${GRAFANA_PORT:-13000}:3000"
     volumes:
       - ${DATA_PATH}grafana:/var/lib/grafana
-      - ${CONFIG_PATH}observability/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ${CONFIG_PATH}observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./provisioning:/etc/grafana/provisioning:ro
+      - ./dashboards:/etc/grafana/provisioning/dashboards:ro
     environment:
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-Admin123!}

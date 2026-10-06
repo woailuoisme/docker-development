@@ -21,9 +21,9 @@
 
 | 宿主机路径 (环境变量) | 容器内挂载路径 | 说明 |
 | :--- | :--- | :--- |
-| `${CONFIG_PATH}gateways/haproxy/haproxy.cfg` | `/usr/local/etc/haproxy/haproxy.cfg:ro` | 核心配置文件 (支持 `include`) |
-| `${CONFIG_PATH}gateways/haproxy/conf.d` | `/usr/local/etc/haproxy/conf.d:ro` | 模块化后端配置目录 |
-| `${CONFIG_PATH}gateways/haproxy/maps` | `/usr/local/etc/haproxy/maps:ro` | 域名与后端映射表目录 |
+| `./haproxy.cfg` | `/usr/local/etc/haproxy/haproxy.cfg:ro` | 核心配置文件 (支持 `include`) |
+| `./conf.d` | `/usr/local/etc/haproxy/conf.d:ro` | 模块化后端配置目录 |
+| `./maps` | `/usr/local/etc/haproxy/maps:ro` | 域名与后端映射表目录 |
 | `${DATA_PATH}ssl` | `/etc/haproxy/ssl:ro` | Lego 生成的 ACME 证书源目录 |
 | `${DATA_PATH}haproxy/certs` | `/etc/haproxy/certs` | HAProxy 激活的合并 PEM 证书库 |
 | `${DATA_PATH}haproxy` | `/var/lib/haproxy` | 编译后配置、运行时状态与 Admin Socket |

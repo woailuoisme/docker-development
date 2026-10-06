@@ -15,8 +15,8 @@ services:
       - TRAEFIK_CERTIFICATESRESOLVERS_LETSENCRYPT_ACME_EMAIL=${LEGO_EMAIL:-admin@${SITE_ADDRESS:-example.com}}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${CONFIG_PATH}gateways/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-      - ${CONFIG_PATH}gateways/traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./dynamic:/etc/traefik/dynamic:ro
       - ${DATA_PATH}ssl:/etc/traefik/certs:ro
       - ${DATA_PATH}traefik/acme:/etc/traefik/acme
       - ${DATA_PATH}traefik/plugins-storage:/plugins-storage

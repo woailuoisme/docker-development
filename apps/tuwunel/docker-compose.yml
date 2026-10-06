@@ -18,7 +18,7 @@ services:
       - "6167:6167"
     volumes:
       - ${DATA_PATH}tuwunel:/var/lib/tuwunel
-      #- ${CONFIG_PATH}tuwunel/tuwunel.toml:/etc/tuwunel.toml # 自定义配置文件（可选）
+      #- ./tuwunel.toml:/etc/tuwunel.toml # 自定义配置文件（可选）
     environment:
       TUWUNEL_SERVER_NAME: your.server.name # Matrix 域名/服务器名称（请修改为你自己的域名）
       TUWUNEL_DATABASE_PATH: /var/lib/tuwunel

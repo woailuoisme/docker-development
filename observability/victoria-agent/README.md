@@ -68,7 +68,7 @@ flowchart LR
   - `-memory.allowedPercent=60`：内存软保护上限。
 - **挂载卷**：
   - `${DATA_PATH}victoria-agent:/tmpData`：磁盘缓冲落盘持久化。
-  - `${CONFIG_PATH}observability/victoria-agent/prometheus.yml:/etc/prometheus/prometheus.yml:ro`：抓取配置。
+  - `./prometheus.yml:/etc/prometheus/prometheus.yml:ro`：抓取配置。
 
 ---
 

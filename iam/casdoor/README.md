@@ -30,7 +30,7 @@ iam/casdoor/
 
 | 容器内路径 | 宿主机路径 | 用途 |
 | :--- | :--- | :--- |
-| `/conf` | `${CONFIG_PATH}iam/casdoor/conf` | 配置文件目录（读写，Casdoor 会回写 `app.conf`） |
+| `/conf` | `./conf` | 配置文件目录（读写，Casdoor 会回写 `app.conf`） |
 | `/logs` | `${LOG_PATH}casdoor` | 运行日志（`app.conf` 的 `logConfig` 指向 `logs/casdoor.log`） |
 
 ---

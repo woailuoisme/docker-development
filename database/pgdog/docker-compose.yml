@@ -5,8 +5,8 @@ services:
     ports:
       - "6432:6432"
     volumes:
-      - ${CONFIG_PATH}database/pgdog/pgdog.toml:/pgdog/pgdog.toml:ro
-      - ${CONFIG_PATH}database/pgdog/users.toml:/pgdog/users.toml:ro
+      - ./pgdog.toml:/pgdog/pgdog.toml:ro
+      - ./users.toml:/pgdog/users.toml:ro
     depends_on:
       - postgres
     restart: always

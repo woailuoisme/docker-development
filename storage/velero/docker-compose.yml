@@ -46,8 +46,8 @@ services:
       - VELERO_SCRATCH_DIR=/scratch
       - GOMEMLIMIT=256MiB
     volumes:
-      - ${CONFIG_PATH}storage/velero/kube:/kube:ro
-      - ${CONFIG_PATH}storage/velero/credentials:/credentials:ro
+      - ./kube:/kube:ro
+      - ./credentials:/credentials:ro
       - ${DATA_PATH}velero/plugins:/plugins
       - ${DATA_PATH}velero/scratch:/scratch
     ports:
@@ -71,7 +71,7 @@ services:
       - KUBECONFIG=/kube/config
       - TZ=${TIMEZONE:-Asia/Shanghai}
     volumes:
-      - ${CONFIG_PATH}storage/velero/kube:/kube:ro
+      - ./kube:/kube:ro
     ports:
       - "8087:3000"
     networks:
@@ -91,8 +91,8 @@ services:
       - KUBECONFIG=/kube/config
       - VELERO_NAMESPACE=velero
     volumes:
-      - ${CONFIG_PATH}storage/velero/kube:/kube:ro
-      - ${CONFIG_PATH}storage/velero/credentials:/credentials:ro
+      - ./kube:/kube:ro
+      - ./credentials:/credentials:ro
       - ${DATA_PATH}velero/scratch:/scratch
     profiles:
       - cli

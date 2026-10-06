@@ -10,7 +10,7 @@ services:
       - REDIS_HOST=${LIVEKIT_REDIS_ADDR:-valkey:6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
     volumes:
-      - ${CONFIG_PATH}media/livekit/livekit.yaml:/etc/livekit.yaml:ro
+      - ./livekit.yaml:/etc/livekit.yaml:ro
     ports:
       # 7880: HTTP / WebSocket 信令端口 (Signal, API)
       - "${LIVEKIT_HTTP_PORT:-7880}:7880"
