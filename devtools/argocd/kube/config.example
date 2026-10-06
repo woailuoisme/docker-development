@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Config
+preferences: {}
+current-context: default
+clusters:
+  - name: default
+    cluster:
+      # 连接至宿主机 Kubernetes (Docker Desktop / OrbStack / Minikube 等)
+      # 在容器内部可通过 host.docker.internal 访问宿主机服务
+      server: https://host.docker.internal:6443
+      insecure-skip-tls-verify: true
+contexts:
+  - name: default
+    context:
+      cluster: default
+      user: default
+users:
+  - name: default
+    user:
+      token: "<YOUR-SERVICE-ACCOUNT-OR-BEARER-TOKEN>"

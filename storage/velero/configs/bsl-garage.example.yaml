@@ -1,0 +1,23 @@
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: default
+  namespace: velero
+spec:
+  provider: aws
+  objectStorage:
+    bucket: velero
+  config:
+    region: minio
+    s3ForcePathStyle: "true"
+    s3Url: http://garage:3900
+---
+apiVersion: velero.io/v1
+kind: VolumeSnapshotLocation
+metadata:
+  name: default
+  namespace: velero
+spec:
+  provider: aws
+  config:
+    region: minio

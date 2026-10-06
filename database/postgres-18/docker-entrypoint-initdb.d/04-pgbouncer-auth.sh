@@ -1,24 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# =============================================================================
-# PgBouncer 认证初始化 - 04-pgbouncer-auth.sh
-# 职责：为 PgBouncer 的 auth_query 提供低权限认证主体
-#   1. 创建 pgbouncer_auth 角色（仅 LOGIN，无任何业务权限）
-#   2. 创建 SECURITY DEFINER 函数 pgbouncer_auth_lookup(text)
-#   3. 只把 EXECUTE 授予 pgbouncer_auth
-#
-# 说明：auth_query 的官方语义是在「目标库」内执行，若逐库安装函数，将来新增
-#       业务库一旦遗漏会导致该库全体登录失败。因此 pgbouncer.ini 已把
-#       auth_dbname 固定为 postgres，本脚本只需要在 postgres 库内执行一次。
-#
-# 依赖：PGBOUNCER_AUTH_PASSWORD 必须与 pgbouncer 容器使用同一个值
-#       （变量同时注入 postgres-18 与 pgbouncer 两个 compose 服务）
-# =============================================================================
+# 为 PgBouncer auth_query 创建低权限认证主体与专用查询函数
+# 仅在 postgres 库创建 pgbouncer_auth 角色与 SECURITY DEFINER 函数 pgbouncer_auth_lookup(text)
+# 依赖：PGBOUNCER_AUTH_PASSWORD 须与 pgbouncer 服务保持一致
 
 if [ -z "${PGBOUNCER_AUTH_PASSWORD:-}" ]; then
 	echo "PGBOUNCER_AUTH_PASSWORD is not set. Skipping PgBouncer auth initialization."
-	echo "（pgbouncer 容器会在启动时检测到该变量缺失并显式失败，此处跳过以保证 postgres 可独立部署）"
 	exit 0
 fi
 

@@ -1,0 +1,33 @@
+# ==============================================================================
+# Argo CD Application 声明式清单样例模板
+# 官方规范: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/
+#
+# 使用方式 (在宿主机使用 kubectl 或 argocd-cli 交付到目标集群):
+#   kubectl apply -f devtools/argocd/apps/application.example.yaml
+#   或者使用 Core 模式 CLI 查看状态:
+#   argocd --core app list
+#   argocd --core app sync demo-guestbook
+# ==============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-guestbook
+  namespace: argocd
+  # 级联删除保护: 删除 Application 时同步清理已创建的 K8s 资源
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/argoproj/argocd-example-apps.git
+    targetRevision: HEAD
+    path: guestbook
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

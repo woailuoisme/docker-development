@@ -1,0 +1,100 @@
+# ==============================================================================
+# Velero 云原生集群与卷快照容灾备份平台
+# 官方仓库: https://github.com/velero-io/velero
+# 官方镜像源: velero/velero (Docker Hub)
+# 架构说明:
+#   - 核心服务: velero (备份/恢复调度控制器与 API 监听)
+#   - 存储插件: velero-plugin-aws (提供对 S3 兼容对象存储与卷快照支持，可接入本地 Garage 或 MinIO)
+#   - 可视化看板: velero-ui (由 otwld 打造的开源 Velero Web UI 控制台)
+#   - 命令行工具: velero-cli (独立 profile: cli，用于免安装本地执行 velero 原生指令)
+# 版本说明:
+#   - 官方最新稳定版为 v1.18.4 (实测 Docker Hub 存在)；
+#   - 历史 v1.8 系列最新补丁版为 v1.8.1 (官方未发布 v1.8.4 标签)；
+#   - 遵循项目规范采用官方已实测验证的字面值版本号。
+# ==============================================================================
+
+services:
+  # ============================================================================
+  # 1. velero-plugin-aws [插件提供容器 - 复制 S3/AWS 存储插件至共享卷]
+  # ============================================================================
+  velero-plugin-aws:
+    image: velero/velero-plugin-for-aws:v1.14.4
+    container_name: velero-plugin-aws
+    volumes:
+      - ${DATA_PATH}velero/plugins:/target
+    restart: "no"
+    networks:
+      - backend
+
+  # ============================================================================
+  # 2. velero [核心必需 - 备份恢复调度控制器]
+  # ============================================================================
+  velero:
+    image: velero/velero:v1.18.4
+    container_name: velero
+    restart: unless-stopped
+    command:
+      - server
+      - --kubeconfig=/kube/config
+      - --log-level=info
+      - --metrics-address=0.0.0.0:8085
+      - --plugin-dir=/plugins
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - AWS_SHARED_CREDENTIALS_FILE=/credentials/credentials-velero
+      - VELERO_NAMESPACE=velero
+      - VELERO_SCRATCH_DIR=/scratch
+      - GOMEMLIMIT=256MiB
+    volumes:
+      - ${CONFIG_PATH}storage/velero/kube:/kube:ro
+      - ${CONFIG_PATH}storage/velero/credentials:/credentials:ro
+      - ${DATA_PATH}velero/plugins:/plugins
+      - ${DATA_PATH}velero/scratch:/scratch
+    ports:
+      - "18085:8085"
+    depends_on:
+      velero-plugin-aws:
+        condition: service_completed_successfully
+    networks:
+      - backend
+
+  # ============================================================================
+  # 3. velero-ui [可视化控制台 - Web 管理面板]
+  # ============================================================================
+  velero-ui:
+    image: otwld/velero-ui:0.10.3
+    container_name: velero-ui
+    restart: unless-stopped
+    environment:
+      - PORT=3000
+      - VELERO_NAMESPACE=velero
+      - KUBECONFIG=/kube/config
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+    volumes:
+      - ${CONFIG_PATH}storage/velero/kube:/kube:ro
+    ports:
+      - "8087:3000"
+    networks:
+      - frontend
+      - backend
+
+  # ============================================================================
+  # 4. velero-cli [运维命令行工具 - 按需运行]
+  # ============================================================================
+  velero-cli:
+    image: velero/velero:v1.18.4
+    container_name: velero-cli
+    entrypoint:
+      - /velero
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - KUBECONFIG=/kube/config
+      - VELERO_NAMESPACE=velero
+    volumes:
+      - ${CONFIG_PATH}storage/velero/kube:/kube:ro
+      - ${CONFIG_PATH}storage/velero/credentials:/credentials:ro
+      - ${DATA_PATH}velero/scratch:/scratch
+    profiles:
+      - cli
+    networks:
+      - backend

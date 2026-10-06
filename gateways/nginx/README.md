@@ -140,13 +140,13 @@ docker inspect --format='{{json .State.Health.Status}}' nginx
 
 ### 方式一：新增自定义站点模板 (推荐)
 
-在 `gateways/nginx/templates/` 下新增 `minio.conf.template`：
+在 `gateways/nginx/templates/` 下新增 `s3.conf.template`：
 
 ```nginx
 server {
     listen 443 ssl;
     http2 on;
-    server_name minio.${SITE_ADDRESS};
+    server_name s3.${SITE_ADDRESS};
 
     ssl_certificate /etc/nginx/ssl/live/${SITE_ADDRESS}/fullchain.pem;
     ssl_certificate_key /etc/nginx/ssl/live/${SITE_ADDRESS}/privkey.pem;
@@ -155,7 +155,7 @@ server {
     location / {
         include /etc/nginx/snippets/proxy.conf;
         # 核心：使用变量 + 容器名:端口，利用 Docker 内置 DNS 动态解析
-        set $backend "minio:9000";
+        set $backend "garage:3900";
         proxy_pass http://$backend;
     }
 }

@@ -10,6 +10,3 @@
 dev.${SITE_ADDRESS}       be_octane
 rest.${SITE_ADDRESS}      be_octane
 api.${SITE_ADDRESS}       be_octane
-
-# MinIO 对象存储与控制台路由
-mo.${SITE_ADDRESS}        be_minio

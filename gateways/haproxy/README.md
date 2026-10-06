@@ -9,7 +9,7 @@
   - **`include <pattern>` 语法支持**：支持类似 Nginx `include /etc/nginx/conf.d/*.conf;` 的配置拆分，主配置末尾自动引入 `conf.d/*.cfg`。
   - **环境变量动态模板替换**：所有主配置、`conf.d/*.cfg` 与 `maps/*.map` 原生支持 `${SITE_ADDRESS}`（以及 `${SITE_ADDRESS:-test.local}` 与 `{$SITE_ADDRESS}`）环境变量自动替换，环境迁移无需硬编码域名。
   - **动态域名路由表 (`maps/hosts.map`)**：类似 Nginx `server_name` 与 Caddy 站点映射，通过 `map_dom` 实现 Host 与后端解耦，添加站点无需重构主前端。
-  - **微服务解耦**：可在 `conf.d/` 中为每个微服务定义独立的 `backend`（如 `backends.cfg`、`octane.cfg`、`minio.cfg`）。
+  - **微服务解耦**：可在 `conf.d/` 中为每个微服务定义独立的 `backend`（如 `backends.cfg`、`octane.cfg`、`garage.cfg`）。
 - **工业级生产安全加固与防护**：
   - **Stick-Table 智能限流与防 CC**：基于内存统计表追踪客户端 IP，限制单 IP 并发连接 ≤50、10s 频次 ≤200 次，超限阻断并返回 `429 Too Many Requests`；内网及私网网段 (`127.0.0.1`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`) 自动加入白名单全豁免。
   - **服务器指纹剥离 (Server Cloaking)**：自动抹除 `Server` 和后端泄露的 `X-Powered-By` 头，防止攻击者嗅探 HAProxy 或语言框架版本。

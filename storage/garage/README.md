@@ -10,12 +10,9 @@ garage/
 ├── Dockerfile              # 定制化的 Garage 运行镜像（去除了明文凭证硬编码，带健康检查）
 ├── garage.toml             # 生产推荐配置：LMDB 数据库引擎、单副本、独立数据及元数据卷
 ├── README.md               # 项目说明文档
-└── rclone/                 # Rclone 数据同步及管理工具集（子目录隔离）
-    ├── docker-compose.yml  # Rclone 专属容器编排
-    ├── rclone.conf         # 统一的 Rclone 配置文件（支持容器网络 garage 和宿主机本地 garage-local 远程源）
-    ├── rclone.sh           # 简化版一键 Rclone 执行工具（支持 ls, delete, copy, sync）
-    └── to-remote.sh        # 极简云备份同步脚本（支持一键冷备份至阿里云 OSS / Cloudflare R2）
 ```
+
+> 配套的通用容器化 Rclone 同步与异地灾备工具链位于同级目录 [../rclone/](file:///Users/seaside/Projects/docker/development/storage/rclone)。
 
 ---
 
@@ -37,15 +34,15 @@ docker compose up -d
 
 ## 2. 客户端同步工具 (Rclone) 使用说明
 
-所有的 Rclone 操作均被封装，可以无需在宿主机安装 Rclone，通过容器自动调用。
+所有的 Rclone 操作均已在 [storage/rclone](file:///Users/seaside/Projects/docker/development/storage/rclone) 中统一封装，无需在宿主机安装 Rclone，通过容器自动调用。
 
 ### 统一调用入口 `rclone.sh`
 
 ```bash
-bash rclone/rclone.sh ls garage:default
-bash rclone/rclone.sh copy ./local-file garage:default/
-bash rclone/rclone.sh sync ./local-dir garage:default/backup/
-bash rclone/rclone.sh delete garage:default/old-file.txt
+bash ../rclone/rclone.sh ls garage:default
+bash ../rclone/rclone.sh copy ./local-file garage:default/
+bash ../rclone/rclone.sh sync ./local-dir garage:default/backup/
+bash ../rclone/rclone.sh delete garage:default/old-file.txt
 ```
 
 > **优化亮点**：
@@ -62,12 +59,12 @@ bash rclone/rclone.sh delete garage:default/old-file.txt
 
 ```bash
 # 复制模式（追加备份）
-bash rclone/to-remote.sh copy ali-oss garage:default default
-bash rclone/to-remote.sh cp r2 garage:default default
+bash ../rclone/to-remote.sh copy ali-oss garage:default default
+bash ../rclone/to-remote.sh cp r2 garage:default default
 
 # 同步模式（完全镜像同步，会删除云端多余文件）
-bash rclone/to-remote.sh sync ali-oss garage:default default
-bash rclone/to-remote.sh sy r2 garage:default default
+bash ../rclone/to-remote.sh sync ali-oss garage:default default
+bash ../rclone/to-remote.sh sy r2 garage:default default
 ```
 
 ### 参数映射说明

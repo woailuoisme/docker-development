@@ -35,9 +35,6 @@ import proxy-octane-app-auth rest.{$SITE_ADDRESS} php-roadrunner:8001 /var/www/l
 
 #import proxy-app beszel.{$SITE_ADDRESS} beszel:8090
 
-# import proxy-app mo.{$SITE_ADDRESS} minio:9001
-# import proxy-app mos.{$SITE_ADDRESS} minio:9000
-
 # Garage S3 标准 API 访问点（支持标准对象操作及虚拟主机样式存储桶解析）
 import proxy-app s3.{$SITE_ADDRESS} garage:3900
 # import proxy-app *.s3.{$SITE_ADDRESS} garage:3900
@@ -65,6 +62,7 @@ import proxy-app-auth traces.{$SITE_ADDRESS} victoria-traces:10428
 # NATS 管理界面 (nui)：刻意不加鉴权——NUI 自身无登录，该入口对任何能解析此域名的人开放。
 # 这是经明确决策接受的风险，详见 messaging/nats/README.md
 # import proxy-app nats.{$SITE_ADDRESS} nui:31311
+# import proxy-app temporal.{$SITE_ADDRESS} temporal:8233
 
 #import proxy-app-auth home.{$SITE_ADDRESS} homepage:3000
 #import proxy-app-auth docs.{$SITE_ADDRESS} docs:80
@@ -72,11 +70,13 @@ import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
 import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
 # import proxy-app vault.{$SITE_ADDRESS} vaultwarden:80
 # import proxy-app registry.{$SITE_ADDRESS} zot:5000
+# import proxy-app argocd.{$SITE_ADDRESS} argocd:8080
+# import proxy-app velero.{$SITE_ADDRESS} velero-ui:3000
 #import proxy-app-auth trivy.{$SITE_ADDRESS} trivy:4954
 #import proxy-app-auth bao.{$SITE_ADDRESS} open-bao:8200
 #import proxy-app-auth signoz.{$SITE_ADDRESS} signoz:8080
 #import proxy-app-auth glitchtip.{$SITE_ADDRESS} glitchtip:8000
-#import proxy-app-auth openobserve.{$SITE_ADDRESS} openobserve:5080
+import proxy-app openobserve.{$SITE_ADDRESS} openobserve:5080
 #import proxy-app img.{$SITE_ADDRESS} imgproxy:8080
 
 # 子路径服务聚合仅适用于支持baseURL的应用）

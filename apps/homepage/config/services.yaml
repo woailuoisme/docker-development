@@ -112,13 +112,6 @@
 #             username: {{HOMEPAGE_VAR_RABBITMQ_USER}}
 #             password: {{HOMEPAGE_VAR_RABBITMQ_PASS}}
 
-    - MinIO:
-        icon: minio
-        href: https://mo.{{HOMEPAGE_VAR_SITE_ADDRESS}}
-        description: 对象存储服务
-        server: my-docker
-        container: minio
-
     - Meilisearch:
         icon: meilisearch
         href: https://search.{{HOMEPAGE_VAR_SITE_ADDRESS}}

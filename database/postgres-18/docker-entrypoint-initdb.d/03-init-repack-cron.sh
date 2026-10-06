@@ -1,20 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# =============================================================================
-# pg_repack 定时维护初始化脚本 - 03-init-repack-cron.sh
-# 职责：注册 pg_cron 定时任务，自动巡检并在线重组全库膨胀表
-# 策略：
-#   1. 巡检范围：所有非模板且可连接的业务数据库（经 dblink 跨库执行）
-#   2. 膨胀判定：死元组 > 100000 且占比 > 20%（按体积降序优先处理大表）
-#   3. 调度窗口：每月 1 日、16 日 03:00（低峰时段）
-#   4. 无主键/唯一索引的表与 TimescaleDB 超表 (Hypertable) 无法重组；
-#      60 秒内抢不到锁则跳过，均记录日志不中断
-# 手动全库巡检：psql -c "SELECT public.repack_bloated_tables();"
-# 单表在线重组：宿主机执行 `just pg-repack <库名> <表名>`（CLI 通道，可控锁等待）
-# =============================================================================
+# 注册 pg_cron 定时任务：在线巡检并重组全库膨胀表 (pg_repack)
+# 调度窗口：每月 1 日与 16 日 03:00；触发阈值：死元组 > 100,000 且占比 > 20%
+# 手动全库巡检：psql -c "SELECT public.repack_bloated_tables();"；单表重组：just pg-repack <库名> <表名>
 
-# pg_cron 宿主库与 postgresql.conf 的 cron.database_name 保持一致
+# pg_cron 宿主库需与 postgresql.conf 的 cron.database_name 保持一致
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<- 'EOSQL'
 	-- pg_cron 宿主库需要 dblink 支持跨库巡检（contrib 内置模块）
 	CREATE EXTENSION IF NOT EXISTS dblink;

@@ -23,7 +23,7 @@
                   │
         ┌─────────┼─────────┬─────────┐
         ▼         ▼         ▼         ▼
-    [Directus] [Gotify] [MinIO]  [Laravel...]
+    [Directus] [Gotify] [Garage] [Laravel...]
 ```
 
 ---

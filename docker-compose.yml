@@ -31,7 +31,7 @@ include:
   - database/docker-compose.yml             # 统一数据库技术栈 (PostgreSQL / MySQL / Redis / Valkey / Meilisearch / Qdrant / ClickHouse / MongoDB / SurrealDB / Adminer / Bytebase)
 
   # --- 对象存储与持久备份 ---
-  - storage/docker-compose.yml              # 对象存储、文件同步与快照备份网关 (Garage / MinIO / FileBrowser / Rclone / Restic)
+  - storage/docker-compose.yml              # 对象存储、文件同步与快照备份网关 (Garage / FileBrowser / Rclone / Restic / Velero)
   # - etcd/docker-compose.yml               # etcd 分布式键值与服务发现
 
 

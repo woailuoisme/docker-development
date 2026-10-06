@@ -45,3 +45,4 @@ iam/open-bao/.approle-credentials.txt
 
 **/simulators/nodejs/node_modules
 .agents/skills
+devtools/argocd/kube/config

@@ -1,0 +1,138 @@
+# ==============================================================================
+# Argo CD 声明式 GitOps 持续交付与多集群编排平台 (精简版)
+# 官方仓库: https://github.com/argoproj/argo-cd
+# 官方镜像源: quay.io/argoproj/argocd (Docker Hub 上游已迁移至 Quay.io)
+# 架构说明:
+#   - 核心三件套: server (Web UI/API) + repo (清单渲染) + controller (状态对齐)
+#   - 缓存共享: 复用项目全局共享 database/valkey (backend 内网 valkey:6379 / DB 5)
+#   - 集群通信: 挂载 ./kube/config 对接外部或宿主机 Kubernetes 集群
+# ==============================================================================
+
+# ==============================================================================
+# 统一声明 (YAML Extension Fields & Anchors) - 消除重复配置
+# ==============================================================================
+x-common: &common
+  restart: unless-stopped
+  networks:
+    - backend
+
+x-kube-volume: &kube-volume "./kube:/home/argocd/.kube:ro"
+
+x-argocd-base: &argocd-base
+  <<: *common
+  image: quay.io/argoproj/argocd:v3.5.3
+  environment:
+    REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+
+x-argocd-k8s: &argocd-k8s
+  <<: *argocd-base
+  environment:
+    REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    KUBECONFIG: /home/argocd/.kube/config
+  depends_on:
+    - repo
+
+services:
+  # ============================================================================
+  # 1. server [核心必需 - Web UI 控制台与 API 网关]
+  # 必要性: 必须运行。提供图形控制台与 gRPC/REST API 入口，缺失则无法访问 Dashboard。
+  # ============================================================================
+  server:
+    <<: *argocd-k8s
+    container_name: argocd
+    command:
+      - argocd-server
+      - --insecure
+      - --staticassets
+      - /shared/app
+      - --repo-server
+      - argocd-repo:8081
+      - --repo-server-plaintext
+      - --redis
+      - valkey:6379
+      - --redisdb
+      - "5"
+      - --port
+      - "8080"
+      - --metrics-port
+      - "8082"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      KUBECONFIG: /home/argocd/.kube/config
+      ARGOCD_SERVER_INSECURE: "true"
+      GOMEMLIMIT: 200MiB
+    volumes:
+      - ${DATA_PATH}devtools/argocd/server:/home/argocd
+      - *kube-volume
+    ports:
+      - "8086:8080"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+    networks:
+      - frontend
+      - backend
+
+  # ============================================================================
+  # 2. repo [核心必需 - Git 仓库拉取与 Manifest 清单渲染]
+  # 必要性: 必须运行。负责拉取 Git 源码并解析渲染 Helm / Kustomize 清单模板。
+  # ============================================================================
+  repo:
+    <<: *argocd-base
+    container_name: argocd-repo
+    command:
+      - argocd-repo-server
+      - --redis
+      - valkey:6379
+      - --redisdb
+      - "5"
+      - --port
+      - "8081"
+      - --metrics-port
+      - "8084"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      GOMEMLIMIT: 200MiB
+    volumes:
+      - ${DATA_PATH}devtools/argocd/repo:/tmp
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+
+  # ============================================================================
+  # 3. controller [核心必需 - 集群状态比对与自动化同步自愈]
+  # 必要性: GitOps 闭环核心。比对 Git 期望状态与 K8s 实时状态并执行自动化同步。
+  # ============================================================================
+  controller:
+    <<: *argocd-k8s
+    container_name: argocd-controller
+    command:
+      - argocd-application-controller
+      - --redis
+      - valkey:6379
+      - --redisdb
+      - "5"
+      - --repo-server
+      - argocd-repo:8081
+      - --repo-server-plaintext
+      - --metrics-port
+      - "8082"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      KUBECONFIG: /home/argocd/.kube/config
+      GOMEMLIMIT: 320MiB
+    volumes:
+      - ${DATA_PATH}devtools/argocd/controller:/home/argocd
+      - *kube-volume
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+        reservations:
+          memory: 128M

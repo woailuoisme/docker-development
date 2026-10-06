@@ -12,3 +12,4 @@ include:
   # - ntfy/docker-compose.yml         # ntfy 基于 HTTP 的轻量订阅推送服务 (按需启用)
   # - bullboard/docker-compose.yml    # BullMQ 队列可视化看板 (按需启用)
   - asynqmon/docker-compose.yml     # Asynq Go 异步任务队列监控面板 (按需启用)
+  - temporal/docker-compose.yml     # Temporal 工作流与分布式事务编排引擎 (单机开发版，含 Web UI；按需启用)

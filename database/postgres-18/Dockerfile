@@ -28,12 +28,7 @@ ARG POSTGIS_VERSION=3.6.4+dfsg-2.pgdg13+1
 ARG PGVECTOR_VERSION=0.8.6-1.pgdg13+1
 ARG PGREPACK_VERSION=1.5.3-1.pgdg13+1
 
-# 安装扩展：
-# 1. TimescaleDB: 时序数据库引擎支持 (Hypertable / 连续聚合 / 数据压缩)
-# 2. PostGIS: 空间地理信息支持
-# 3. pgvector (https://github.com/pgvector/pgvector): 向量数据库基础扩展
-# 4. pg_cron: 数据库定时任务调度
-# 5. pg_repack (https://github.com/reorg/pg_repack): 在线表/索引膨胀重组 (无需预加载，CLI + 扩展)
+# 安装核心扩展：时序 (TimescaleDB)、地理空间 (PostGIS)、向量 (pgvector)、定时调度 (pg_cron)、在线维护 (pg_repack)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-18-timescaledb="${TIMESCALEDB_VERSION}" \
     postgresql-18-postgis-3="${POSTGIS_VERSION}" \

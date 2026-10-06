@@ -4,22 +4,18 @@ services:
     build:
       context: .
     restart: always
-    # 共享内存：需 ≥ shared_buffers (256MB)，预留余量给并行查询/超表的动态共享内存段 (DSM)
+    # 共享内存：预留给 shared_buffers (256MB) 与并行查询/超表动态共享内存段 (DSM)
     shm_size: 512mb
-    # 不再发布宿主端口：宿主 5432 交给 gateways/caddy 的 layer4 入口（pg.<域名>，强制 TLS）
-    # —— 此前发布为 0.0.0.0:5432 且 ssl = off，等于明文暴露到所有网卡。
-    # 应用侧不受影响（走 backend 内网 postgres:5432）；宿主/外部访问走 Caddy 的 5432。
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - TZ=${TIMEZONE:-Asia/Shanghai}
-      # 需要安装 TimescaleDB 的库（空格分隔）；扩展会在每个装载库常驻 scheduler 后台进程，按需声明避免空装
+      # TimescaleDB 目标库列表（空格分隔，按需声明以节省 background worker 槽位）
       - TIMESCALE_DATABASES=${TIMESCALE_DATABASES:-lunchbox}
-      # 是否在首次初始化数据库时创建 IoT 售货机业务表结构（默认不初始化，按需启用）
+      # IoT 售货机业务 Schema 初始化开关 (默认 false)
       - ENABLE_IOT_VENDING_SCHEMA=${ENABLE_IOT_VENDING_SCHEMA:-false}
-      # PgBouncer auth_query 的引导密码（04-pgbouncer-auth.sh 用它创建 pgbouncer_auth 角色）
-      # 必须与 pgbouncer 服务使用同一个值，见 database/pgbouncer/README.md
+      # PgBouncer auth_query 认证角色引导密码 (须与 pgbouncer 服务一致)
       - PGBOUNCER_AUTH_PASSWORD=${PGBOUNCER_AUTH_PASSWORD}
     volumes:
       - ${DATA_PATH}postgres18:/var/lib/postgresql

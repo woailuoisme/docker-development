@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# 极简同步至远端对象存储脚本
+
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,34 +22,22 @@ target="$2"
 source_path="$3"
 bucket_name="$4"
 
+# 极简别名映射：直接合并缩写操作与远端提供商，减少冗余的 Case 嵌套。
 case "${operation}" in
-	copy | sync | cp | sy)
-		;;
+	copy | cp) operation="copy" ;;
+	sync | sy) operation="sync" ;;
 	*)
-		echo "Unknown operation: ${operation}" >&2
+		echo "Error: Unknown operation ${operation}" >&2
 		exit 1
 		;;
 esac
 
 case "${target}" in
-	ali-oss | ali)
-		remote="ali-oss"
-		;;
-	cloudflare-r2 | r2)
-		remote="cloudflare-r2"
-		;;
+	ali-oss | ali) remote="ali-oss" ;;
+	cloudflare-r2 | r2) remote="cloudflare-r2" ;;
 	*)
-		echo "Unknown target: ${target}" >&2
+		echo "Error: Unknown target ${target}" >&2
 		exit 1
-		;;
-esac
-
-case "${operation}" in
-	cp)
-		operation="copy"
-		;;
-	sy)
-		operation="sync"
 		;;
 esac
 

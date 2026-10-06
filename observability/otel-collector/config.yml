@@ -36,6 +36,7 @@ exporters:
     endpoint: http://openobserve:5080/api/default
     headers:
       Authorization: ${env:O2_AUTH}
+      # 物理流名（相当于数据表名，非微服务名）：各应用统一存入 default 流，看板中按各自的 service_name 字段过滤区分
       stream-name: default
     # 【关键】发送队列 + 重试：OpenObserve 重启/抖动期间数据本地排队，不丢
     sending_queue:

@@ -7,3 +7,4 @@ include:
   # - gitea/docker-compose.yml              # Gitea 私有 Git 代码托管仓库
   # - woodpecker/docker-compose.yml         # Woodpecker 轻量容器化 CI/CD 流水线
   # - dokploy/docker-compose.yml            # Dokploy 自托管 PaaS 应用部署平台
+  # - argocd/docker-compose.yml             # Argo CD 声明式 GitOps 持续交付与多集群编排平台

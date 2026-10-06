@@ -1,11 +1,11 @@
 # ==============================================================================
 # 对象存储、文件同步与物理备份网关模块化编排
-# 可根据实际数据存储需求，选择启用 S3 服务 (Garage/MinIO/RustFS)、同步备份或 Web 文件管理
+# 可根据实际数据存储需求，选择启用 S3 服务 (Garage/RustFS)、同步备份或 Web 文件管理
 # ==============================================================================
 include:
   - garage/docker-compose.yml       # Garage 轻量分布式 S3 对象存储 (Rust 实现)
-  # - minio/docker-compose.yml      # MinIO 经典分布式 S3 对象存储
   # - rustfs/docker-compose.yml     # RustFS 高性能文件与对象存储
   # - filebrowser/docker-compose.yml # FileBrowser 网页版私有网盘与文件管理器
   # - rclone/docker-compose.yml     # Rclone 多云多协议文件同步中继器
   # - restic/docker-compose.yml     # Restic 增量快照数据备份工具
+  # - velero/docker-compose.yml     # Velero 云原生集群与卷快照容灾备份平台
