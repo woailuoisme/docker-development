@@ -13,7 +13,7 @@
 ### 1. 根编排与模块化加载
 
 - **根文件**：`docker-compose.yml` 声明核心网络（`frontend`、`backend`）与数据卷，通过 `include:` 引入各子服务的 `docker-compose.yml`。
-- **子服务目录**：各独立服务位于单独目录（如 `database/postgres-18/`、`gateways/caddy/`、`iam/vaultwarden/` 等），内部包含对应的 `docker-compose.yml` 及必要配置。
+- **子服务目录**：各独立服务位于单独目录（如 `database/postgres/`、`gateways/caddy/`、`iam/vaultwarden/` 等），内部包含对应的 `docker-compose.yml` 及必要配置。
 
 ### 2. 子服务 Compose 编写规范
 

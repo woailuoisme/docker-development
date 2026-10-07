@@ -12,7 +12,7 @@
 
 ## 1. 池化预算
 
-Postgres `max_connections = 50`（`database/postgres-18/postgresql.conf`），`superuser_reserved_connections = 3`。
+Postgres `max_connections = 50`（`database/postgres/postgresql.conf`），`superuser_reserved_connections = 3`。
 此外还有一批**不经池**的直连消费者占用同一份预算，因此池化侧的支出必须严格小于 50。
 
 | 项目 | 连接数 |
@@ -148,10 +148,10 @@ PgBouncer 对启动包里的参数（含 `options` 内部的 `-c` 参数）**逐
 `auth_dbname` 存在的唯一原因是消解「auth_query 在**目标库**内执行」这一官方语义——
 不设它，`SECURITY DEFINER` 函数就必须装进每一个客户端会连的库，将来新增库一旦遗漏就会全体登录失败。
 
-**关键耦合**：`PGBOUNCER_AUTH_PASSWORD` 必须同时注入 `pgbouncer` 与 `postgres-18` 两个服务：
+**关键耦合**：`PGBOUNCER_AUTH_PASSWORD` 必须同时注入 `pgbouncer` 与 `postgres` 两个服务：
 
 - `pgbouncer` 的 `entrypoint.sh` 用它写出 userlist.txt 的那一行
-- `postgres-18` 的 `docker-entrypoint-initdb.d/04-pgbouncer-auth.sh` 用它 `CREATE ROLE pgbouncer_auth LOGIN PASSWORD`
+- `postgres` 的 `docker-entrypoint-initdb.d/04-pgbouncer-auth.sh` 用它 `CREATE ROLE pgbouncer_auth LOGIN PASSWORD`
 
 ### 密码变更不会自动同步
 
@@ -180,7 +180,7 @@ PgBouncer 对启动包里的参数（含 `options` 内部的 `-c` 参数）**逐
 
 ```bash
 docker compose exec -T postgres \
-  bash < database/postgres-18/docker-entrypoint-initdb.d/04-pgbouncer-auth.sh
+  bash < database/postgres/docker-entrypoint-initdb.d/04-pgbouncer-auth.sh
 ```
 
 ## 5. 运维动作
@@ -195,7 +195,7 @@ docker compose exec -T postgres \
 | GUI 客户端连控制台 | **不可用**，且不是配置问题。官方 usage 文档原话：*"The admin console currently only supports the simple query protocol. Some drivers use the extended query protocol for all commands; these drivers will not work for this."* 实际表现：`extended query protocol not supported by admin console` + `closing because: bad packet` 断连（客户端侧常表现为「SET timezone failed after connecting: connection closed」）。出路只有两条：**控制台改用 `psql`**，或 JDBC 系客户端加 `preferQueryMode=simple`（原生驱动如 dbx 用的 Rust `sqlx` 没有等价开关）。GUI 里的日常操作请连真实业务库 |
 | 控制台库名 | 固定为 **`pgbouncer`**，无法改名：它是 PgBouncer 保留的虚拟数据库，官方无任何重命名配置（`admin_users` / `stats_users` 只管「谁能连」，不管「叫什么」）。若要短名 URL，请让它指向**真实库** |
 | 连了不存在的库名 | 报的是 `FATAL: SASL authentication failed`，**不是** `database ... does not exist`（已实测，pgbouncer 侧错误信息，容易误判为密码问题） |
-| 会话级 `SET` | 分两类。**可跟踪参数**（`client_encoding` / `datestyle` / `timezone` / `standard_conforming_strings`，加 `track_extra_parameters` 默认的 `IntervalStyle`）由 PgBouncer 记录并在每次取用后端连接时重放，**可靠生效** —— dbx 连接后自动执行的 `SET timezone` 正属此类。**其它 GUC**（如 `statement_timeout`、`search_path`）在事务池化下不要依赖，请走服务端固化（`ALTER DATABASE ... SET` / `ALTER ROLE ... SET`），见 `database/postgres-18/docker-entrypoint-initdb.d/` |
+| 会话级 `SET` | 分两类。**可跟踪参数**（`client_encoding` / `datestyle` / `timezone` / `standard_conforming_strings`，加 `track_extra_parameters` 默认的 `IntervalStyle`）由 PgBouncer 记录并在每次取用后端连接时重放，**可靠生效** —— dbx 连接后自动执行的 `SET timezone` 正属此类。**其它 GUC**（如 `statement_timeout`、`search_path`）在事务池化下不要依赖，请走服务端固化（`ALTER DATABASE ... SET` / `ALTER ROLE ... SET`），见 `database/postgres/docker-entrypoint-initdb.d/` |
 
 ```bash
 # 控制台需要 admin 口令（.env 的 POSTGRES_PASSWORD）；不导出会报 fe_sendauth: no password supplied

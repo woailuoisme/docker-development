@@ -1,7 +1,7 @@
 services:
   # 【必要】OTLP 统一摄取网关：应用遥测 → OpenObserve（重试/排队/批处理，后端重启不丢数据）
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.161.0
+    image: otel/opentelemetry-collector-contrib:0.162.0
     container_name: otel-collector
     restart: unless-stopped
     command: ["--config=/etc/otelcol-contrib/config.yaml"]

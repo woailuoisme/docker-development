@@ -129,7 +129,7 @@ if [ "$_preflight_ok" != "true" ]; then
 	log_error "后端返回：$(printf '%s' "$_preflight_msg" | head -1)"
 	log_error "修复顺序（第 1 步不可省，否则脚本读到的是 postgres 容器内的旧变量）："
 	log_error "  1) docker compose up -d postgres"
-	log_error "  2) docker compose exec -T postgres bash < database/postgres-18/docker-entrypoint-initdb.d/04-pgbouncer-auth.sh"
+	log_error "  2) docker compose exec -T postgres bash < database/postgres/docker-entrypoint-initdb.d/04-pgbouncer-auth.sh"
 	log_error "  3) docker compose up -d pgbouncer"
 	exit 1
 fi

@@ -129,6 +129,6 @@ docker compose exec -T victoria-metrics wget -q -O - http://postgres-exporter:91
 1. **cAdvisor 内存持续泄露**：
    - 确认启动参数中开启了 `--docker_only=true` 并使用 `--disable_metrics` 禁用了 `percpu` 和 `process` 级指标。
 2. **Postgres Exporter 报连接认证错误 (`pg_up == 0`)**：
-   - 检查 `.env` 文件中的 `POSTGRES_PASSWORD` 是否与 `database/postgres-18/` 容器初始密码匹配。
+   - 检查 `.env` 文件中的 `POSTGRES_PASSWORD` 是否与 `database/postgres/` 容器初始密码匹配。
 3. **Valkey Exporter 无法连接**：
    - 检查 `REDIS_PASSWORD` 是否已配置，确认网络是否正常加入 `backend`。

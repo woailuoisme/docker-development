@@ -1,12 +1,13 @@
 services:
   dozzle:
     container_name: dozzle
-    image: amir20/dozzle:v10
+    image: amir20/dozzle:v11
     restart: always
     ports:
       - "8180:8080"
     volumes:
       - ./users.yml:/data/users.yml
+      - ${DATA_PAHT}dozzle_data:/data
     environment:
       DOZZLE_REMOTE_HOST: tcp://docker-socket-proxy:2375
       #      DOZZLE_AUTH_PROVIDER: simple

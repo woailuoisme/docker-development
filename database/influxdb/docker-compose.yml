@@ -1,0 +1,49 @@
+services:
+  influxdb:
+    image: influxdb:3.11-core
+    container_name: influxdb
+    restart: always
+    command:
+      - influxdb3
+      - serve
+      - --node-id=node0
+      - --object-store=file
+      - --data-dir=/var/lib/influxdb3/data
+      - --disable-authz=health,ping
+      - --async-trigger-concurrency-limit=8
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+    volumes:
+      # 持久化存储开放标准的 Parquet 列式时序数据
+      - ${DATA_PATH}influxdb/data:/var/lib/influxdb3/data
+    ports:
+      # InfluxDB 3 HTTP API 与 Apache Arrow Flight SQL 查询端口
+      - "8181:8181"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8181/ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - backend
+
+  influxdb-ui:
+    image: influxdata/influxdb3-ui:latest
+    container_name: influxdb-ui
+    restart: always
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - DEFAULT_INFLUX_SERVER=http://influxdb:8181
+      - DEFAULT_SERVER_NAME=Local-InfluxDB3
+    volumes:
+      # 持久化 UI 连接配置与保存的查询
+      - ${DATA_PATH}influxdb/ui:/db:rw
+    ports:
+      # Web Explorer 控制台端口
+      - "8810:8080"
+    depends_on:
+      - influxdb
+    networks:
+      - frontend
+      - backend

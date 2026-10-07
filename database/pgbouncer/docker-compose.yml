@@ -10,7 +10,7 @@ services:
       # 注意：它只服务于「启动等待」与「健康探针」；PgBouncer 真正的后端连接参数
       # 在 pgbouncer.ini 的 [databases] 段（含每库 pool_size），分工见 README.md
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      # auth_query 的引导凭据；必须与 postgres-18 服务使用同一个值
+      # auth_query 的引导凭据；必须与 postgres 服务使用同一个值
       - PGBOUNCER_AUTH_PASSWORD=${PGBOUNCER_AUTH_PASSWORD}
     networks:
       - backend

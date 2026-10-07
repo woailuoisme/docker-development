@@ -8,13 +8,24 @@ on:
         type: boolean
         default: false
       build_caddy_base:
-        description: "Build caddy-base"
+        description: "Build caddy-base (2.11, latest)"
         type: boolean
         default: false
       build_postgres:
-        description: "Build postgres"
+        description: "Build postgres (18-trixie)"
         type: boolean
         default: false
+      build_postgres_alpine:
+        description: "Build postgres-alpine (18-alpine)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 env:
   REGISTRY_DOCKERHUB: docker.io/jiaoio
@@ -34,26 +45,35 @@ jobs:
             local name="$1"
             local context="$2"
             local image="$3"
-            local version="$4"
+            local versions="$4"
+            local tags=""
+
+            IFS=',' read -ra V_ARR <<< "$versions"
+            for v in "${V_ARR[@]}"; do
+              tags+="${REGISTRY_DOCKERHUB}/${image}:${v},${REGISTRY_REDHAT}/${image}:${v},"
+            done
+            tags="${tags%,}"
+
             MATRIX_JSON=$(echo "$MATRIX_JSON" | jq -c \
               --arg name "$name" \
               --arg context "$context" \
-              --arg image "$image" \
-              --arg version "$version" \
-              '. + [{"name": $name, "context": $context, "image": $image, "version": $version}]')
+              --arg tags "$tags" \
+              '. + [{"name": $name, "context": $context, "tags": $tags}]')
           }
 
           BUILD_ALL=${{ inputs.build_all }}
           BUILD_CADDY=${{ inputs.build_caddy_base }}
           BUILD_PG=${{ inputs.build_postgres }}
+          BUILD_PG_ALPINE=${{ inputs.build_postgres_alpine }}
 
           # Default to building all if nothing is specifically selected
-          if [[ "$BUILD_ALL" != "true" && "$BUILD_CADDY" != "true" && "$BUILD_PG" != "true" ]]; then
+          if [[ "$BUILD_ALL" != "true" && "$BUILD_CADDY" != "true" && "$BUILD_PG" != "true" && "$BUILD_PG_ALPINE" != "true" ]]; then
             BUILD_ALL="true"
           fi
 
-          [[ "$BUILD_ALL" == "true" || "$BUILD_CADDY" == "true" ]] && add_task "caddy-base" "./gateways/caddy-base" "caddy-base" "2.11"
-          [[ "$BUILD_ALL" == "true" || "$BUILD_PG" == "true" ]] && add_task "postgres" "./database/postgres-18" "postgres" "18"
+          [[ "$BUILD_ALL" == "true" || "$BUILD_CADDY" == "true" ]] && add_task "caddy-base" "./gateways/caddy-base" "caddy-base" "2.11,latest"
+          [[ "$BUILD_ALL" == "true" || "$BUILD_PG" == "true" ]] && add_task "postgres" "./database/postgres" "postgres" "18-trixie"
+          [[ "$BUILD_ALL" == "true" || "$BUILD_PG_ALPINE" == "true" ]] && add_task "postgres-alpine" "./database/postgres-alpine" "postgres" "18-alpine"
 
           echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
 
@@ -91,8 +111,6 @@ jobs:
           build-args: |
             CHANGE_SOURCE=false
             CHINA=false
-          tags: |
-            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:latest
-            ${{ env.REGISTRY_DOCKERHUB }}/${{ matrix.image }}:${{ matrix.version }}
-            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:latest
-            ${{ env.REGISTRY_REDHAT }}/${{ matrix.image }}:${{ matrix.version }}
+          tags: ${{ matrix.tags }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}

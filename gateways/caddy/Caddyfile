@@ -78,6 +78,8 @@ import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
 #import proxy-app-auth glitchtip.{$SITE_ADDRESS} glitchtip:8000
 import proxy-app openobserve.{$SITE_ADDRESS} openobserve:5080
 #import proxy-app img.{$SITE_ADDRESS} imgproxy:8080
+# InfluxDB 3.x 时序数据库 Web 控制台 (Explorer UI)
+# import proxy-app influxdb.{$SITE_ADDRESS} influxdb-ui:8080
 
 # 子路径服务聚合仅适用于支持baseURL的应用）
 #lot.{$SITE_ADDRESS} {

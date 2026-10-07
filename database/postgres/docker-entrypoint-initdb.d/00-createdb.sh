@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# 创建业务数据库并授予权限（扩展安装由 01 处理，表结构由 02 处理）
+# 创建业务数据库并授予权限（扩展安装由 01 处理）
 
-function create_db_if_not_exists() {
+create_db_if_not_exists() {
 	local db=$1
 	if [ "$(psql -XtA -c "SELECT 1 FROM pg_database WHERE datname='$db'" --username "$POSTGRES_USER" --dbname "postgres")" != '1' ]; then
 		echo "Creating database: ${db}"

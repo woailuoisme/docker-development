@@ -22,19 +22,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 定义扩展版本参数（Debian 13 / trixie 对应 PGDG 构建后缀 pgdg13+1 / pgdg13+2）
-ARG TIMESCALEDB_VERSION=2.30.2+dfsg-1.pgdg13+1
 ARG PGCRON_VERSION=1.6.8-1.pgdg13+2
 ARG POSTGIS_VERSION=3.6.4+dfsg-2.pgdg13+1
 ARG PGVECTOR_VERSION=0.8.7-1.pgdg13+1
-ARG PGREPACK_VERSION=1.5.3-1.pgdg13+2
 
-# 安装核心扩展：时序 (TimescaleDB)、地理空间 (PostGIS)、向量 (pgvector)、定时调度 (pg_cron)、在线维护 (pg_repack)
+# 安装核心扩展：地理空间 (PostGIS)、向量 (pgvector)、定时调度 (pg_cron)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-18-timescaledb="${TIMESCALEDB_VERSION}" \
     postgresql-18-postgis-3="${POSTGIS_VERSION}" \
     postgresql-18-pgvector="${PGVECTOR_VERSION}" \
     postgresql-18-cron="${PGCRON_VERSION}" \
-    postgresql-18-repack="${PGREPACK_VERSION}" \
     tzdata \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -47,9 +43,8 @@ COPY postgresql.conf /etc/postgresql/postgresql.conf
 # 复制扩展初始化脚本
 COPY docker-entrypoint-initdb.d/ /docker-entrypoint-initdb.d/
 
-# 设置环境变量（TS_LICENSE 声明使用 TimescaleDB Apache 开源许可版）
-ENV POSTGRES_CONFIG_FILE=/etc/postgresql/postgresql.conf \
-    TS_LICENSE=apache
+# 设置环境变量
+ENV POSTGRES_CONFIG_FILE=/etc/postgresql/postgresql.conf
 
 # 使用原始入口点，通过 CMD 传递配置参数
 CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]

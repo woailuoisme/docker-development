@@ -7,8 +7,8 @@ Casdoor 是开源的 OAuth 2.0 / OIDC 身份认证与访问管理平台（Casbin
 ## 🧩 部署形态与依赖
 
 - **镜像**：`casbin/casdoor:4.2.0`，单容器，监听容器内 `8000`（配置见 `conf/app.conf` 的 `httpport`）。
-- **数据库**：复用仓库共享 PostgreSQL（`database/postgres-18` 的 `postgres` 容器），库名 `casdoor`。
-  该库由 `database/postgres-18/docker-entrypoint-initdb.d/00-createdb.sh` 中的
+- **数据库**：复用仓库共享 PostgreSQL（`database/postgres` 的 `postgres` 容器），库名 `casdoor`。
+  该库由 `database/postgres/docker-entrypoint-initdb.d/00-createdb.sh` 中的
   `create_db_if_not_exists "casdoor"` 创建 —— **仅在 Postgres 首次初始化（数据目录为空）时执行**。
 - **缓存**：当前未接入 Redis（`app.conf` 的 `redisEndpoint` 为空，走进程内存缓存）。
 - **网络**：同时接入 `frontend`（供 Caddy 反代）与 `backend`（访问共享 Postgres）。
