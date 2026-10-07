@@ -1,24 +1,33 @@
 services:
   crowdsec:
-    build:
-      context: .
     container_name: crowdsec
+    image: crowdsecurity/crowdsec:v1.8.1-slim
     restart: unless-stopped
     environment:
       - TZ=${TIMEZONE:-Asia/Shanghai}
       # 启用 SQLite WAL (Write-Ahead Logging) 模式，大幅提升并发读写吞吐，杜绝数据库锁冲突
       - USE_WAL=true
+      # 声明式自动装配防御规则集 (容器首次启动由官方 Entrypoint 自动装配)
+      - COLLECTIONS=crowdsecurity/traefik crowdsecurity/caddy crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/base-http-scenarios crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules
       # 声明式自动注册双网关 Bouncer 认证密钥 (免手动运行 cscli)
-      - BOUNCER_KEY_traefik=${CROWDSEC_BOUNCER_KEY_TRAEFIK:-${CROWDSEC_BOUNCER_KEY:-crowdsec-traefik-bouncer-dev-secret-key-32ch}}
+      - BOUNCER_KEY_traefik=${CROWDSEC_BOUNCER_KEY:-crowdsec-traefik-bouncer-dev-secret-key-32ch}
       - BOUNCER_KEY_caddy=${CROWDSEC_BOUNCER_KEY_CADDY:-crowdsec-caddy-bouncer-dev-secret-key-32ch}
     volumes:
-      # 持久化数据与动态配置
+      # 自定义采集定义与白名单精准挂载 (即改即生效，不遮蔽官方规则)
+      - ./config/acquis.d:/etc/crowdsec/acquis.d:ro
+      - ./config/parsers/s02-enrich/custom-whitelists.yaml:/etc/crowdsec/parsers/s02-enrich/custom-whitelists.yaml:ro
+      # 持久化数据与 Hub 动态配置
       - ${DATA_PATH}crowdsec/data:/var/lib/crowdsec/data
       - ${DATA_PATH}crowdsec/config:/etc/crowdsec
       # 挂载双网关访问日志 (只读采集)
       - ${LOG_PATH}traefik:/var/log/traefik:ro
       - ${LOG_PATH}caddy:/var/log/caddy:ro
-    # 容器间走 backend 内部网络通信 (LAPI:8080, AppSec:7422, Metrics:6060)，无需暴露宿主机端口
+    healthcheck:
+      test: ["CMD-SHELL", "cscli lapi status > /dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
     networks:
       - backend
     deploy:
@@ -26,4 +35,3 @@ services:
         limits:
           cpus: "1.0"
           memory: 512M
-

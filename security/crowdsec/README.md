@@ -37,7 +37,7 @@
                         │ 1. 只读挂载访问日志                        │ 1. 只读挂载访问日志
                         ▼                                            ▼
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        CrowdSec 核心中枢 (lunchbox/crowdsec:latest)                     │
+│                        CrowdSec 核心中枢 (crowdsecurity/crowdsec:v1.8.1-slim)          │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ • Acquis 采集层: 持续跟踪 caddy.yaml / traefik.yaml / appsec.yaml                      │
 │ • Parser 解析层: 解析 HTTP 访问结构并执行 lunchbox/custom-whitelists 私网豁免           │
@@ -64,15 +64,15 @@
 
 ### 1. 防误封白名单 (Anti-Self-Banning)
 
-- **预置文件**：`config/parsers/s02-enrich/00-custom-whitelists.yaml`
+- **预置文件**：`config/parsers/s02-enrich/custom-whitelists.yaml`
 - **保护范围**：全量豁免私网地址与本地回环（`127.0.0.1`、`::1`、`127.0.0.0/8`、`10.0.0.0/8`、`172.16.0.0/12`、`192.168.0.0/16`）。
 - **核心价值**：彻底避免本地高并发压力测试、前端 Vite/Webpack 热重载长连接、微服务容器内部通信被识别为异常攻击而误遭拉黑封禁。
 
-### 2. 镜像构建期固化 (GitOps Bake-in)
+### 2. 声明式规则装配与细粒度挂载 (Declarative Hub & Fine-grained Mounts)
 
-- **预固化规则集合**：在 `Dockerfile` 构建阶段运行 `cscli collections install` 固化常用规则（`traefik`、`caddy`、`http-cve`、`whitelist-good-actors`、`base-http-scenarios`、`appsec-generic-rules` 等）。
-- **零冷启动延迟**：杜绝容器初次启动时由于网络拉取规则超时导致容器崩溃或受 Hub API 限流。
-- **卷挂载双写机制**：同时打包至 `/etc/crowdsec/` 与 `/staging/etc/crowdsec/`，保证无论本地数据卷首次挂载还是增量启动，内置配置与自定义白名单百分之百就位。
+- **声明式规则集合**：通过 Compose 环境变量 `COLLECTIONS` 声明式配置规则（`traefik`、`caddy`、`http-cve`、`whitelist-good-actors`、`base-http-scenarios`、`appsec-virtual-patching`、`appsec-generic-rules`），容器首次启动由官方 Entrypoint 自动装配。
+- **细粒度只读挂载**：`./config/acquis.d` 与 `./config/parsers/s02-enrich/custom-whitelists.yaml` 分别以 `:ro` 只读形式精准挂载进容器，本地修改配置即刻生效，杜绝全卷覆盖带来的配置漂移与官方 Hub 规则被遮蔽问题。
+- **官方原生镜像**：直接采用官方轻量级 `crowdsecurity/crowdsec:v1.8.1-slim` 镜像，免去本地维护与编译 Dockerfile 的负担。
 
 ### 3. SQLite WAL 模式高并发吞吐 (Write-Ahead Logging)
 
@@ -81,8 +81,8 @@
 
 ### 4. 工业级探活机制 (Healthcheck Hardening)
 
-- **探活位置**：`Dockerfile` 镜像层内置 `HEALTHCHECK`，简化 Compose 编排。
-- **探活指令**：`CMD ["sh", "-c", "cscli lapi status > /dev/null 2>&1 || exit 1"]`。
+- **探活位置**：在 `docker-compose.yml` 中声明标准容器 `healthcheck`。
+- **探活指令**：`cscli lapi status > /dev/null 2>&1 || exit 1`。
 - **健康保障**：真实验证本地 Local API (LAPI) 端口监听与服务就绪状态，确保网关 Bouncer 能够稳定接入。
 
 ### 5. 全链路可观测性 (Prometheus / VictoriaMetrics)
@@ -109,17 +109,16 @@
 
 ```text
 security/crowdsec/
-├── Dockerfile                  # 定制镜像构建文件 (预装 Hub 规则集、固化配置与内置健康探活)
-├── docker-compose.yml          # 服务编排 (环境变数、存储卷、资源限制)
+├── docker-compose.yml          # 服务编排 (环境变数、存储卷、资源限制、探活)
 ├── README.md                   # 架构说明与运维操作手册
-└── config/                     # 版本受控的静态内置配置 (GitOps)
+└── config/                     # 版本受控的静态配置 (GitOps)
     ├── acquis.d/               # 日志采集目标配置
     │   ├── caddy.yaml          # 采集 /var/log/caddy/access.log (JSON 格式)
     │   ├── traefik.yaml        # 采集 /var/log/traefik/access.log
     │   └── appsec.yaml         # 开启 7422 端口接收 AppSec 报文
     └── parsers/
         └── s02-enrich/
-            └── 00-custom-whitelists.yaml # 本地开发与私网绝对白名单
+            └── custom-whitelists.yaml # 本地开发与私网绝对白名单
 ```
 
 ---
