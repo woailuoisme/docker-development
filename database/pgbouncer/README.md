@@ -3,7 +3,7 @@
 事务池化连接池，为 PostgreSQL 18 提供连接复用。面向 Laravel Octane / RoadRunner 等长驻进程模型。
 
 > **当前状态：无消费者。** 应用侧（Laravel / zitadel / chatwoot / casdoor / postgres-exporter /
-> telegraf / pgBackRest）均直连 `postgres:5432`。本服务默认启用，但尚无流量经过。
+> telegraf / 备份工具）均直连 `postgres:5432`。本服务默认启用，但尚无流量经过。
 > 「是否把应用流量切到本服务」不属于本文档范围。
 > 本文档中的 `docker compose` 命令均需**在仓库根目录执行**。带 `-f database/docker-compose.yml`
 > 会把项目目录识别为 `database/`，从而读不到根目录的 `.env`，所有变量都会变成空值。

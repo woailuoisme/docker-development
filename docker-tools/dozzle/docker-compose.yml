@@ -7,7 +7,7 @@ services:
       - "8180:8080"
     volumes:
       - ./users.yml:/data/users.yml
-      - ${DATA_PAHT}dozzle_data:/data
+      - ${DATA_PATH}dozzle_data:/data
     environment:
       DOZZLE_REMOTE_HOST: tcp://docker-socket-proxy:2375
       #      DOZZLE_AUTH_PROVIDER: simple

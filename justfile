@@ -25,9 +25,9 @@ fmt-md:
 lint-md:
     rumdl check .
 
-# 检查 Shell 脚本
+# 检查 Shell 脚本 (含无扩展名 CLI 工具)
 lint-sh:
-    fd --type file --extension sh --exclude data --exec-batch shellcheck --severity=warning
+    fd --type file '(\.sh$|^pg-cloud$)' --exclude data --exec-batch shellcheck --severity=warning
 
 # 检查 Dockerfile
 lint-docker:
@@ -95,27 +95,40 @@ pg-repack db table:
 pg-repack-all:
 	docker exec postgres psql --username "${POSTGRES_USER}" --dbname postgres -c "SELECT public.repack_bloated_tables();"
 
-# 查看 pgBackRest 备份清单与 stanza 状态
+# 查看 PostgreSQL 备份与归档综合健康监控状态
+pg-backup-status:
+	docker exec postgres pg-cloud status
+
+# 检查 PostgreSQL WAL 归档连续性与缺口 (Gap 巡检)
+pg-backup-check:
+	docker exec postgres pg-cloud check
+
+# 查看 S3/Garage 中的 PostgreSQL 备份清单与元数据
+pg-backup-list:
+	docker exec postgres pg-cloud list
+
+# 查看备份状态 (兼容别名)
 pg-backup-info:
-	docker exec pgbackrest pgbackrest --stanza=main info
+	docker exec postgres pg-cloud status
 
-# 手动触发一次全量备份 (日常由容器内调度器每日 03:00 自动执行)
+# 手动触发一次全量物理备份至 S3/Garage 并自动执行保留策略清理 (保留最近 7 份全备及关联 WAL)
 pg-backup-now:
-	docker exec pgbackrest pgbackrest --stanza=main --type=full backup
+	docker exec postgres pg-cloud backup
 
-# 恢复演练：从仓库恢复最新全量到隔离目录并用临时 PostgreSQL 验证数据可用 (不触碰生产数据)
+# 执行备份清理 (按保留策略清理历史备份与孤立 WAL)
+pg-backup-prune:
+	docker exec postgres pg-cloud prune
+
+# 恢复演练：从 S3/Garage 恢复最新全量物理备份到隔离目录并用临时 PostgreSQL 验证数据可用
 pg-backup-restore-test:
 	#!/usr/bin/env bash
 	set -euo pipefail
 	RESTORE_DIR="${DATA_PATH}postgres18/restore-test"
 	rm -rf "${RESTORE_DIR}"
 	mkdir -p "${RESTORE_DIR}/data"
-	echo "→ 从备份仓库恢复最新全量备份..."
-	docker exec pgbackrest pgbackrest --stanza=main \
-	  --pg1-path="${RESTORE_DIR}/data" \
-	  --db-include="${POSTGRES_DB}" \
-	  --delta restore
-	echo "→ 启动临时 PostgreSQL 验证恢复数据..."
+	echo "→ 从 S3 备份仓库恢复最新全备至隔离目录..."
+	docker exec postgres pg-cloud restore latest "${RESTORE_DIR}/data" --force
+	echo "→ 启动临时 PostgreSQL 验证恢复数据可用性..."
 	docker run --rm -d --name pg-restore-test \
 	  -v "${RESTORE_DIR}/data:/var/lib/postgresql/data" \
 	  -e POSTGRES_HOST_AUTH_METHOD=trust \
@@ -125,7 +138,7 @@ pg-backup-restore-test:
 	  -c "SELECT count(*) AS table_count FROM information_schema.tables WHERE table_schema='public';"
 	docker stop pg-restore-test >/dev/null
 	rm -rf "${RESTORE_DIR}"
-	echo "✔ 恢复演练通过：备份数据完整可用"
+	echo "✔ 恢复演练通过：S3 备份数据完整可用"
 
 # 运行 vmalert 告警规则单元测试 (vmalert-tool；逻辑见 scripts/victoria.sh)
 vm-alert-test:

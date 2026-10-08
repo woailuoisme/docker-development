@@ -1,0 +1,337 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ==============================================================================
+# PostgreSQL 云原生备份与恢复管理 CLI 工具 (基于 Barman Cloud)
+# 提供全量物理备份、WAL 连续归档/回放、归档连续性巡检、健康度概览与 PITR 时点恢复向导
+# ==============================================================================
+
+SCRIPT_NAME="pg-cloud"
+
+# 基础环境变量与默认值解析
+ENDPOINT_ARGS=()
+if [ -n "${BARMAN_CLOUD_S3_ENDPOINT:-}" ]; then
+  ENDPOINT_ARGS+=(--endpoint-url "${BARMAN_CLOUD_S3_ENDPOINT}")
+fi
+
+SERVER_NAME="${BARMAN_CLOUD_SERVER_NAME:-postgres18}"
+BUCKET="${BARMAN_CLOUD_BUCKET:-postgres-backups}"
+DESTINATION_URL="s3://${BUCKET}/${SERVER_NAME}"
+RETENTION_POLICY="${BARMAN_CLOUD_RETENTION:-REDUNDANCY 7}"
+
+get_compression_args() {
+  case "${BARMAN_CLOUD_COMPRESSION:-gzip}" in
+    gzip)   echo "--gzip" ;;
+    snappy) echo "--snappy" ;;
+    none)   echo "" ;;
+    *)      echo "--gzip" ;;
+  esac
+}
+
+usage() {
+  cat <<EOF
+PostgreSQL 云原生备份与时点恢复 CLI (${SCRIPT_NAME})
+
+用法:
+  ${SCRIPT_NAME} <command> [arguments...]
+
+日常主动运维命令:
+  status                          查看备份与归档综合健康状态 (主库 LSN、S3 远端全备与 WAL 连续性)
+  backup                          执行全量物理基础备份，并自动级联执行保留策略清理
+  check                           运行全量巡检：展示备份清单并校验 WAL 归档连续性 (断层排查)
+  list                            列出 S3 备份仓库中的所有物理备份与元数据
+  prune [--retention <policy>]    清理超出保留策略的历史备份与孤立 WAL (默认: ${RETENTION_POLICY})
+  restore [backup_id|latest] <target_dir> [--force] [--target-time "<timestamp>"]
+                                  从 S3 拉取基础备份到目标目录，并可自动配置 PITR 回放参数
+
+内核管道命令 (由 PostgreSQL 自动调用):
+  archive <wal_path>              [archive_command 钩子] 上传指定 WAL 日志至 S3
+  restore-wal <wal_name> <dest>   [restore_command 钩子] 从 S3 拉取指定 WAL 日志回放
+
+全局环境配置:
+  BARMAN_CLOUD_ENABLED            是否启用 S3 云备份与归档 (true/false)
+  BARMAN_CLOUD_S3_ENDPOINT        对象存储 S3 API 端点 (例如: http://garage:3900)
+  BARMAN_CLOUD_BUCKET             备份存储桶名 (默认: postgres-backups)
+  BARMAN_CLOUD_SERVER_NAME        备份实例标识 (默认: postgres18)
+  BARMAN_CLOUD_RETENTION          历史备份保留策略 (默认: REDUNDANCY 7)
+EOF
+}
+
+cmd_archive() {
+  local wal_path="${1:-}"
+  if [ -z "${wal_path}" ]; then
+    echo "错误: 未提供 WAL 文件路径" >&2
+    exit 1
+  fi
+
+  # 未开启云归档或未配置桶时，安全跳过 (exit 0) 防止开发环境本地 WAL 爆盘
+  if [ "${BARMAN_CLOUD_ENABLED:-false}" != "true" ] || [ -z "${BARMAN_CLOUD_BUCKET:-}" ]; then
+    exit 0
+  fi
+
+  local comp_arg
+  comp_arg="$(get_compression_args)"
+
+  local exec_args=(
+    barman-cloud-wal-archive
+    --cloud-provider aws-s3
+    "${ENDPOINT_ARGS[@]}"
+  )
+  [ -n "${comp_arg}" ] && exec_args+=("${comp_arg}")
+  exec_args+=("${DESTINATION_URL}" "${wal_path}")
+
+  exec "${exec_args[@]}"
+}
+
+cmd_restore_wal() {
+  local wal_name="${1:-}"
+  local wal_dest="${2:-}"
+
+  if [ -z "${wal_name}" ] || [ -z "${wal_dest}" ]; then
+    echo "错误: 未提供 WAL 文件名 (%f) 或目标路径 (%p)" >&2
+    exit 1
+  fi
+
+  exec barman-cloud-wal-restore \
+    --cloud-provider aws-s3 \
+    "${ENDPOINT_ARGS[@]}" \
+    "${DESTINATION_URL}" \
+    "${wal_name}" \
+    "${wal_dest}"
+}
+
+cmd_backup() {
+  echo "==> [1/2] 正在执行 PostgreSQL 物理基础备份至 S3 (${DESTINATION_URL})..."
+  barman-cloud-backup \
+    --cloud-provider aws-s3 \
+    "${ENDPOINT_ARGS[@]}" \
+    "${DESTINATION_URL}"
+
+  echo "==> [2/2] 正在应用保留策略清理 (${RETENTION_POLICY})..."
+  barman-cloud-backup-delete \
+    --cloud-provider aws-s3 \
+    "${ENDPOINT_ARGS[@]}" \
+    --retention-policy "${RETENTION_POLICY}" \
+    "${DESTINATION_URL}"
+
+  echo "✔ 全量物理备份与保留策略清理成功完成！"
+}
+
+cmd_list() {
+  echo "==> 备份仓库: ${DESTINATION_URL}"
+  barman-cloud-backup-list \
+    --cloud-provider aws-s3 \
+    "${ENDPOINT_ARGS[@]}" \
+    "${DESTINATION_URL}"
+}
+
+cmd_check() {
+  echo "=============================================================================="
+  echo " 1. 查看 S3 备份清单与元数据"
+  echo "=============================================================================="
+  cmd_list
+  echo ""
+  echo "=============================================================================="
+  echo " 2. 检查 WAL 连续归档完整性 (WAL Gap 连续性巡检)"
+  echo "=============================================================================="
+  barman-cloud-check-wal-archive \
+    --cloud-provider aws-s3 \
+    "${ENDPOINT_ARGS[@]}" \
+    "${DESTINATION_URL}"
+  echo ""
+  echo "✔ 备份仓库健康度与 WAL 连续性巡检通过！"
+}
+
+cmd_status() {
+  echo "=============================================================================="
+  echo " PostgreSQL 云备份与归档综合监控状态 (${DESTINATION_URL})"
+  echo "=============================================================================="
+  
+  echo "--- [1. 存储目标与配置] ---"
+  echo "• S3 端点:     ${BARMAN_CLOUD_S3_ENDPOINT:-默认 AWS S3}"
+  echo "• 目标桶:      ${BUCKET}"
+  echo "• 服务名:      ${SERVER_NAME}"
+  echo "• 保留策略:    ${RETENTION_POLICY}"
+  echo "• 云归档使能:  ${BARMAN_CLOUD_ENABLED:-false}"
+  echo ""
+
+  echo "--- [2. 本地 PostgreSQL 实例状态] ---"
+  if pg_isready -h localhost -p 5432 -q 2>/dev/null; then
+    local db_user="${POSTGRES_USER:-postgres}"
+    local db_name="${POSTGRES_DB:-postgres}"
+    echo "• 数据库服务: 正常运行 (Online)"
+    local lsn_info
+    lsn_info="$(psql -U "${db_user}" -d "${db_name}" -t -A -c "SELECT pg_current_wal_lsn() || ' (Recovery: ' || pg_is_in_recovery() || ')'" 2>/dev/null || echo "无法获取")"
+    echo "• 当前 WAL LSN: ${lsn_info}"
+    local arch_info
+    arch_info="$(psql -U "${db_user}" -d "${db_name}" -t -A -c "SELECT 'Archived: ' || archived_count || ', Failed: ' || failed_count || ', Last WAL: ' || COALESCE(last_archived_wal, 'none') FROM pg_stat_archiver" 2>/dev/null || echo "无法获取")"
+    echo "• 内核归档统计: ${arch_info}"
+  else
+    echo "• 数据库服务: 未运行或本地无响应 (Offline)"
+  fi
+  echo ""
+
+  echo "--- [3. S3 远端全备清单] ---"
+  barman-cloud-backup-list \
+    --cloud-provider aws-s3 \
+    "${ENDPOINT_ARGS[@]}" \
+    "${DESTINATION_URL}" || echo "（获取备份清单失败，请检查 S3 连通性）"
+  echo ""
+
+  echo "--- [4. WAL 归档连续性校验] ---"
+  barman-cloud-check-wal-archive \
+    --cloud-provider aws-s3 \
+    "${ENDPOINT_ARGS[@]}" \
+    "${DESTINATION_URL}" || echo "（WAL 连续性巡检异常，请排查缺口）"
+  echo ""
+  echo "=============================================================================="
+}
+
+cmd_prune() {
+  local policy="${RETENTION_POLICY}"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --retention)
+        policy="$2"
+        shift 2
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+
+  echo "==> 正在按照保留策略 [${policy}] 清理过期备份与孤立 WAL..."
+  barman-cloud-backup-delete \
+    --cloud-provider aws-s3 \
+    "${ENDPOINT_ARGS[@]}" \
+    --retention-policy "${policy}" \
+    "${DESTINATION_URL}"
+  echo "✔ 历史归档清理完成！"
+}
+
+cmd_restore() {
+  local backup_id="latest"
+  local target_dir=""
+  local force=false
+  local target_time=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --force)
+        force=true
+        shift
+        ;;
+      --target-time)
+        target_time="$2"
+        shift 2
+        ;;
+      *)
+        if [ -z "${target_dir}" ] && [ "$1" != "latest" ] && [[ ! "$1" =~ ^[0-9]+T[0-9]+$ ]] && [ "$#" -eq 1 ]; then
+          # 只有一个位置参数时作为 target_dir
+          target_dir="$1"
+        elif [ -z "${target_dir}" ] && [ -n "${backup_id}" ] && [ "$backup_id" != "latest" ]; then
+          target_dir="$1"
+        else
+          backup_id="$1"
+          shift
+          if [[ $# -gt 0 ]] && [[ "$1" != --* ]]; then
+            target_dir="$1"
+          fi
+        fi
+        shift
+        ;;
+    esac
+  done
+
+  if [ -z "${target_dir}" ]; then
+    echo "错误: 请指定恢复目标数据目录！" >&2
+    echo "用法: ${SCRIPT_NAME} restore [backup_id|latest] <target_dir> [--force] [--target-time 'YYYY-MM-DD HH:MM:SS']" >&2
+    exit 1
+  fi
+
+  # 1. 活跃实例自杀防护：若检测到正在运行的 PG 实例，且目标目录与当前 PGDATA 一致，坚决拒绝原地覆盖
+  local active_pgdata="${PGDATA:-/var/lib/postgresql/data}"
+  if [ -f "${target_dir}/postmaster.pid" ] || { [ "${target_dir}" = "${active_pgdata}" ] && pg_isready -h localhost -p 5432 -q 2>/dev/null; }; then
+    echo "🚨 致命错误: 检测到 PostgreSQL 实例正在运行或目标目录包含 postmaster.pid！" >&2
+    echo "为防止并发写导致数据灾难性损坏，严禁在活跃实例上执行原地全量恢复。" >&2
+    echo "正确操作流程：" >&2
+    echo "  1. 停止运行中的容器/进程 (例如: docker compose stop postgres)" >&2
+    echo "  2. 在维护/演练容器中进行还原，或先恢复至独立演练目录" >&2
+    exit 1
+  fi
+
+  # 2. 安全防呆检查：若目标目录非空且未带 --force，阻断执行
+  if [ -d "${target_dir}" ] && [ "$(ls -A "${target_dir}" 2>/dev/null)" ]; then
+    if [ "${force}" != "true" ]; then
+      echo "🚨 安全警告: 目标目录 [${target_dir}] 非空！" >&2
+      echo "为防止意外覆盖已有数据，请先手动备份并清空该目录，或追加 --force 参数强制执行。" >&2
+      exit 1
+    fi
+  fi
+
+  mkdir -p "${target_dir}"
+
+  echo "==> 正在从 S3 拉取基础备份 [${backup_id}] 到目标目录: ${target_dir}..."
+  barman-cloud-restore \
+    --cloud-provider aws-s3 \
+    "${ENDPOINT_ARGS[@]}" \
+    "${DESTINATION_URL}" \
+    "${backup_id}" \
+    "${target_dir}"
+
+  # 3. 如果指定了 PITR 时间点，自动生成恢复信号与配置
+  if [ -n "${target_time}" ]; then
+    echo "==> 正在配置 PITR 连续时间点恢复到时刻: [${target_time}]..."
+    cat >> "${target_dir}/postgresql.auto.conf" <<CONFIG_EOF
+
+# --- 由 pg-cloud restore 自动生成的 PITR 恢复配置 ---
+restore_command = '/usr/local/bin/pg-cloud restore-wal %f %p'
+recovery_target_time = '${target_time}'
+recovery_target_action = 'promote'
+CONFIG_EOF
+    touch "${target_dir}/recovery.signal"
+    echo "✔ 已生成 recovery.signal 与 postgresql.auto.conf 回放配置"
+  fi
+
+  echo "✔ 基础备份还原成功完成！"
+}
+
+# 命令分发路由
+COMMAND="${1:-}"
+shift || true
+
+case "${COMMAND}" in
+  archive)
+    cmd_archive "$@"
+    ;;
+  restore-wal)
+    cmd_restore_wal "$@"
+    ;;
+  backup)
+    cmd_backup "$@"
+    ;;
+  status)
+    cmd_status "$@"
+    ;;
+  list)
+    cmd_list "$@"
+    ;;
+  check)
+    cmd_check "$@"
+    ;;
+  prune)
+    cmd_prune "$@"
+    ;;
+  restore)
+    cmd_restore "$@"
+    ;;
+  help|--help|-h|"")
+    usage
+    ;;
+  *)
+    echo "错误: 未知命令 '${COMMAND}'" >&2
+    usage >&2
+    exit 1
+    ;;
+esac
