@@ -1,0 +1,21 @@
+# ==============================================================================
+# Mosquitto 密码凭据文件模板 (passwd.example)
+#
+# ⚠️ 注意事项：
+# 1. Mosquitto 2.x 强制要求密码使用 sha512-pbkdf2 进行加密哈希，切勿直接写入明文！
+# 2. 真实 passwd 文件包含凭证散列，已被 .gitignore 忽略，切勿提交到代码库。
+# 3. 生产环境中该文件权限建议设置为 0600 或 0640。
+#
+# ------------------------------------------------------------------------------
+# 推荐生成命令（在当前 mosquitto 目录下执行）：
+#
+# 首次创建文件并设置 admin 密码：
+#   docker run --rm -v "$(pwd)/config:/mosquitto/config" eclipse-mosquitto:2 mosquitto_passwd -c -b /mosquitto/config/passwd admin <YOUR_PASSWORD>
+#
+# 追加其他用户：
+#   docker run --rm -v "$(pwd)/config:/mosquitto/config" eclipse-mosquitto:2 mosquitto_passwd -b /mosquitto/config/passwd <username> <password>
+#
+# ------------------------------------------------------------------------------
+# 格式参考（每行一个账号）：
+# <username>:$7$101$...
+# ==============================================================================

@@ -1,0 +1,27 @@
+# ==============================================================================
+# Rathole - 基于 Rust 的极速安全轻量内网穿透与反向代理 (NAT Traversal via Rust)
+# ==============================================================================
+# 【核心功能与定位】
+# 1. 极速与极低资源占用：Rust 构建，单连接常驻内存仅数十 KB 到数 MB，性能远超 frp / ngrok。
+# 2. 强安全模型：每个服务独立 Token 鉴权，支持 Noise Protocol (X25519 + ChaCha20Poly1305) 端到端加密。
+# 3. 灵活双角色：统一支持服务端（VPS 网关中转）与客户端（内网节点穿透）编排。
+# 4. 网关与 Caddy 集成：加入 frontend 网络，便于通过 Caddy 反向代理访问穿透的 Web 服务。
+# ==============================================================================
+
+services:
+  # --- Rathole 服务端 (部署在公网 VPS / 网关机器) ---
+  rathole-server:
+    image: rapiz1/rathole:v0.5.0
+    container_name: rathole-server
+    restart: unless-stopped
+    command: ["--server", "/app/server.toml"]
+    ports:
+      - "2333:2333/tcp"
+      - "5200:5200/tcp"
+    volumes:
+      - ./server.toml:/app/server.toml:ro
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - frontend
+      - backend

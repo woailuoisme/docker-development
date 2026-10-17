@@ -1,0 +1,16 @@
+# InfluxDB 3.x 输出配置 (基于 Apache Arrow & Parquet 高性能列式时序引擎)
+[[outputs.influxdb_v3]]
+  ## InfluxDB 3 HTTP API 服务端地址 (默认 8181 端口)
+  urls = ["http://${INFLUXDB_HOST}:${INFLUXDB_PORT}"]
+
+  ## 目标数据库名称 (自动按 measurement 分表写入)
+  database = "${INFLUXDB_DATABASE}"
+
+  ## 访问凭证 Token (如已配置鉴权)
+  token = "${INFLUXDB_TOKEN}"
+
+  ## 请求超时时间
+  timeout = "5s"
+
+  ## 指标隔离：排除 Telegraf 自身监控指标，仅将 IoT 业务指标写入业务库
+  namedrop = ["internal_*"]

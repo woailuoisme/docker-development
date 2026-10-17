@@ -1,0 +1,39 @@
+# ==============================================================================
+# Rathole 服务端配置 (Rathole Server Configuration)
+# 部署位置: 具有公网 IP 的服务器 / 网关节点
+# 官方文档: https://github.com/rapiz1/rathole
+# ==============================================================================
+
+[server]
+# Rathole 服务端监听地址与控制通信端口 (供客户端建立安全隧道连接)
+bind_addr = "0.0.0.0:2333"
+
+# ------------------------------------------------------------------------------
+# 传输层加密方式 (Transport Protocol)
+# 1. 默认基础 TCP 模式：依赖各 service 的强密码 token 鉴权
+# 2. Noise 协议加密模式（可选，推荐生产环境开启）：
+#    生成密钥对: docker run --rm rapiz1/rathole:v0.5.0 --genkey x25519
+#    取消下方注释并填入服务端生成的私钥即可
+# ------------------------------------------------------------------------------
+[server.transport]
+type = "tcp"
+
+# [server.transport]
+# type = "noise"
+# [server.transport.noise]
+# pattern = "Noise_NK_25519_ChaChaPoly_BLAKE2s"
+# local_private_key = "填入服务端生成的私钥"
+
+# ------------------------------------------------------------------------------
+# 穿透服务定义 (Exposed Services)
+# 每个服务必须配置专属名称与强密码 token (客户端与服务端必须保持完全一致)
+# ------------------------------------------------------------------------------
+[server.services.web]
+token = "replace_with_your_strong_secret_token"
+# 穿透服务在服务端对外绑定的访问端口 (供外部直接访问或由 Caddy 反代)
+bind_addr = "0.0.0.0:5200"
+
+# [可选] 示例：穿透内部 SSH 端口
+# [server.services.ssh]
+# token = "another_strong_ssh_token"
+# bind_addr = "0.0.0.0:2222"

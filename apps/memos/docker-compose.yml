@@ -1,0 +1,30 @@
+# ==============================================================================
+# Memos - 现代化开源私有轻量级碎片化知识库与卡片笔记服务
+# ==============================================================================
+# 【核心功能与作用】
+# 1. 极简卡片便签：支持 Markdown、标签分类（Tags）、多级引用与图片/附件上传。
+# 2. 隐私与数据自主：默认使用嵌入式 SQLite 存储，单文件持久化，零外部数据库依赖，极易备份与迁移。
+# 3. 社交与分享：支持公开/私密笔记权限切换、RSS 订阅源、每日活动热力图展示。
+# 4. 丰富客户端生态：提供现代化响应式 Web 界面，完美适配移动端，并拥有完善的 RESTful API。
+# 5. 易于扩展：支持开箱即用 SQLite，亦可按需无缝切换连接外部 PostgreSQL 或 MySQL。
+# ==============================================================================
+
+services:
+  memos:
+    image: neosmemo/memos:stable
+    container_name: memos
+    restart: unless-stopped
+    ports:
+      - "5230:5230"
+    volumes:
+      - ${DATA_PATH}memos:/var/opt/memos
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      # 实例外部访问 URL (用于生成正确的对外分享链接与 RSS 订阅地址)
+      # - MEMOS_INSTANCE_URL=https://memos.${SITE_ADDRESS}
+      # 如需使用外部 PostgreSQL 数据库，可取消下方两行注释：
+      # - MEMOS_DRIVER=postgres
+      # - MEMOS_DSN=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/memos?sslmode=disable
+    networks:
+      - frontend
+      - backend

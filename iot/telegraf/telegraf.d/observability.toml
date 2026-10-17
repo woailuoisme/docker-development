@@ -1,0 +1,20 @@
+# Telegraf 自身可观测性与 Prometheus 端点配置
+
+## 收集 Telegraf 自身运行时指标 (包含各插件的 buffer 积压、处理时延与丢包率)
+[[inputs.internal]]
+  ## 收集 Go 运行时内存与 GC 状态
+  collect_memstats = true
+
+## 暴露 Prometheus 抓取端点 (对接 docker-compose 暴露的 9080:8080 端口)
+[[outputs.prometheus_client]]
+  ## 监听内部 HTTP 地址与端口
+  listen = ":8080"
+
+  ## 指标暴露路径
+  path = "/metrics"
+
+  ## 推荐格式规范：2 为官方推荐的现代 Prometheus 数据格式
+  metric_version = 2
+
+  ## 指标隔离：仅暴露 Telegraf 运行指标，避免 IoT 业务时序数据泄露至监控抓取链路
+  namepass = ["internal_*"]

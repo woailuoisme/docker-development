@@ -14,12 +14,15 @@ include:
   # - victoria-metrics/docker-compose.yml # VictoriaMetrics 核心 TSDB 时序数据库与原生抓取引擎
   # - victoria-agent/docker-compose.yml       # VictoriaMetrics 生态轻量指标抓取代理与缓冲中继
   # - victoria-alert/docker-compose.yml       # VictoriaMetrics 规则评估与报警触发服务 (自带 Web UI)
+  # - gatus/docker-compose.yml                # Gatus 自动化服务健康检查与状态页看板 (轻量 Go 编写)
+  # - netdata/docker-compose.yml              # Netdata 极速低开销单机实时系统监控 (按需启用，低配服务器深度调优)
+  # - beszel/docker-compose.yml               # Beszel 轻量服务器与容器监控看板 (基于 PocketBase)
   # 备份与恢复不是常驻服务：改用 scripts/victoria.sh（just vm-backup-now / vm-backup-restore-test / vm-restore）
   # 监控探针 (vmagent 的抓取目标)：缺失时会造成「抓取失败刷日志 + 对应告警规则永久沉默」
   # - exporters/node-exporter/docker-compose.yml      # 宿主机 CPU/内存/磁盘/网络核心指标
   # - exporters/valkey-exporter/docker-compose.yml    # Valkey 缓存命中率与内存状态
   # - exporters/postgres-exporter/docker-compose.yml  # PostgreSQL 连接数/事务/锁状态
   # - exporters/cadvisor/docker-compose.yml         # Docker 容器资源占用指标 (暂停使用；恢复容器指标与 ContainerHighMemoryUsage 规则时取消注释)
-  - glitchtip/docker-compose.yml        # GlitchTip 错误聚合平台 (Sentry 替代，按需启用；需在 .env 设置 GLITCHTIP_SECRET_KEY)
+  # - glitchtip/docker-compose.yml        # GlitchTip 错误聚合平台 (Sentry 替代，按需启用；需在 .env 设置 GLITCHTIP_SECRET_KEY)
   - open-observe/docker-compose.yml     # OpenObserve 全栈可观测 (Logs/Metrics/Traces 单容器；管理员凭证只放 .env)
   - otel-collector/docker-compose.yml   # OTLP 统一摄取网关 (应用 → OpenObserve；重试/排队/批处理)

@@ -1,0 +1,128 @@
+name: Build Group - PHP 8.5 Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      # === 一键全选 ===
+      build_all:
+        description: '一键构建所有组件 (CLI, FPM, FrankenPHP, RoadRunner)'
+        type: boolean
+        default: false
+
+      # === 细粒度控制开关 ===
+      build_cli:
+        description: '构建 CLI'
+        type: boolean
+        default: false
+      build_fpm:
+        description: '构建 FPM'
+        type: boolean
+        default: false
+      build_franken:
+        description: '构建 FrankenPHP'
+        type: boolean
+        default: false
+      build_roadrunner:
+        description: '构建 RoadRunner'
+        type: boolean
+        default: false
+
+env:
+  REGISTRY_DOCKERHUB: docker.io/jiaoio/php8.5
+  REGISTRY_REDHAT: quay.io/jiaoio/php8.5
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  # 阶段一：动态生成 Matrix 配置
+  matrix-builder:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          BUILD_ALL="${{ inputs.build_all }}"
+
+          # 判断组件是否被选中（当 build_all 为 true 或单独开关为 true 时触发）
+          SHOULD_CLI=$([ "$BUILD_ALL" = "true" ] || [ "${{ inputs.build_cli }}" = "true" ] && echo "true" || echo "false")
+          SHOULD_FPM=$([ "$BUILD_ALL" = "true" ] || [ "${{ inputs.build_fpm }}" = "true" ] && echo "true" || echo "false")
+          SHOULD_FRANKEN=$([ "$BUILD_ALL" = "true" ] || [ "${{ inputs.build_franken }}" = "true" ] && echo "true" || echo "false")
+          SHOULD_ROADRUNNER=$([ "$BUILD_ALL" = "true" ] || [ "${{ inputs.build_roadrunner }}" = "true" ] && echo "true" || echo "false")
+
+          # 初始化 JSON 数组
+          MATRIX_JSON='[]'
+
+          # 定义辅助函数来添加任务
+          add_task() {
+            local name=$1
+            local context=$2
+            local tag=$3
+            MATRIX_JSON=$(echo "$MATRIX_JSON" | jq -c ". + [{\"name\": \"$name\", \"context\": \"$context\", \"tag\": \"$tag\"}]")
+          }
+
+          if [ "$SHOULD_CLI" = "true" ]; then
+            add_task "cli" "./php/php8.5-cli" "cli"
+          fi
+          if [ "$SHOULD_FPM" = "true" ]; then
+            add_task "fpm" "./php/php8.5-fpm" "fpm"
+          fi
+          if [ "$SHOULD_FRANKEN" = "true" ]; then
+            add_task "franken" "./php/php8.5-franken" "franken"
+          fi
+          if [ "$SHOULD_ROADRUNNER" = "true" ]; then
+            add_task "roadrunner" "./php/php8.5-roadrunner" "roadrunner"
+          fi
+
+          # 输出最终的 JSON
+          echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
+
+          # 打印调试信息
+          echo "Generated Matrix: {\"include\":$MATRIX_JSON}"
+
+  # 阶段二：并行构建
+  build:
+    needs: matrix-builder
+    if: ${{ fromJson(needs.matrix-builder.outputs.matrix).include[0] != null }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
+
+    name: Build ${{ matrix.name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up QEMU for multi-arch builds
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Login to Quay.io
+        uses: docker/login-action@v4
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            CHINA=false
+          push: true
+          tags: |
+            ${{ env.REGISTRY_DOCKERHUB }}:${{ matrix.tag }}
+            ${{ env.REGISTRY_REDHAT }}:${{ matrix.tag }}
+          cache-from: type=registry,ref=${{ env.REGISTRY_DOCKERHUB }}:${{ matrix.tag }}-cache
+          cache-to: type=registry,ref=${{ env.REGISTRY_DOCKERHUB }}:${{ matrix.tag }}-cache,mode=max

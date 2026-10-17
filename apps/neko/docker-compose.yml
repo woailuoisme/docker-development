@@ -1,0 +1,41 @@
+# ==============================================================================
+# Neko (n.eko) - 自建云端虚拟浏览器与 WebRTC 多人协同桌面
+# ==============================================================================
+# 【核心功能与作用】
+# 1. 云端虚拟浏览器：在 Docker 容器中运行隔离的桌面浏览器（默认 Firefox，可选 Chromium/Chrome/Brave）。
+# 2. 超低延迟 WebRTC 流式传输：多用户同时在线观看、音视频同步广播，极低带宽与延迟。
+# 3. 多人协同与权限控制：支持多用户协作操作、控制权移交、共享剪贴板及专属 Admin 管理员面板。
+# 4. WebRTC MUX 单端口多路复用：采用 UDPMUX 单端口复用传输音视频，避免映射数百个端口。
+# 5. 数据持久化：支持浏览器 Profile（书签/历史/Cookie）与 Downloads 下载目录宿主挂载。
+# ==============================================================================
+
+services:
+  neko:
+    # 默认使用 Firefox 镜像，支持切换为 chromium / google-chrome / brave 等变体
+    # 详见: https://neko.m1k1o.net/docs/v3/installation/docker-images
+    image: ghcr.io/m1k1o/neko/firefox:3.1
+    container_name: neko
+    restart: unless-stopped
+    shm_size: "2gb" # 浏览器多进程标签页及视频渲染必需，防止浏览器标签页崩溃
+    ports:
+      - "8050:8080" # Web UI / HTTP API / WebSocket 信令端口 (8050 避免与 8080 冲突)
+      - "52000:52000/udp" # WebRTC UDPMUX 单端口多路复用流传输 (大幅精简端口规则)
+    volumes:
+      # 持久化 Firefox 用户配置（书签、扩展、历史记录与会话）
+      - ${DATA_PATH}neko/profile:/home/neko/.mozilla/firefox/profile.default
+      # 映射浏览器下载目录，便于从宿主机直接存取云浏览器下载的文件
+      - ${DATA_PATH}neko/downloads:/home/neko/Downloads
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      # WebRTC 传输网络：启用 UDPMUX 单端口复用（无需暴露 52000-52100 整个端口段）
+      - NEKO_WEBRTC_UDPMUX=52000
+      # 虚拟桌面分辨率与刷新率（默认 1920x1080@30）
+      - NEKO_DESKTOP_SCREEN=1920x1080@30
+      # 多用户账户凭证配置（admin 用户拥有管理控制台最高权限）
+      - NEKO_MEMBER_MULTIUSER_USER_PASSWORD=neko
+      - NEKO_MEMBER_MULTIUSER_ADMIN_PASSWORD=admin
+      # WebRTC 客户端可达 IP：本地开发设为 127.0.0.1；局域网/公网部署请设为宿主机真实 IP
+      - NEKO_WEBRTC_NAT1TO1=${NEKO_NAT1TO1:-127.0.0.1}
+    networks:
+      - frontend
+      - backend

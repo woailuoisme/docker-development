@@ -1,0 +1,110 @@
+# ==============================================================================
+# Headscale 配置文件 (Headscale Configuration)
+# 适用版本: Headscale v0.29.x
+# 文档参考: https://headscale.net/
+# ==============================================================================
+
+# 客户端连接的基础 URL (可通过环境变量 HEADSCALE_SERVER_URL 在 compose 中覆盖)
+# 生产或反代环境下建议为带 HTTPS 的公网或局域网域名，如: https://headscale.example.com
+server_url: http://127.0.0.1:8080
+
+# 监听地址与端口 (容器内统一监听 0.0.0.0:8080)
+listen_addr: 0.0.0.0:8080
+
+# Prometheus 指标与健康监控监听地址 (空值表示禁用)
+metrics_listen_addr: 0.0.0.0:9090
+
+# 远程管理 gRPC 监听地址 (仅在使用带证书的远程 CLI 时需要)
+grpc_listen_addr: 127.0.0.1:50443
+
+# 是否允许不安全的 gRPC 连接
+grpc_allow_insecure: false
+
+# 反向代理可信 CIDR (若配置了 Caddy 等反代，信任其传递的真实客户端 IP 头部)
+trusted_proxies: []
+
+# Noise 协议私钥配置 (Tailscale 节点通信加密密钥，不存在时自动生成)
+noise:
+  private_key_path: /var/lib/headscale/noise_private.key
+
+# 分配给 Tailscale 客户端节点的虚拟 IP 网段 (必须在 Tailscale 支持的标准网段内)
+prefixes:
+  v4: 100.64.0.0/10
+  v6: fd7a:115c:a1e0::/48
+  # IP 分配策略: sequential (顺序分配) 或 random (随机分配)
+  allocation: sequential
+
+# DERP 中继服务器配置 (当两端无法打洞直连时通过 DERP 进行加密流量中继)
+derp:
+  server:
+    # 是否启用内置 DERP 服务 (需要 server_url 为 https 并映射 3478/udp 端口)
+    enabled: false
+    region_id: 999
+    region_code: "headscale"
+    region_name: "Headscale Embedded DERP"
+    verify_clients: true
+    stun_listen_addr: "0.0.0.0:3478"
+    private_key_path: /var/lib/headscale/derp_server_private.key
+    automatically_add_embedded_derp_region: true
+
+  # 外部公共 DERP 映射列表 (默认使用 Tailscale 官方全球公共中继)
+  urls:
+    - https://controlplane.tailscale.com/derpmap/default
+  paths: []
+  auto_update_enabled: true
+  update_frequency: 3h
+
+# 启动时是否检查版本更新
+disable_check_updates: false
+
+# 节点生命周期配置
+node:
+  # 节点连接密钥过期时间 (0 表示永不过期)
+  expiry: 0
+  ephemeral:
+    # 临时节点失联后被自动清理的时间
+    inactivity_timeout: 30m
+
+# 存储数据库配置 (官方强烈推荐且全面优化的 SQLite)
+database:
+  type: sqlite
+  debug: false
+  gorm:
+    prepare_stmt: true
+    parameterized_queries: true
+    skip_err_record_not_found: true
+    slow_threshold: 1000
+  sqlite:
+    path: /var/lib/headscale/db.sqlite
+    # 启用 WAL 模式提高并发读写性能
+    write_ahead_log: true
+    wal_autocheckpoint: 1000
+
+# 日志配置
+log:
+  level: info
+  format: text
+
+# 访问控制策略 (ACL / HuJSON)
+policy:
+  mode: file
+  path: ""
+
+# DNS 与 MagicDNS 配置
+dns:
+  # 启用 MagicDNS，允许节点之间直接通过主机名互相访问
+  magic_dns: true
+  # MagicDNS 基础域名 (必须与 server_url 的域名不同)
+  base_domain: example.net
+  override_local_dns: true
+  # 分配给客户端的上游公共 DNS
+  nameservers:
+    global:
+      - 1.1.1.1
+      - 8.8.8.8
+  search_domains: []
+  extra_records: []
+
+# 本地 CLI 通信使用的 Unix Socket 路径及权限 (配合 tmpfs 内存挂载使用)
+unix_socket: /var/run/headscale/headscale.sock
+unix_socket_permission: "0770"

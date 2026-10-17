@@ -1,0 +1,29 @@
+
+
+  # --------------------------------------------------------------------------
+  # Beszel Agent (宿主机监控探针，按需启用)
+  # 首次使用步骤：
+  # 1. 启动并访问 Beszel Hub (https://beszel.{$SITE_ADDRESS} 或 http://localhost:8090)
+  # 2. 创建管理员并在仪表板点击「Add System」，获取专属 Public KEY 与 TOKEN
+  # 3. 取消下方注释并将 KEY/TOKEN 填入环境变量，启动 beszel-agent 即可完成本机监控
+  # --------------------------------------------------------------------------
+services:
+  beszel-agent:
+    image: henrygd/beszel-agent:0.21.0
+    container_name: beszel-agent
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${DATA_PATH}beszel-agent:/var/lib/beszel-agent
+    environment:
+      - PORT=45876
+      - KEY=${BESZEL_AGENT_KEY:-}
+      - TOKEN=${BESZEL_AGENT_TOKEN:-}
+      - HUB_URL=http://127.0.0.1:8090
+    healthcheck:
+      test: ["CMD", "/agent", "health"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

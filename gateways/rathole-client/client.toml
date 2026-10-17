@@ -1,0 +1,35 @@
+# ==============================================================================
+# Rathole 客户端配置 (Rathole Client Configuration)
+# 部署位置: 位于内网 / NAT / 防火墙后的目标设备
+# 官方文档: https://github.com/rapiz1/rathole
+# ==============================================================================
+
+[client]
+# 服务端的公网 IP 或域名与控制端口 (必须对应 server.toml 中的 bind_addr)
+remote_addr = "YOUR_SERVER_PUBLIC_IP:2333"
+
+# ------------------------------------------------------------------------------
+# 传输层加密方式 (必须与服务端保持一致)
+# 若服务端启用了 Noise 协议，填入服务端对应的公钥
+# ------------------------------------------------------------------------------
+[client.transport]
+type = "tcp"
+
+# [client.transport]
+# type = "noise"
+# [client.transport.noise]
+# pattern = "Noise_NK_25519_ChaChaPoly_BLAKE2s"
+# remote_public_key = "填入服务端生成的公钥"
+
+# ------------------------------------------------------------------------------
+# 内网穿透服务映射 (Services Forwarding)
+# ------------------------------------------------------------------------------
+[client.services.web]
+token = "replace_with_your_strong_secret_token"
+# 内网需要暴露的本地目标服务地址 (例如本地运行的 Web 服务、Nginx 或应用)
+local_addr = "127.0.0.1:8080"
+
+# [可选] 示例：穿透内部 SSH 端口
+# [client.services.ssh]
+# token = "another_strong_ssh_token"
+# local_addr = "127.0.0.1:22"

@@ -1,19 +1,11 @@
-ARG TELEGRAF_VERSION=1.37
+ARG TELEGRAF_VERSION=1.40-alpine
 FROM telegraf:${TELEGRAF_VERSION}
 
-ARG CHINA=true
-ARG TIMEZONE=Asia/Shanghai
-RUN if [ "${CHINA}" = "true" ]; then \
-    sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources; \
-    fi && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata procps && \
-    ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
-    echo "${TIMEZONE}" > /etc/timezone && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+ARG TZ=Asia/Shanghai
+RUN apk add --no-cache tzdata procps && \
+    ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime && \
+    echo "${TZ}" > /etc/TZ
 
-# 复制主配置文件
 COPY telegraf.toml /etc/telegraf/telegraf.toml
 
 # 创建配置目录并复制所有配置文件
@@ -26,10 +18,8 @@ RUN for f in *.toml; do \
     ln -s "$f" "${f%.toml}.conf"; \
     done
 
-# 设置工作目录
 WORKDIR /etc/telegraf
 
-# 健康检查 - 检查 telegraf 进程是否正在运行
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=10s \
     CMD ["sh", "-c", "pgrep telegraf || exit 1"]
 

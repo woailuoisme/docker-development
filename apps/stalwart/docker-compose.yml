@@ -1,0 +1,40 @@
+# ==============================================================================
+# Stalwart Mail Server - 现代化全功能高安全邮件服务器（基于 Rust 开发）
+# ==============================================================================
+# 【核心功能与作用】
+# 1. 全协议集成：内置 JMAP (RFC 8620/8621)、IMAP4rev2、POP3、SMTP (Submission) 及 ManageSieve。
+# 2. 极致安全：原生内置 DMARC、DKIM、SPF、ARC 校验与签名、密码学加密存储与细粒度访问控制。
+# 3. 极速嵌入式存储：自带内置 RocksDB 存储引擎，开箱即用，免去安装外部数据库的运维成本。
+# 4. 可视化管理后台：内置现代化 Web Admin 管理面板，支持在线管理域名、用户、群组与安全策略。
+# 5. 易于扩展：支持无缝对接外部 PostgreSQL/MySQL、S3/Garage 对象存储及 LDAP/OIDC 认证。
+# ==============================================================================
+
+services:
+  stalwart:
+    image: stalwartlabs/stalwart:v0.16
+    container_name: stalwart
+    restart: unless-stopped
+    ports:
+      # --- 邮件核心协议传输端口 ---
+      - "25:25"       # SMTP (外部邮件收发与服务器间中继传输)
+      - "465:465"     # SMTPS (隐式 TLS 加密邮件客户端安全提交)
+      - "587:587"     # Submission (显式 STARTTLS 邮件客户端提交)
+      - "993:993"     # IMAPS (隐式 TLS 加密邮件客户端安全收取)
+      - "143:143"     # IMAP (显式 STARTTLS 邮件客户端收取)
+      - "4190:4190"   # ManageSieve (邮件过滤规则远程管理)
+      # --- Web 管理控制台与 JMAP / HTTP 接口 ---
+      - "8080:8080"   # Web Admin 后台管理界面与 HTTP Setup 向导 (亦可通过 Caddy 反代)
+      # --- 备用 POP3 协议端口 (按需取消注释) ---
+      # - "110:110"   # POP3 (明文 / STARTTLS)
+      # - "995:995"   # POP3S (隐式 TLS)
+    volumes:
+      - ${DATA_PATH}stalwart/data:/var/lib/stalwart # 邮件数据、用户库与 RocksDB 存储
+      - ${DATA_PATH}stalwart/etc:/etc/stalwart      # 动态配置文件与服务器状态导出
+      # - ./config.toml:/etc/stalwart/config.toml   # 如需固定挂载本地静态配置文件，可取消此行注释
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      # 初始恢复管理员账号 (账号:密码)，初次进入 Web 控制台后可在后台修改并删除此环境变量
+      - STALWART_RECOVERY_ADMIN=${STALWART_RECOVERY_ADMIN:-admin:stalwart123}
+    networks:
+      - frontend
+      - backend

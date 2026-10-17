@@ -21,6 +21,7 @@
 | **jaeger** | `jaeger` | `jaeger/` | `http://jaeger:16686` | `${JAEGER_UI_PORT:-16686}` | (按需启用) 官方 Jaeger v2 镜像：自带 badger 存储，OTLP 摄取 + UI/查询 API 一体化 |
 | **vmagent** | `vmagent` | `victoria-agent/` | `http://vmagent:8429` | `${VMAGENT_PORT:-8429}` | 专职指标抓取代理与缓冲中继，支持无丢包重试与过滤聚合 |
 | **vmalert** | `vmalert` | `victoria-alert/` | `http://vmalert:8880` | `${VMALERT_PORT:-8880}` | 规则评估与报警触发服务，支持 MetricsQL 计算与状态写回 |
+| **gatus** | `gatus` | `gatus/` | `http://gatus:8080` | `9081:8080` | (按需启用) 现代化极轻量服务健康状态监控与状态页看板 |
 
 > 链路侧：当前现役数据面仍是 **`victoria-traces`**（`traces.` 域名 / `:10428`，Grafana 的 Jaeger 数据源指向它）。
 > `jaeger/` 已入库但**默认不启用**（编排、Caddy 路由、vmagent 抓取任务三处均为注释态），彻底启用步骤见

@@ -1,27 +1,16 @@
 # telegraf/telegraf.toml
-# Telegraf 主配置文件 - 只包含 agent 和全局设置
+# Telegraf 1.40 主配置文件 - 生产推荐最佳实践与调优配置
 
 [agent]
-  interval = "10s"
-  round_interval = true
+  ## 批量写入与内存缓冲优化（适配 IoT 高并发消息摄入，官方默认分别为 1000 与 10000）
   metric_batch_size = 5000
   metric_buffer_limit = 50000
-  collection_jitter = "0s"
-  flush_interval = "10s"
-  flush_jitter = "0s"
-  precision = ""
-  debug = false
-  quiet = false
 
-  log_with_timezone = "Asia/Shanghai"
+  ## 写入抖动优化：在 10s 刷新周期基础上增加 2s 随机扰动，平滑 I/O 避免整点周期性突发网络与数据库毛刺
+  flush_jitter = "2s"
+
+  ## 容器化与 IoT 最佳实践：禁止自动向指标注入容器名 host 标签，防止容器重建引发时序基数膨胀 (Series Cardinality Explosion)
+  omit_hostname = true
+
+  ## 容器化日志推荐：结构化 key=value 日志输出格式（便于 Promtail / Loki 收集解析）
   logformat = "structured"
-  skip_processors_after_aggregators = false
-
-# 全局标签
-[global_tags]
-  environment = "production"
-  region = "china"
-
-## PostgreSQL/TimescaleDB 输出（临时添加以确保容器启动）
-#[[outputs.postgresql]]
-#  connection = "host=${TIMESCALEDB_HOST} port=5432 user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable"

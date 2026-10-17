@@ -1,23 +1,26 @@
 services:
   mosquitto:
-    build:
-      context: .
+    image: eclipse-mosquitto:${MOSQUITTO_VERSION:-2.1-alpine}
     container_name: mosquitto
     restart: always
     ports:
       - "${MQTT_PORT:-1883}:1883"
+      - "${MQTT_WS_PORT:-9001}:9001"
     volumes:
-      - ./config:/mosquitto/config
-      - ${DATA_PATH}mosquitto/data:/mosquitto/data
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./config/acl:/mosquitto/config/acl:ro
+      - ./config/passwd:/mosquitto/config/passwd:ro
+      - ${DATA_PATH:-./data/}mosquitto/data:/mosquitto/data
     environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
       - MQTT_USERNAME=${MQTT_USERNAME}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
-      - MQTT_USERS=${MQTT_USERS}
-      - MQTT_ALLOW_ANONYMOUS=${MQTT_ALLOW_ANONYMOUS:-false}
-      - SITE_ADDRESS=${SITE_ADDRESS}
-    networks:
-      - backend
-      - frontend
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -h localhost -p 1883 -u \"$$MQTT_USERNAME\" -P \"$$MQTT_PASSWORD\" -t '$$SYS/broker/version' -C 1 -W 3 > /dev/null 2>&1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     ulimits:
       nofile:
         soft: 65535
@@ -25,5 +28,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 2048M
+          cpus: "2.0"
+          memory: 1024M
+    networks:
+      - backend
+      - frontend

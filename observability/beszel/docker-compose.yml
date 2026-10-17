@@ -1,0 +1,61 @@
+# ==============================================================================
+# Beszel - 轻量级现代化服务器与容器监控看板 (Lightweight Server & Docker Monitor)
+# ==============================================================================
+# 【核心功能与定位】
+# 1. 极简高颜值监控：基于 Go + PocketBase 构建，极速轻量，单服务常驻内存约 20MB。
+# 2. 深度硬件与容器指标：实时监控 CPU、内存、磁盘 IO、网络、温度与 Docker 容器资源占用。
+# 3. 灵活的多节点探针：中心端 Hub 收集各 Agent 节点数据，支持多服务器分布式监控与告警。
+# 4. 接入网关集成：通过 Caddy 反向代理 (beszel.{$SITE_ADDRESS}) 访问 Web 控制台。
+# ==============================================================================
+
+services:
+  beszel:
+    image: henrygd/beszel:0.21.0
+    container_name: beszel
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    volumes:
+      - ${DATA_PATH}beszel:/beszel_data
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - APP_URL=https://beszel.${SITE_ADDRESS}
+      # 可选：首次启动自动初始化管理员用户（也可在 Web UI 页面首次访问时注册）
+      # - USER_EMAIL=admin@example.com
+      # - USER_PASSWORD=your_secure_password
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "/beszel", "health", "--url", "http://127.0.0.1:8090"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # --------------------------------------------------------------------------
+  # Beszel Agent (宿主机监控探针，按需启用)
+  # 首次使用步骤：
+  # 1. 启动并访问 Beszel Hub (https://beszel.{$SITE_ADDRESS} 或 http://localhost:8090)
+  # 2. 创建管理员并在仪表板点击「Add System」，获取专属 Public KEY 与 TOKEN
+  # 3. 取消下方注释并将 KEY/TOKEN 填入环境变量，启动 beszel-agent 即可完成本机监控
+  # --------------------------------------------------------------------------
+  # beszel-agent:
+  #   image: henrygd/beszel-agent:0.21.0
+  #   container_name: beszel-agent
+  #   restart: unless-stopped
+  #   network_mode: host
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - ${DATA_PATH}beszel-agent:/var/lib/beszel-agent
+  #   environment:
+  #     - PORT=45876
+  #     - KEY=${BESZEL_AGENT_KEY:-}
+  #     - TOKEN=${BESZEL_AGENT_TOKEN:-}
+  #     - HUB_URL=http://127.0.0.1:8090
+  #   healthcheck:
+  #     test: ["CMD", "/agent", "health"]
+  #     interval: 60s
+  #     timeout: 5s
+  #     retries: 3
+  #     start_period: 15s

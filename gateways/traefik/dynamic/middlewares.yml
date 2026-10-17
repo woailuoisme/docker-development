@@ -185,16 +185,28 @@ http:
             - "192.168.0.0/16"
 
     # --------------------------------------------------------------------------
-    # 14. 标准中间件链路组合 (Chains - 对应 Caddy proxy-app 模式)
+    # 14. 统一美化错误页中间件 (Custom Error Pages - 基于 tarampampam/error-pages)
+    # 官方文档: https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/errorpages/
+    # --------------------------------------------------------------------------
+    error-pages:
+      errors:
+        status:
+          - "400-599"
+        service: error-pages-service
+        query: "/{status}"
+
+    # --------------------------------------------------------------------------
+    # 15. 标准中间件链路组合 (Chains - 对应 Caddy proxy-app 模式)
     # 官方文档: https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/chain/
     # --------------------------------------------------------------------------
-    # 基础安全链路 (基础 Web 服务首选: 安全响应头 + 内容压缩 + 防 502 重试)
+    # 基础安全链路 (基础 Web 服务首选: 安全响应头 + 内容压缩 + 防 502 重试 + 统一美化错误页)
     chain-basic:
       chain:
         middlewares:
           - security-headers
           - compress
           - retry-service
+          - error-pages
 
     # 认证防护链路 (对应 Caddy 的 proxy-app-auth: 基础安全 + Authelia 单点登录)
     chain-auth:
@@ -217,3 +229,14 @@ http:
         middlewares:
           - chain-basic
           - ip-allow-internal
+
+  # ============================================================================
+  # 通用服务定义 (Common Services)
+  # ============================================================================
+  services:
+    # error-pages 内部服务定义 (供 File Provider 中间件统一引用)
+    error-pages-service:
+      loadBalancer:
+        servers:
+          - url: "http://error-pages:8080"
+        passHostHeader: true

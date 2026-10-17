@@ -1,0 +1,27 @@
+# ==============================================================================
+# Gatus - 自动化服务健康检查、状态页与监控看板 (Automated Service Health Dashboard)
+# ==============================================================================
+# 【核心功能与作用】
+# 1. 现代化状态页：基于 Go 编写的极轻量、高颜值自动化服务健康检查仪表板。
+# 2. 多协议探测：支持 HTTP/HTTPS、TCP、DNS、ICMP Ping 等多协议探针。
+# 3. 灵活条件断言：支持 [STATUS] == 200, [RESPONSE_TIME] < 500, [CONNECTED] == true 等表达式。
+# 4. 丰富告警通知：支持 Slack, Discord, Telegram, PagerDuty, Webhook, Gotify, Email 等渠道。
+# 5. 持久化与指标集成：内置 SQLite 历史数据存储，原生暴露 Prometheus 指标 (/metrics)。
+# ==============================================================================
+
+services:
+  gatus:
+    image: twinproduction/gatus:stable
+    container_name: gatus
+    restart: unless-stopped
+    ports:
+      - "9081:8080"
+    volumes:
+      - ./config:/config
+      - ${DATA_PATH}gatus:/data
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - GATUS_CONFIG_PATH=/config/config.yaml
+    networks:
+      - frontend
+      - backend

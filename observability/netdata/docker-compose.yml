@@ -1,0 +1,55 @@
+# ==============================================================================
+# Netdata - 极速低开销单机实时系统监控 (Low-Resource Host Performance Monitor)
+# ==============================================================================
+# 【核心功能与定位】
+# 1. 极致低开销实时监控：针对 1 核 1G/2G 等低配置服务器深度调优，内存占用控制在 ~150MB 以内。
+# 2. 深度宿主机监控：采集 CPU、内存、磁盘 IO、网络、系统服务及 Docker 容器运行状态。
+# 3. 资源节约策略：放宽采集周期至 2 秒、禁用机器学习 (ML) 与 eBPF 插件、限制单层 TSDB 缓存。
+# 4. 安全离线模式：禁用 Netdata Cloud 遥测外联，宿主端口仅绑定 127.0.0.1，统一经 Caddy + Authelia 反代。
+# ==============================================================================
+
+services:
+  netdata:
+    image: netdata/netdata:v2.12
+    container_name: netdata
+    restart: unless-stopped
+    pid: host
+    security_opt:
+      - apparmor:unconfined
+    cap_add:
+      - SYS_PTRACE
+    ports:
+      - "127.0.0.1:19999:19999"
+    volumes:
+      - ./config/netdata.conf:/etc/netdata/netdata.conf:ro
+      - ${DATA_PATH}netdata/lib:/var/lib/netdata
+      - ${DATA_PATH}netdata/cache:/var/cache/netdata
+      - /:/host/root:ro,rslave
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/log:/host/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /run/dbus:/run/dbus:ro
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - DO_NOT_TRACK=1
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:19999/api/v1/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+        reservations:
+          cpus: "0.05"
+          memory: 64M

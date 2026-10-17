@@ -1,0 +1,92 @@
+# ==============================================================================
+# Gatus Configuration (服务健康监控与状态页配置)
+# 文档参考: https://gatus.io/docs
+# ==============================================================================
+
+# Web 服务设置
+web:
+  port: 8080
+
+# 界面展示信息定制
+ui:
+  title: "服务状态监控 | DevOps Development"
+  description: "DevOps 本地容器化微服务实时健康监控与状态看板"
+  header: "DevOps 基础设施状态看板"
+  default-sort: "group"
+
+# 持久化存储配置：使用 SQLite 持久化历史检查状态至 /data 目录
+storage:
+  type: sqlite
+  path: /data/data.db
+
+# 暴露 Prometheus 抓取指标 (/metrics)
+metrics: true
+
+# 全局告警配置示例 (按需取消注释并配置对应密钥)
+# alerting:
+#   slack:
+#     webhook-url: "https://hooks.slack.com/services/xxx/yyy/zzz"
+#   discord:
+#     webhook-url: "https://discord.com/api/webhooks/xxx/yyy"
+#   custom:
+#     url: "http://gotify:80/message"
+#     method: "POST"
+#     headers:
+#       X-Gotify-Key: "YOUR_GOTIFY_APP_TOKEN"
+#     body: |
+#       {
+#         "title": "Gatus Alert: [ENDPOINT_NAME]",
+#         "message": "[ENDPOINT_NAME] is down: [ALERT_DESCRIPTION]",
+#         "priority": 5
+#       }
+
+# 服务健康监测端点列表
+endpoints:
+  # --- 网络网关与反向代理 (Gateways) ---
+  - name: Caddy Gateway
+    group: Gateways
+    url: "http://caddy:2019/metrics"
+    interval: 30s
+    conditions:
+      - "[STATUS] == 200"
+
+  # --- 可观测性与日志指标 (Observability) ---
+  - name: OpenObserve
+    group: Observability
+    url: "http://openobserve:5080/healthz"
+    interval: 30s
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: VictoriaMetrics
+    group: Observability
+    url: "http://victoria-metrics:8428/health"
+    interval: 30s
+    conditions:
+      - "[STATUS] == 200"
+
+  # --- 核心数据库与缓存 (Databases & Storage) ---
+  - name: PostgreSQL
+    group: Databases
+    url: "tcp://postgres:5432"
+    interval: 30s
+    conditions:
+      - "[CONNECTED] == true"
+
+  - name: Valkey Cache
+    group: Databases
+    url: "tcp://valkey:6379"
+    interval: 30s
+    conditions:
+      - "[CONNECTED] == true"
+
+  # --- 核心网络与外部解析 (Network) ---
+  - name: Core DNS (Cloudflare)
+    group: Network
+    url: "1.1.1.1"
+    dns:
+      query-name: "cloudflare.com"
+      query-type: "A"
+    interval: 60s
+    conditions:
+      - "[DNS_RCODE] == NOERROR"

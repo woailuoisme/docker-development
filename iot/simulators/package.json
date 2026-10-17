@@ -1,0 +1,17 @@
+{
+  "name": "iot-simulator",
+  "version": "1.0.0",
+  "description": "Vending Machine IoT Simulator in Node.js",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.6.0",
+    "chalk": "^6.0.1",
+    "dotenv": "^18.0.7",
+    "mqtt": "^5.16.0"
+  }
+}

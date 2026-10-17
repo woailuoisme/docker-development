@@ -1,0 +1,27 @@
+services:
+  emqx:
+    image: emqx/emqx:5.8
+    container_name: emqx
+    restart: unless-stopped
+    ports:
+      - "1883:1883"     # MQTT TCP 协议端口 (若与 mosquitto 同时启用请二选一或调整宿主端口)
+      - "8083:8083"     # MQTT WebSocket 端口
+      - "8883:8883"     # MQTT SSL/TLS 安全端口
+      - "18083:18083"   # EMQX Dashboard Web 控制台
+    volumes:
+      - ${DATA_PATH}emqx/data:/opt/emqx/data
+      - ${LOG_PATH}emqx/log:/opt/emqx/log
+    environment:
+      - EMQX_DASHBOARD__DEFAULT_USERNAME=${MQTT_USERNAME}
+      - EMQX_DASHBOARD__DEFAULT_PASSWORD=${MQTT_PASSWORD}
+      - EMQX_NODE__DATA_DIR=/opt/emqx/data
+      - TZ=${TIMEZONE}
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s

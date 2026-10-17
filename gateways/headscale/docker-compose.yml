@@ -1,0 +1,37 @@
+# ==============================================================================
+# Headscale - 开源轻量级 Tailscale 控制服务器 (Self-Hosted Tailscale Control Server)
+# ==============================================================================
+# 【核心功能与定位】
+# 1. 自建 Tailscale 控制端：开源的 Tailscale 控制平面替代方案，安全自主可控。
+# 2. 全平台虚拟组网：基于 WireGuard 协议打洞直连，支持多设备跨网络无缝互联。
+# 3. MagicDNS 与子网路由：支持内网域名智能解析、Subnet 局域网广播与 Exit Node 出口节点。
+# 4. 接入网关集成：通过 Caddy 反向代理 (headscale.{$SITE_ADDRESS}) 访问控制服务。
+# ==============================================================================
+
+services:
+  headscale:
+    image: headscale/headscale:0.29
+    container_name: headscale
+    restart: unless-stopped
+    command: serve
+    tmpfs:
+      - /var/run/headscale
+    ports:
+      - "9085:8080"
+      - "9095:9090"
+      - "3478:3478/udp"
+    volumes:
+      - ./config/config.yaml:/etc/headscale/config.yaml:ro
+      - ${DATA_PATH}headscale:/var/lib/headscale
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - HEADSCALE_SERVER_URL=https://headscale.${SITE_ADDRESS}
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "headscale", "health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

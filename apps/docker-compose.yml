@@ -16,3 +16,6 @@
   # - openclaw/docker-compose.yml           # OpenClaw 本地 AI Agent 智能体沙箱网关
   # - go-access/docker-compose.yml          # GoAccess 实时 Web 访问日志分析
   # - uptime-kuma/docker-compose.yml        # Uptime Kuma 统一服务健康状态与可用性监控
+  # - stalwart/docker-compose.yml           # Stalwart 现代化安全高性能邮件服务器 (Rust 全功能架构: JMAP / IMAP4 / SMTP / Sieve / WebAdmin)
+  # - memos/docker-compose.yml              # Memos 现代化私有轻量级碎片化知识库与便签笔记服务
+  # - neko/docker-compose.yml               # Neko 虚拟浏览器与 WebRTC 多人协同桌面 (Firefox/Chromium)

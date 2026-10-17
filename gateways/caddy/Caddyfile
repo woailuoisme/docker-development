@@ -34,6 +34,7 @@ import proxy-octane-app-auth rest.{$SITE_ADDRESS} php-roadrunner:8001 /var/www/l
 #import proxy-app ws.{$SITE_ADDRESS} php-reverb:8080
 
 #import proxy-app beszel.{$SITE_ADDRESS} beszel:8090
+#import proxy-app errors.{$SITE_ADDRESS} error-pages:8080
 
 # Garage S3 标准 API 访问点（支持标准对象操作及虚拟主机样式存储桶解析）
 import proxy-app s3.{$SITE_ADDRESS} garage:3900
@@ -77,6 +78,8 @@ import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
 #import proxy-app-auth signoz.{$SITE_ADDRESS} signoz:8080
 #import proxy-app-auth glitchtip.{$SITE_ADDRESS} glitchtip:8000
 import proxy-app openobserve.{$SITE_ADDRESS} openobserve:5080
+#import proxy-app status.{$SITE_ADDRESS} gatus:8080
+#import proxy-app-auth netdata.{$SITE_ADDRESS} netdata:19999
 #import proxy-app img.{$SITE_ADDRESS} imgproxy:8080
 # InfluxDB 3.x 时序数据库 Web 控制台 (Explorer UI)
 # import proxy-app influxdb.{$SITE_ADDRESS} influxdb-ui:8080
@@ -91,6 +94,14 @@ import proxy-app openobserve.{$SITE_ADDRESS} openobserve:5080
 # import proxy-app app.{$SITE_ADDRESS}  chatNext:3000
 #import proxy-app chat.{$SITE_ADDRESS} chatwoot:3000
 #import proxy-app rustdesk.{$SITE_ADDRESS} rustdesk-hbbs:21118
+#import proxy-app headscale.{$SITE_ADDRESS} headscale:8080
+#import proxy-app rathole.{$SITE_ADDRESS} rathole-server:5200
+#import proxy-app mail.{$SITE_ADDRESS} stalwart:8080
+#import proxy-app memos.{$SITE_ADDRESS} memos:5230
+#import proxy-app neko.{$SITE_ADDRESS} neko:8080
+
+# 物联网与边缘计算 (IoT & Edge Computing)
+#import proxy-app emqx.{$SITE_ADDRESS} emqx:18083
 
 # 显式声明通配符主机名，让 Caddy 申请并复用 *.{$SITE_ADDRESS} 证书。
 # 未匹配到具体服务的子域名直接中止连接，避免暴露默认响应。

@@ -1,0 +1,22 @@
+services:
+  databasus:
+    container_name: databasus
+    image: databasus/databasus:latest
+    ports:
+      - "4005:4005"
+    volumes:
+      - ./databasus-data:/databasus-data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "databasus", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    networks:
+      - backend
+    environment:
+      - DB_USER=postgres
+      - DB_PASS=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432

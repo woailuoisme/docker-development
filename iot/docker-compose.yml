@@ -2,8 +2,8 @@
 # 物联网与智能硬件编排技术栈 (IoT & Edge Computing)
 # ==============================================================================
 include:
-  - mosquitto/docker-compose.yml          # Eclipse Mosquitto MQTT 物联网消息代理 (默认启用)
+  - mosquitto/docker-compose.yml          # Eclipse Mosquitto MQTT 物联网消息代理 (轻量级/默认启用)
+  # - emqx/docker-compose.yml               # EMQX 5.8 云原生高并发 MQTT 5.0 Broker 与控制台 (与 mosquitto 二选一)
   # - telegraf/docker-compose.yml           # Telegraf IoT 与系统指标采集桥接器
-  # - node-red/docker-compose.yml           # Node-RED 低代码物联网流程与事件编排
+  # - node-red/docker-compose.yml           # Node-RED 可视化低代码流式编排 (按需启用)
   # - simulators/docker-compose.yml         # IoT 模拟器设备集群 (Node.js & Python)
-  # - wifi-densepose/docker-compose.yml     # WiFi 信号人体姿态与密集估计

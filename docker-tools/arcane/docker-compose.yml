@@ -1,25 +1,17 @@
-# docker run --rm ghcr.io/getarcaneapp/arcane:latest /app/arcane generate secret
-# default username: arcane password: arcane-admin
 services:
   arcane:
+    image: quay.io/getarcaneapp/manager:latest
     container_name: arcane
-    build:
-      context: .
-      dockerfile: Dockerfile
     ports:
       - '3552:3552'
     volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
       - ${DATA_PATH}arcane:/app/data
-    restart: unless-stopped
     environment:
-      - DOCKER_HOST=tcp://docker-socket-proxy:2375
       - ENCRYPTION_KEY=TtQR8Lsn8ltqxC8OeUD127FsVvg7fW2GihUzSnBO/zQ=
-      - JWT_SECRET=Gx2/hJ/i9YUgNBcvsuN5tccDkd3BOKFfRJd9XWpkSoM=
-    depends_on:
-      - docker-socket-proxy
+      - TZ=Asia/Shanghai
+    cgroup: host
+    restart: unless-stopped
     networks:
       - frontend
       - backend
-
-
