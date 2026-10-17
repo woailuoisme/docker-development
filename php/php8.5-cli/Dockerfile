@@ -15,9 +15,6 @@ COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr
 ARG CHINA=false
 ARG TZ=Asia/Shanghai
 
-ARG WWWUSER=33
-ARG WWWGROUP=33
-
 # 可选功能开关
 ARG WITH_PG=true
 ARG WITH_VIPS=true
@@ -35,7 +32,7 @@ ARG WITH_XLSWRITER=false
 ARG WITH_FFMPEG=false
 ARG WITH_LDAP=false
 ARG WITH_SWOOLE=false
-ARG SUPERCRONIC_VERSION=0.2.49
+ARG SUPERCRONIC_VERSION=0.2.50
 
 # ============================================================================
 # 系统依赖与环境配置
@@ -109,17 +106,10 @@ RUN set -eux; \
     curl -fSL -o /usr/local/bin/supercronic "https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-${ARCH_SUFFIX}"; \
     chmod +x /usr/local/bin/supercronic
 
-# 7. 用户、目录与权限配置
+# 7. 运行目录与权限配置（直接沿用 Alpine 原生 www-data: 82:82）
 RUN set -eux; \
-    deluser www-data 2>/dev/null || true; \
-    delgroup www-data 2>/dev/null || true; \
-    addgroup -g ${WWWGROUP} www-data; \
-    adduser -u ${WWWUSER} -D -H -G www-data www-data; \
-    mkdir -p /var/www /tmp /var/log/php /usr/local/etc/php/conf.d; \
-    chown -R www-data:www-data /var/www /tmp /var/log/php /usr/local/etc/php/conf.d /usr/local/bin/supercronic; \
-    touch /var/log/php/error.log; \
-    chmod 644 /var/log/php/error.log; \
-    chmod 755 /var/log/php
+    mkdir -p /var/www /var/log/php; \
+    chown -R www-data:www-data /var/www /var/log/php
 
 # 8. 生产环境 PHP / Laravel CLI 配置
 COPY laravel.ini /usr/local/etc/php/conf.d/

@@ -12,13 +12,11 @@ LABEL maintainer="seaside <531773730@qq.com>"
 ARG CHINA=false
 ARG TIMEZONE=Asia/Shanghai
 
-ARG WWWUSER=33
-ARG WWWGROUP=33
-
 # 可选功能开关
 ARG WITH_PG=true
-ARG WITH_IMAGICK=false
 ARG WITH_VIPS=true
+ARG WITH_OPEN_TELEMETRY=true
+ARG WITH_IMAGICK=false
 ARG WITH_MYSQL=false
 ARG WITH_UV=false
 ARG WITH_XDEBUG=false
@@ -27,13 +25,11 @@ ARG WITH_MONGODB=false
 ARG WITH_RDKAFKA=false
 ARG WITH_SEASCLICK=false
 ARG WITH_MD4C=false
-ARG WITH_OPEN_TELEMETRY=false
 ARG WITH_XLSWRITER=false
 
 ARG WITH_FFMPEG=false
 ARG WITH_LDAP=false
 ARG WITH_SWOOLE=false
-ARG SUPERCRONIC_VERSION=0.2.49
 
 # ============================================================================
 # 系统依赖与环境配置
@@ -46,7 +42,7 @@ RUN set -eux; \
     fi; \
     apk update; \
     apk add --no-cache \
-    curl tzdata gettext gosu postgresql18-client procps iproute2 iputils \
+    curl tzdata gettext gosu postgresql18-client procps iproute2 iputils fcgi \
     jpegoptim \
     pngquant \
     optipng \
@@ -101,37 +97,24 @@ RUN set -eux; \
     find /usr/local/lib/php -name "*.la" -delete
 
 # ============================================================================
-# 应用工具与权限配置
+# 用户、目录与权限配置
 # ============================================================================
 
-
-# 6. 下载多架构二进制工具 (supercronic)
-ARG TARGETARCH
+# 6. 运行目录与权限配置（直接沿用 Alpine 原生 www-data: 82:82）
 RUN set -eux; \
-    ARCH_SUFFIX=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64"); \
-    curl -fSL -o /usr/local/bin/supercronic "https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-${ARCH_SUFFIX}"; \
-    chmod +x /usr/local/bin/supercronic
+    mkdir -p /var/www /var/log/php; \
+    touch /var/log/php/fpm.slow.log; \
+    chown -R www-data:www-data /var/www /var/log/php; \
+    chmod 644 /var/log/php/fpm.slow.log
 
-# 7. 用户、目录与权限配置
-RUN set -eux; \
-    deluser www-data 2>/dev/null || true; \
-    delgroup www-data 2>/dev/null || true; \
-    addgroup -g ${WWWGROUP} www-data; \
-    adduser -u ${WWWUSER} -D -H -G www-data www-data; \
-    mkdir -p /var/www /tmp /var/log/php /usr/local/etc/php/conf.d /usr/local/etc/php-fpm.d; \
-    chown -R www-data:www-data /var/www /tmp /var/log/php /usr/local/etc/php/conf.d /usr/local/etc/php-fpm.d /usr/local/bin/supercronic; \
-    touch /var/log/php/error.log /var/log/php/fpm.slow.log; \
-    chmod 644 /var/log/php/error.log /var/log/php/fpm.slow.log; \
-    chmod 755 /var/log/php; \
-    if [ "${WITH_XDEBUG:-false}" = "true" ]; then \
-    # Xdebug 配置文件 (仅在开启时处理)
-    true; \
-    fi
-
-# 8. 生产环境 PHP / Laravel FPM 配置
+# 7. 生产环境 PHP / Laravel FPM 配置
 COPY laravel.ini /usr/local/etc/php/conf.d/
 COPY www.conf /usr/local/etc/php-fpm.d/
 
 WORKDIR /var/www
 
 EXPOSE 9000 9001 9003
+
+# 8. 生产环境 FPM 健康检查（利用 cgi-fcgi 向 9000 端口请求 /ping 探针）
+HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
+    CMD ["sh", "-c", "SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 || exit 1"]
