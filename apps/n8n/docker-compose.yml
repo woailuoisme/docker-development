@@ -1,0 +1,45 @@
+# ==============================================================================
+# n8n - 现代化开源工作流自动化与 AI Agent 编排平台
+# ==============================================================================
+# 【核心功能与作用】
+# 1. 节点式工作流自动化：内置 400+ 常用 SaaS、API、数据库与消息队列服务集成节点。
+# 2. 先进 AI Agent 与 LLM 编排：深度支持 LangChain、自主智能体、工具调用与多模型链路。
+# 3. 隐私与数据自主：私有化部署，数据全本地留存，零外部依赖，极易备份与迁移。
+# 4. 灵活数据持久化：默认使用嵌入式 SQLite 存储，单文件持久化；亦可对接外部 PostgreSQL。
+# 5. 可视化 Web IDE：支持多环境执行调试、Webhook 触发与 Cron 定时调度。
+# ==============================================================================
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    volumes:
+      - ${DATA_PATH}n8n:/home/node/.n8n
+      # 若需直接使用 Docker 原生具名卷（例如快速测试隔离），可替换为：
+      # - n8n_data:/home/node/.n8n
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      - GENERIC_TIMEZONE=${TIMEZONE:-Asia/Shanghai}
+      - N8N_PORT=5678
+      - N8N_HOST=n8n.${SITE_ADDRESS}
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.${SITE_ADDRESS}/
+      # - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      # 如需切换为连接项目外部 PostgreSQL 数据库，可取消下方注释：
+      # - DB_TYPE=postgresdb
+      # - DB_POSTGRESDB_HOST=postgres
+      # - DB_POSTGRESDB_PORT=5432
+      # - DB_POSTGRESDB_DATABASE=n8n
+      # - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      # - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - frontend
+      - backend
+
+# 如需使用外部/原生 Docker 具名卷（如 docker volume create n8n_data），取消下方声明：
+# volumes:
+#   n8n_data:
+#     external: true

@@ -1,0 +1,43 @@
+# ==============================================================================
+# Semaphore UI - 现代开源 Ansible、Terraform 与自动化运维 Web 控制台
+# ==============================================================================
+# 【核心功能与作用】
+# 1. 自动化任务编排：为 Ansible Playbook、Terraform、OpenTofu、Bash 与 PowerShell 提供可视化调度与执行。
+# 2. 凭证与密钥安全管理：安全托管 SSH 密钥、凭据密码与 API Token，支持运行时动态注入。
+# 3. 灵活工作流流水线：支持图形化多任务编排、审批关卡（Approval Gates）与分支执行逻辑。
+# 4. 嵌入式 SQLite 存储：默认单文件本地持久化，开箱即用，亦可无缝对接外部 PostgreSQL/MySQL。
+# 5. 权限与审计跟踪：完善的多租户与组织隔离，提供详细的任务运行日志流式展示与执行历史归档。
+# ==============================================================================
+
+services:
+  semaphore:
+    image: semaphoreui/semaphore:latest
+    container_name: semaphore
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ${DATA_PATH}semaphore/data:/var/lib/semaphore
+      - ${DATA_PATH}semaphore/tmp:/tmp/semaphore
+    environment:
+      - TZ=${TIMEZONE:-Asia/Shanghai}
+      # 数据库方言与存储路径 (默认 SQLite 嵌入式存储)
+      - SEMAPHORE_DB_DIALECT=sqlite
+      - SEMAPHORE_DB_PATH=/var/lib/semaphore/database.sqlite
+      # 初始超级管理员账号信息 (初次启动初始化创建，进入面板后可在用户管理中修改)
+      - SEMAPHORE_ADMIN=${SEMAPHORE_ADMIN:-admin}
+      - SEMAPHORE_ADMIN_PASSWORD=${SEMAPHORE_ADMIN_PASSWORD:-changeme}
+      - SEMAPHORE_ADMIN_NAME=${SEMAPHORE_ADMIN_NAME:-Admin}
+      - SEMAPHORE_ADMIN_EMAIL=${SEMAPHORE_ADMIN_EMAIL:-admin@localhost}
+      # 密钥加密保护 (建议生产环境配置 32 字节 Base64 密钥):
+      # - SEMAPHORE_ACCESS_KEY_ENCRYPTION=
+      # 如需切换为连接项目外部 PostgreSQL 数据库，可取消下方注释并修改 DIALECT：
+      # - SEMAPHORE_DB_DIALECT=postgres
+      # - SEMAPHORE_DB_HOST=postgres
+      # - SEMAPHORE_DB_PORT=5432
+      # - SEMAPHORE_DB_USER=${POSTGRES_USER}
+      # - SEMAPHORE_DB_PASS=${POSTGRES_PASSWORD}
+      # - SEMAPHORE_DB=semaphore
+    networks:
+      - frontend
+      - backend

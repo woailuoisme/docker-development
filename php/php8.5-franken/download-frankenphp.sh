@@ -3,7 +3,7 @@ set -e
 
 # FrankenPHP Binary Download Script
 
-VERSION="${FRANKENPHP_VERSION:-1.13.1}"
+VERSION="${FRANKENPHP_VERSION:-1.13.2}"
 INSTALL_DIR="/usr/local/bin"
 BINARY_NAME="frankenphp"
 
