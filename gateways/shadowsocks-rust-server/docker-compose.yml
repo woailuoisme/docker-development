@@ -1,0 +1,25 @@
+# ==============================================================================
+# Shadowsocks-Rust 服务端 (Shadowsocks-Rust Server)
+# 官方仓库: https://github.com/shadowsocks/shadowsocks-rust
+# ==============================================================================
+# 【核心功能与定位】
+# 1. 现代化安全代理服务端：Rust 原生实现，高并发、低内存占用、抗主动探测。
+# 2. 协议支持：全面兼容 AEAD (aes-256-gcm, chacha20-ietf-poly1305) 与 Shadowsocks-2022。
+# 3. 部署位置：公网 VPS 或网关边缘节点，对外监听 TCP/UDP 代理流量。
+# ==============================================================================
+
+services:
+  # --- Shadowsocks-Rust 服务端 ---
+  ssserver-rust:
+    image: ghcr.io/shadowsocks/ssserver-rust:v1.25.0
+    container_name: ssserver-rust
+    restart: unless-stopped
+    ports:
+      - "8388:8388/tcp"
+      - "8388:8388/udp"
+    volumes:
+      - ./config.json:/etc/shadowsocks-rust/config.json:ro
+    networks:
+      - frontend
+      - backend
+

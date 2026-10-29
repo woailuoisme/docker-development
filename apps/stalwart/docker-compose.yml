@@ -8,10 +8,9 @@
 # 4. 可视化管理后台：内置现代化 Web Admin 管理面板，支持在线管理域名、用户、群组与安全策略。
 # 5. 易于扩展：支持无缝对接外部 PostgreSQL/MySQL、S3/Garage 对象存储及 LDAP/OIDC 认证。
 # ==============================================================================
-
 services:
   stalwart:
-    image: stalwartlabs/stalwart:v0.16
+    image: stalwartlabs/stalwart:v1
     container_name: stalwart
     restart: unless-stopped
     ports:
@@ -23,7 +22,7 @@ services:
       - "143:143"     # IMAP (显式 STARTTLS 邮件客户端收取)
       - "4190:4190"   # ManageSieve (邮件过滤规则远程管理)
       # --- Web 管理控制台与 JMAP / HTTP 接口 ---
-      - "8080:8080"   # Web Admin 后台管理界面与 HTTP Setup 向导 (亦可通过 Caddy 反代)
+      - "8880:8080"   # Web Admin 后台管理界面与 HTTP Setup 向导 (亦可通过 Caddy 反代)
       # --- 备用 POP3 协议端口 (按需取消注释) ---
       # - "110:110"   # POP3 (明文 / STARTTLS)
       # - "995:995"   # POP3S (隐式 TLS)

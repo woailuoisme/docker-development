@@ -1,0 +1,27 @@
+services:
+  sonic:
+    image: valeriansaliou/sonic:v1.10.2
+    container_name: sonic
+    restart: unless-stopped
+    ports:
+      # Sonic Channel 协议监听端口 (Ingest / Search / Control)
+      - "1491:1491"
+    environment:
+      - TZ=${TIMEZONE}
+      - SONIC_CHANNEL__AUTH_PASSWORD=${SONIC_PASSWORD:-SecretPassword}
+    volumes:
+      # 配置文件只读挂载
+      - ./config.cfg:/etc/sonic.cfg:ro
+      # 数据持久化目录 (键值与 FST 自动补全图)
+      - ${DATA_PATH}sonic:/var/lib/sonic/store
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 32M
+    networks:
+      - backend
+

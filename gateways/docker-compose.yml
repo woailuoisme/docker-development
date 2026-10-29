@@ -12,7 +12,11 @@ include:
   # --- 安全穿透隧道与备选网关 (Tunnels & Alternative Gateways) ---
   # - cloudflared/docker-compose.yml          # Cloudflare Zero Trust 远程安全穿透隧道 (默认启用)
   # - headscale/docker-compose.yml          # Headscale 开源轻量级 Tailscale 控制服务器
-  # - rathole/docker-compose.yml            # Rathole 基于 Rust 的极速轻量内网穿透与安全反代
+  # - bore/docker-compose.yml               # Bore 极简现代 Rust TCP 内网穿透隧道服务端
+  # - rathole-server/docker-compose.yml     # Rathole 基于 Rust 的极速轻量内网穿透与安全反代 (服务端)
+  # - rathole-client/docker-compose.yml     # Rathole 客户端 (内网穿透节点)
+  # - shadowsocks-rust-server/docker-compose.yml # Shadowsocks-Rust 高性能安全代理服务端
+  # - shadowsocks-rust-client/docker-compose.yml # Shadowsocks-Rust 本地 SOCKS5 代理客户端
   # - 3xui/docker-compose.yml               # 3X-UI 多协议网络代理面板
   # - sui/docker-compose.yml                # S-UI 轻量级代理管理面板
 

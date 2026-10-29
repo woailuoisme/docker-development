@@ -1,0 +1,32 @@
+services:
+  restate:
+    image: docker.restate.dev/restatedev/restate:1.8
+    container_name: restate
+    restart: unless-stopped
+    ports:
+      # Ingress 端口 (HTTP / gRPC 服务调用与持久工作流触发入口)
+      - "8280:8080"
+      # Admin API 端口 (服务注册、部署与元数据管理)
+      - "9070:9070"
+      # Developer Web UI / 监控指标端口
+      - "9071:9071"
+    environment:
+      - TZ=${TIMEZONE}
+      - RESTATE_NODE_NAME=restate
+      - RESTATE_LOG_FILTER=restate=info
+    volumes:
+      # 数据持久化目录 (日志与执行状态存储)
+      - ${DATA_PATH}restate:/restate-data
+    extra_hosts:
+      # 支持容器内直连访问宿主机运行的微服务 Handler / Worker
+      - host.docker.internal:host-gateway
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:9070/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - frontend
+      - backend
+

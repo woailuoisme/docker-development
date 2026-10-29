@@ -1,0 +1,26 @@
+# ==============================================================================
+# Shadowsocks-Rust 客户端 (Shadowsocks-Rust Client)
+# 官方仓库: https://github.com/shadowsocks/shadowsocks-rust
+# ==============================================================================
+# 【核心功能与定位】
+# 1. 本地 SOCKS5 代理：对外提供本地高并发 SOCKS5 代理接口 (1080 端口)。
+# 2. 流量加密转发：将本地网络流量加密后通过远端 Shadowsocks 服务端安全中继。
+# 3. 按需启动：配置 profile: client，避免在网关节点或未配置机器误启。
+# ==============================================================================
+
+services:
+  # --- Shadowsocks-Rust 客户端 (本地 SOCKS5 代理) ---
+  sslocal-rust:
+    image: ghcr.io/shadowsocks/sslocal-rust:v1.25.0
+    container_name: sslocal-rust
+    restart: unless-stopped
+    ports:
+      - "1080:1080/tcp"
+    volumes:
+      - ./config.json:/etc/shadowsocks-rust/config.json:ro
+    networks:
+      - frontend
+      - backend
+    profiles:
+      - client
+

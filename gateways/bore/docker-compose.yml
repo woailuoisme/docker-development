@@ -1,0 +1,32 @@
+# ==============================================================================
+# Bore - 极简现代化 Rust TCP 内网穿透隧道服务端 (Modern TCP Tunnel to Localhost)
+# 官方仓库: https://github.com/ekzhang/bore
+# ==============================================================================
+# 【核心功能与定位】
+# 1. 极简极速：单二进制、无配置文件的现代化 TCP 隧道反代工具，类似轻量级 ngrok。
+# 2. 内存常驻极低：基于 Rust + Tokio 异步并发，单连接开销极小。
+# 3. 灵活安全鉴权：支持 HMAC 密钥认证 (BORE_SECRET)，防止未授权穿透。
+# 4. 端口管理：支持自定义端口范围 (--min-port / --max-port) 或直通宿主机 host 模式。
+# ==============================================================================
+
+services:
+  # --- Bore 服务端 (Bore Server) ---
+  bore-server:
+    image: ekzhang/bore:0.6
+    container_name: bore-server
+    restart: unless-stopped
+    command:
+      - server
+      - --min-port
+      - "10000"
+      - --max-port
+      - "10020"
+    ports:
+      - "7835:7835/tcp"
+      - "10000-10020:10000-10020/tcp"
+    environment:
+      - BORE_SECRET
+    networks:
+      - frontend
+      - backend
+
