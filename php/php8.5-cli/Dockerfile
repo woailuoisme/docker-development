@@ -32,7 +32,7 @@ ARG WITH_XLSWRITER=false
 ARG WITH_FFMPEG=false
 ARG WITH_LDAP=false
 ARG WITH_SWOOLE=false
-ARG SUPERCRONIC_VERSION=0.2.50
+ARG SUPERCRONIC_VERSION=0.2.51
 
 # ============================================================================
 # 系统依赖与环境配置
