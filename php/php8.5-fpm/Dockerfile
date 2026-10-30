@@ -40,9 +40,8 @@ RUN set -eux; \
     if [ "$CHINA" = "true" ]; then \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
     fi; \
-    apk update; \
     apk add --no-cache \
-    curl tzdata gettext gosu postgresql18-client procps iproute2 iputils fcgi \
+    tzdata gettext gosu postgresql18-client procps iproute2 iputils fcgi \
     jpegoptim \
     pngquant \
     optipng \
