@@ -17,7 +17,9 @@ RUN xcaddy build \
     --with github.com/sagikazarmark/caddy-fs-s3@v0.12.0 \
     --with github.com/corazawaf/coraza-caddy/v2@v2.6.2 \
     --with github.com/hslatman/caddy-crowdsec-bouncer/http@v0.14.1 \
-    --with github.com/hslatman/caddy-crowdsec-bouncer/layer4@v0.14.1
+    --with github.com/hslatman/caddy-crowdsec-bouncer/layer4@v0.14.1 \
+    --with github.com/darkweak/souin/plugins/caddy \
+    --with github.com/darkweak/storages/otter/caddy
 
 # 阶段 2: 最终运行镜像
 FROM caddy:${CADDY_VERSION}-alpine
