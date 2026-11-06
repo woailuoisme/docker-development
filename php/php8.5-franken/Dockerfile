@@ -39,7 +39,7 @@ RUN set -eux; \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
     fi; \
     apk add --no-cache \
-    tzdata gettext gosu postgresql18-client procps iproute2 iputils \
+    tzdata gettext gosu tini postgresql18-client procps iproute2 iputils \
     jpegoptim \
     pngquant \
     optipng \

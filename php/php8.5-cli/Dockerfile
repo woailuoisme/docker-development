@@ -17,8 +17,8 @@ ARG TZ=Asia/Shanghai
 
 # 可选功能开关
 ARG WITH_PG=true
-ARG WITH_VIPS=true
 ARG WITH_OPEN_TELEMETRY=true
+ARG WITH_VIPS=true
 ARG WITH_IMAGICK=true
 ARG WITH_UV=false
 ARG WITH_MYSQL=false
@@ -44,7 +44,7 @@ RUN set -eux; \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
     fi; \
     apk add --no-cache \
-    tzdata gettext gosu postgresql18-client procps iproute2 iputils \
+    tzdata gettext gosu tini postgresql18-client procps iproute2 iputils \
     jpegoptim \
     pngquant \
     optipng \
