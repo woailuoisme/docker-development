@@ -12,12 +12,11 @@ RUN xcaddy build \
     --with github.com/caddy-dns/alidns@v1.0.29 \
     --with github.com/caddy-dns/tencentcloud@v0.4.3 \
     --with github.com/caddyserver/replace-response \
-    --with github.com/caddyserver/cache-handler@v0.17.0 \
     --with github.com/mholt/caddy-ratelimit@v0.1.0 \
     --with github.com/sagikazarmark/caddy-fs-s3@v0.12.0 \
     --with github.com/corazawaf/coraza-caddy/v2@v2.6.2 \
-    --with github.com/hslatman/caddy-crowdsec-bouncer/http@v0.14.1 \
-    --with github.com/hslatman/caddy-crowdsec-bouncer/layer4@v0.14.1 \
+    --with github.com/hslatman/caddy-crowdsec-bouncer/http@v0.15.0 \
+    --with github.com/hslatman/caddy-crowdsec-bouncer/layer4@v0.15.0 \
     --with github.com/darkweak/souin/plugins/caddy \
     --with github.com/darkweak/storages/otter/caddy
 
