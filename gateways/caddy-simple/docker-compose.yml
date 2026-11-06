@@ -1,0 +1,34 @@
+services:
+  caddy:
+    image: jiaoio/caddy-base:2.11
+    container_name: caddy
+    command: caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+    environment:
+      - SITE_ADDRESS=${SITE_ADDRESS}
+      - CF_API_TOKEN=${CF_API_TOKEN}
+      - PREFIX_SITE_XUI_WEB=${PREFIX_SITE_XUI_WEB}
+      - PREFIX_SITE_XUI_SUB=${PREFIX_SITE_XUI_SUB}
+      - PREFIX_SITE_DOZZLE=${PREFIX_SITE_DOZZLE}
+      - PREFIX_SITE_BESZEL=${PREFIX_SITE_BESZEL}
+      # (绕开宿主机的代理) dozzle/3xui/beszel(caddyfile 使用它们的服务) 是 Docker 内网服务名，.${SITE_ADDRESS} 覆盖公开域名。
+      - NO_PROXY=localhost,127.0.0.1,dozzle,3xui,beszel,.${SITE_ADDRESS}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./config:/etc/caddy:ro
+      - ${DATA_PATH}caddy:/data/caddy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "-Y", "off", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: always
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

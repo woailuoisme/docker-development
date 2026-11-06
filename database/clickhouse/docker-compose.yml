@@ -1,8 +1,6 @@
 services:
   clickhouse:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: clickhouse/clickhouse-server:26.9-alpine
     container_name: clickhouse
     restart: always
     ports:
@@ -15,6 +13,9 @@ services:
     volumes:
       - ${DATA_PATH}clickhouse:/var/lib/clickhouse
       - ${LOG_PATH}clickhouse:/var/log/clickhouse-server
+      # 直接只读挂载调优配置目录
+      - ./config.d:/etc/clickhouse-server/config.d:ro
+      - ./users.d:/etc/clickhouse-server/users.d:ro
     deploy:
       resources:
         limits:

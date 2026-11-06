@@ -15,10 +15,6 @@ on:
         description: '构建 FrankenPHP'
         type: boolean
         default: false
-      build_franken1_3:
-        description: '构建 FrankenPHP 1.13 (官方镜像基础)'
-        type: boolean
-        default: false
       build_roadrunner:
         description: '构建 RoadRunner'
         type: boolean
@@ -61,9 +57,6 @@ jobs:
           fi
           if [ "${{ inputs.build_franken }}" = "true" ]; then
             add_task "franken" "./php/php8.5-franken" "franken"
-          fi
-          if [ "${{ inputs.build_franken1_3 }}" = "true" ]; then
-            add_task "franken1.3" "./php/php8.5-franken1.3" "franken1.3"
           fi
           if [ "${{ inputs.build_roadrunner }}" = "true" ]; then
             add_task "roadrunner" "./php/php8.5-roadrunner" "roadrunner"

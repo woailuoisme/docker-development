@@ -1,0 +1,37 @@
+{
+	import snippets/global-log.conf
+	acme_dns cloudflare {env.CF_API_TOKEN}
+
+	# 80 端口仅启用 HTTP/1.1，避免无 TLS 警告
+	servers :80 {
+		protocols h1
+	}
+}
+
+import templates/*.conf
+
+# 本地健康检查（绕过 HTTPS 重定向）
+http://localhost, http://127.0.0.1 {
+	handle /health {
+		respond "OK" 200
+	}
+	handle {
+		abort
+	}
+}
+
+# 通配符证书与兜底拦截（未匹配子域名直接断开）
+*.{$SITE_ADDRESS} {
+	import snippets/waf.conf
+	handle /health {
+		respond "OK" 200
+	}
+	handle {
+		abort
+	}
+}
+
+import proxy-auth {$PREFIX_SITE_DOZZLE}.{$SITE_ADDRESS} dozzle:8080
+import proxy {$PREFIX_SITE_XUI_WEB}.{$SITE_ADDRESS} 3xui:2053
+import proxy {$PREFIX_SITE_XUI_SUB}.{$SITE_ADDRESS} 3xui:2096
+# import proxy    {$PREFIX_SITE_BESZEL}.{$SITE_ADDRESS} beszel:8090

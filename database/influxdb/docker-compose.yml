@@ -1,6 +1,6 @@
 services:
   influxdb:
-    image: influxdb:3.11-core
+    image: influxdb:3.12-core
     container_name: influxdb
     restart: always
     command:
@@ -29,7 +29,7 @@ services:
       - backend
 
   influxdb-ui:
-    image: influxdata/influxdb3-ui:latest
+    image: influxdata/influxdb3-ui:1.11.2
     container_name: influxdb-ui
     restart: always
     environment:
