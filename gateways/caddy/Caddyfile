@@ -6,6 +6,16 @@
 	acme_dns cloudflare {env.CF_API_TOKEN}
 	admin 0.0.0.0:2019
 
+	# HTTP 缓存（Badger 本地磁盘，映射到 ${DATA_PATH}caddy/souin）
+	# 此处仅设定全局默认值；缓存是否生效取决于站点 route 内是否使用 cache 指令
+	cache {
+		ttl 60s
+		stale 30s
+		badger {
+			path /data/souin
+		}
+	}
+
 	# layer4（TCP 代理）：配置**必须**写在 global options 内，且只能用文件路径 import
 	# —— snippet 在此处无法展开（已实测：File to import not found）。
 	# 这些文件放在 layer4/ 而**不能**放 templates/：templates/* 会被顶层 glob 导入，

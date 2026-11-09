@@ -25,6 +25,7 @@ services:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       - .:/etc/caddy
       - ${DATA_PATH}caddy:/data/caddy
+      - ${DATA_PATH}caddy/souin:/data/souin
       - ${LOG_PATH}caddy:/srv/logs
     restart: always
     extra_hosts:

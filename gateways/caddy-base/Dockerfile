@@ -17,8 +17,11 @@ RUN xcaddy build \
     --with github.com/corazawaf/coraza-caddy/v2@v2.6.2 \
     --with github.com/hslatman/caddy-crowdsec-bouncer/http@v0.15.0 \
     --with github.com/hslatman/caddy-crowdsec-bouncer/layer4@v0.15.0 \
-    --with github.com/darkweak/souin/plugins/caddy \
-    --with github.com/darkweak/storages/otter/caddy
+    --with github.com/sablierapp/sablier-caddy-plugin@v1.0.2 \
+    --with github.com/darkweak/souin/plugins/caddy@v1.7.10 \
+    --with github.com/darkweak/storages/badger/caddy@v0.0.23 \
+    --with github.com/darkweak/storages/otter/caddy@v0.0.23 \
+    --with github.com/darkweak/storages/redis/caddy@v0.0.23
 
 # 阶段 2: 最终运行镜像
 FROM caddy:${CADDY_VERSION}-alpine
