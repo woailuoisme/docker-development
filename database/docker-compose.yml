@@ -4,7 +4,6 @@
 include:
   # --- 关系型数据库 (RDBMS) ---
   - postgres/docker-compose.yml             # PostgreSQL 18 (含 PostGIS / 向量 / pg_cron) (默认启用)
-  - postgres-alpine/docker-compose.yml    # PostgreSQL 18 Alpine (轻量 / PostGIS / 向量 / pg_cron) (按需启用)
   # - pgbouncer/docker-compose.yml          # PgBouncer 轻量级高性能连接池 (Debian 基础)
   # - pgbackups/docker-compose.yml          # PostgreSQL 本地自动化逻辑备份与定时快照 (pg_dump)
   # - pgdog/docker-compose.yml              # PgDog 智能负载与分片路由连接池 (Rust 实现)

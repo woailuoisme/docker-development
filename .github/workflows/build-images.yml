@@ -11,10 +11,6 @@ on:
         description: "Build postgres (18-trixie)"
         type: boolean
         default: false
-      build_postgres_alpine:
-        description: "Build postgres-alpine (18-alpine)"
-        type: boolean
-        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -60,7 +56,6 @@ jobs:
 
           [[ "${{ inputs.build_caddy_base }}" == "true" ]] && add_task "caddy-base" "./gateways/caddy-base" "caddy-base" "2.11,latest"
           [[ "${{ inputs.build_postgres }}" == "true" ]] && add_task "postgres" "./database/postgres" "postgres" "18-trixie"
-          [[ "${{ inputs.build_postgres_alpine }}" == "true" ]] && add_task "postgres-alpine" "./database/postgres-alpine" "postgres" "18-alpine"
 
           echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
 
