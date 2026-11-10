@@ -2,7 +2,7 @@
 # Docker 宿主守护与容器自动化运维工具 (Docker Host Ops & Automation)
 # ==============================================================================
 include:
-  - docker-socket-proxy/docker-compose.yml  # Docker Socket 安全只读鉴权代理 (默认启用)
+  - socket-proxy/docker-compose.yml         # Docker Socket 安全只读鉴权代理 (默认启用)
   - dozzle/docker-compose.yml               # Dozzle 实时容器日志流查看器 (默认启用)
   # - beszel-hub/docker-compose.yml         # Beszel Hub 轻量服务器监控服务端与 Web 看板
   # - beszel-agent/docker-compose.yml       # Beszel Agent 节点监控探针

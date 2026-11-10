@@ -36,11 +36,11 @@
         server: my-docker
         container: homepage
 
-    - Docker Proxy:
+    - Socket Proxy:
         icon: docker
         description: Docker Socket 代理
         server: my-docker
-        container: docker-socket-proxy
+        container: socket-proxy
 
 
 - 核心服务:

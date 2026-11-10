@@ -1,0 +1,43 @@
+# ==============================================================================
+# Docker Socket Proxy - 基于 Go 与 Scratch 的极简安全 Docker Socket 代理
+# 官方仓库: https://github.com/wollomatic/socket-proxy
+# 官方镜像: https://hub.docker.com/r/wollomatic/socket-proxy (1.x)
+# ==============================================================================
+# 【核心功能与安全定位】
+# 1. 零攻击面：基于 Scratch 极小镜像构建（仅 ~5.5MB），无 Shell、无包管理器与多余运行时。
+# 2. 默认零信任（Deny-all）：所有 API 方法与路径默认全拒绝，需显式声明白名单正则。
+# 3. 严格只读沙箱：仅放行 GET/HEAD 只读状态与日志流，彻底封死 POST/PUT/DELETE 等提权与写操作。
+# ==============================================================================
+
+services:
+  socket-proxy:
+    image: wollomatic/socket-proxy:1
+    container_name: socket-proxy
+    restart: unless-stopped
+    # 宿主 docker.sock 用户组映射（macOS OrbStack/Docker 宿主组为 0: root）
+    user: ":0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "42375:2375"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - -loglevel=info
+      - -listenip=0.0.0.0
+      - -allowfrom=0.0.0.0/0
+      - -allowhealthcheck
+      - -allowHEAD=/_ping
+      - -allowGET=/_ping
+      # 供 Dozzle、Homepage 等监控看板只读查询容器、事件流、网络与版本元数据
+      - -allowGET=/(v1\..{1,2}/)?(version|info|containers/.*|events.*|networks)
+    healthcheck:
+      test: ["CMD", "/healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - backend
+      - frontend

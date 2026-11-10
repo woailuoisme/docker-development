@@ -18,7 +18,7 @@ services:
       - ./config:/app/config
 
     depends_on:
-      - docker-socket-proxy
+      - socket-proxy
     networks:
       - frontend
       - backend
