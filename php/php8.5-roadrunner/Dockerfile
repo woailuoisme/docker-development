@@ -1,18 +1,14 @@
 # PHP 8.5 Base RoadRunner Alpine Image
 # ============================================================================
+FROM ghcr.io/roadrunner-server/roadrunner:3.0 AS roadrunner
+
 FROM jiaoio/php8.5:cli
 LABEL maintainer="seaside <531773730@qq.com>"
 
-# Alpine 基础镜像需要安装 libc6-compat 或 gcompat 以运行 glibc 编译的 RoadRunner
+# 直接复用官方镜像中的 rr 二进制（Alpine/musl 构建，无需 gcompat）
+COPY --from=roadrunner /usr/bin/rr /usr/local/bin/rr
+
+# 校验二进制可执行
 RUN set -eux; \
-    apk add --no-cache gcompat
-
-# 必须声明此 ARG，Docker BuildKit 会自动填充它
-ARG TARGETARCH
-ARG ROADRUNNER_VERSION=3.0.1
-
-COPY download-roadrunner.sh /tmp/download-roadrunner.sh
-RUN export TARGETARCH=${TARGETARCH} && \
-    chmod +x /tmp/download-roadrunner.sh && \
-    ROADRUNNER_VERSION=${ROADRUNNER_VERSION} /tmp/download-roadrunner.sh && \
-    rm /tmp/download-roadrunner.sh
+    chmod +x /usr/local/bin/rr; \
+    rr --version

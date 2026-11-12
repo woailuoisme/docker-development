@@ -1,19 +1,15 @@
 services:
-  netbird-client:
-      image: netbirdio/netbird:latest
-      container_name: netbird-client
-      hostname: <HOSTNAME>
-      cap_add:
-          - NET_ADMIN
-          - SYS_ADMIN
-          - SYS_RESOURCE
-      devices:
-          # Required when using userspace mode or when kernel module is not available
-          - /dev/net/tun
-      network_mode: host
-      environment:
-          - NB_SETUP_KEY=nboyv33lcv0b9x5m33k8n2n82b
-      volumes:
-          - ${DATA_PATH}netbird:/var/lib/netbird
-      networks:
-          - backend
+  netbird:
+    image: netbirdio/netbird:0.82.1
+    container_name: netbird
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - NB_SETUP_KEY=${NETBIRD_SETUP_KEY}
+    volumes:
+      - ${DATA_PATH}netbird:/var/lib/netbird
+    networks:
+      - backend

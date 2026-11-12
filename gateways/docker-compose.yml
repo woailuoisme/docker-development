@@ -12,6 +12,8 @@ include:
   # --- 安全穿透隧道与备选网关 (Tunnels & Alternative Gateways) ---
   # - cloudflared/docker-compose.yml          # Cloudflare Zero Trust 远程安全穿透隧道 (默认启用)
   # - headscale/docker-compose.yml          # Headscale 开源轻量级 Tailscale 控制服务器
+  # - netbird/docker-compose.yml            # NetBird 基于 WireGuard 的零信任虚拟网状组网客户端
+  # - tailscale/docker-compose.yml          # Tailscale 跨网络轻量 Mesh VPN 安全接入客户端
   # - bore/docker-compose.yml               # Bore 极简现代 Rust TCP 内网穿透隧道服务端
   # - rathole-server/docker-compose.yml     # Rathole 基于 Rust 的极速轻量内网穿透与安全反代 (服务端)
   # - rathole-client/docker-compose.yml     # Rathole 客户端 (内网穿透节点)
