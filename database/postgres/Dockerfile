@@ -1,4 +1,4 @@
-ARG POSTGRES_VERSION=18.6-trixie
+ARG POSTGRES_VERSION=18.7-trixie
 FROM postgres:${POSTGRES_VERSION}
 LABEL maintainer="seaside <531773730@qq.com>"
 
@@ -22,9 +22,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 定义扩展版本参数（Debian 13 / trixie 对应 PGDG 构建后缀 pgdg13+1 / pgdg13+2）
-ARG PGCRON_VERSION=1.6.8-1.pgdg13+2
-ARG POSTGIS_VERSION=3.7.0+dfsg-1.pgdg13+1
-ARG PGVECTOR_VERSION=0.8.7-1.pgdg13+1
+ARG PGCRON_VERSION=1.6.8-1.pgdg13+3
+ARG POSTGIS_VERSION=3.7.0+dfsg-1.pgdg13+2
+ARG PGVECTOR_VERSION=0.8.7-1.pgdg13+2
 
 # 安装核心扩展：地理空间 (PostGIS)、向量 (pgvector)、定时调度 (pg_cron) 及云备份工具 (barman-cli-cloud)
 RUN apt-get update && apt-get install -y --no-install-recommends \
