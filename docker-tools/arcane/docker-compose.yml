@@ -1,6 +1,6 @@
 services:
   arcane:
-    image: quay.io/getarcaneapp/manager:latest
+    image: quay.io/getarcaneapp/manager:v3
     container_name: arcane
     ports:
       - '3552:3552'

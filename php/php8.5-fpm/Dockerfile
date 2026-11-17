@@ -14,9 +14,9 @@ ARG TIMEZONE=Asia/Shanghai
 
 # 可选功能开关
 ARG WITH_PG=true
-ARG WITH_OPEN_TELEMETRY=true
 ARG WITH_VIPS=true
-ARG WITH_IMAGICK=true
+ARG WITH_OPEN_TELEMETRY=false
+ARG WITH_IMAGICK=false
 ARG WITH_MYSQL=false
 ARG WITH_UV=false
 ARG WITH_XDEBUG=false
@@ -69,7 +69,7 @@ COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr
 # random, readline, Reflection, session, SimpleXML, sodium, SPL, sqlite3, standard
 # tokenizer, uri, xml, xmlreader, xmlwriter, Zend OPcache, zlib
 RUN set -eux; \
-    install-php-extensions igbinary simdjson redis; \
+    install-php-extensions redis; \
     install-php-extensions \
     bcmath gmp exif pcntl sockets protobuf intl zip ffi  \
     gd; \

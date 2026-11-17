@@ -16,7 +16,6 @@ include:
   # - victoria-alert/docker-compose.yml       # VictoriaMetrics 规则评估与报警触发服务 (自带 Web UI)
   # - gatus/docker-compose.yml                # Gatus 自动化服务健康检查与状态页看板 (轻量 Go 编写)
   # - netdata/docker-compose.yml              # Netdata 极速低开销单机实时系统监控 (按需启用，低配服务器深度调优)
-  # - beszel/docker-compose.yml               # Beszel 轻量服务器与容器监控看板 (基于 PocketBase)
   # 备份与恢复不是常驻服务：改用 scripts/victoria.sh（just vm-backup-now / vm-backup-restore-test / vm-restore）
   # 监控探针 (vmagent 的抓取目标)：缺失时会造成「抓取失败刷日志 + 对应告警规则永久沉默」
   # - exporters/node-exporter/docker-compose.yml      # 宿主机 CPU/内存/磁盘/网络核心指标
