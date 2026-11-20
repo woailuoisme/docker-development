@@ -1,0 +1,105 @@
+name: Build Group - PHP 8.6 Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_cli:
+        description: '构建 CLI'
+        type: boolean
+        default: false
+      build_fpm:
+        description: '构建 FPM'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY_DOCKERHUB: docker.io/jiaoio/php8.6
+  REGISTRY_GHCR: ghcr.io/woailuoisme/php8.6
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  # 阶段一：动态生成 Matrix 配置
+  matrix-builder:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          # 初始化 JSON 数组
+          MATRIX_JSON='[]'
+
+          # 定义辅助函数来添加任务
+          add_task() {
+            local name=$1
+            local context=$2
+            local tag=$3
+            MATRIX_JSON=$(echo "$MATRIX_JSON" | jq -c ". + [{\"name\": \"$name\", \"context\": \"$context\", \"tag\": \"$tag\"}]")
+          }
+
+          if [ "${{ inputs.build_cli }}" = "true" ]; then
+            add_task "cli" "./php/php8.6-cli" "cli"
+          fi
+          if [ "${{ inputs.build_fpm }}" = "true" ]; then
+            add_task "fpm" "./php/php8.6-fpm" "fpm"
+          fi
+
+          # 输出最终的 JSON
+          echo "matrix={\"include\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
+
+          # 打印调试信息
+          echo "Generated Matrix: {\"include\":$MATRIX_JSON}"
+
+  # 阶段二：并行构建
+  build:
+    needs: matrix-builder
+    if: ${{ fromJson(needs.matrix-builder.outputs.matrix).include[0] != null }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix-builder.outputs.matrix) }}
+
+    name: Build ${{ matrix.name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up QEMU for multi-arch builds
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME || secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN || secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            CHINA=false
+          push: true
+          tags: |
+            ${{ env.REGISTRY_DOCKERHUB }}:${{ matrix.tag }}
+            ${{ env.REGISTRY_GHCR }}:${{ matrix.tag }}
+          cache-from: |
+            type=registry,ref=${{ env.REGISTRY_GHCR }}:${{ matrix.tag }}-cache
+            type=registry,ref=${{ env.REGISTRY_DOCKERHUB }}:${{ matrix.tag }}-cache
+          cache-to: type=registry,ref=${{ env.REGISTRY_GHCR }}:${{ matrix.tag }}-cache,mode=max

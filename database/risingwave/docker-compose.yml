@@ -1,0 +1,12 @@
+services:
+  risingwave:
+    image: risingwavelabs/risingwave:v3.1.1
+    container_name: risingwave
+    restart: unless-stopped
+    # 单节点模式：内嵌 meta + compute + frontend，无需 etcd/对象存储
+    command: single_node
+    ports:
+      - "4566:4566" # pgwire + HTTP API
+      - "5691:5691" # Dashboard
+    networks:
+      - backend
