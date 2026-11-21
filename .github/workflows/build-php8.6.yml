@@ -11,6 +11,10 @@ on:
         description: '构建 FPM'
         type: boolean
         default: false
+      build_franken:
+        description: '构建 FrankenPHP'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -46,6 +50,9 @@ jobs:
           fi
           if [ "${{ inputs.build_fpm }}" = "true" ]; then
             add_task "fpm" "./php/php8.6-fpm" "fpm"
+          fi
+          if [ "${{ inputs.build_franken }}" = "true" ]; then
+            add_task "franken" "./php/php8.6-franken" "franken"
           fi
 
           # 输出最终的 JSON

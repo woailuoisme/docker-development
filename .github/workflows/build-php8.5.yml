@@ -15,10 +15,6 @@ on:
         description: '构建 FrankenPHP'
         type: boolean
         default: false
-      build_roadrunner:
-        description: '构建 RoadRunner'
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -57,9 +53,6 @@ jobs:
           fi
           if [ "${{ inputs.build_franken }}" = "true" ]; then
             add_task "franken" "./php/php8.5-franken" "franken"
-          fi
-          if [ "${{ inputs.build_roadrunner }}" = "true" ]; then
-            add_task "roadrunner" "./php/php8.5-roadrunner" "roadrunner"
           fi
 
           # 输出最终的 JSON
