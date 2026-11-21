@@ -1,21 +1,19 @@
 # ============================================================================
-# PHP 8.6 Alpine Base CLI Image
+# PHP 8.6 Base CLI Alpine Image (via pkg.henderkes.com apk)
 # ============================================================================
-ARG PHP_VERSION=8.6-cli-alpine3.24
-FROM php:${PHP_VERSION}
+FROM alpine:3.24
 LABEL maintainer="seaside <531773730@qq.com>"
-
-# 添加 extension-installer
-COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 
 # ============================================================================
 # 构建参数配置
 # ============================================================================
 
-ARG CHINA=false
-ARG TZ=Asia/Shanghai
+ARG TIMEZONE=Asia/Shanghai
+ARG PHP_ZTS_VERSION=86
 
-# 可选功能开关
+ENV TZ=${TIMEZONE}
+
+# 可选功能开关 (对应 php-zts-* apk 包与系统工具)
 ARG WITH_PG=true
 ARG WITH_VIPS=true
 ARG WITH_OPEN_TELEMETRY=false
@@ -25,92 +23,92 @@ ARG WITH_MYSQL=false
 ARG WITH_MONGODB=false
 ARG WITH_AMQP=false
 ARG WITH_RDKAFKA=false
-ARG WITH_SEASCLICK=false
-ARG WITH_MD4C=false
+ARG WITH_CLICKHOUSE=false
 ARG WITH_XLSWRITER=false
-
 ARG WITH_FFMPEG=false
 ARG WITH_LDAP=false
-ARG WITH_SWOOLE=false
-ARG SUPERCRONIC_VERSION=0.2.51
+ARG WITH_PIE=false
 
 # ============================================================================
 # 系统依赖与环境配置
 # ============================================================================
 
-# 1. 系统依赖、运行时库与环境配置 (合并层以减小体积)
 RUN set -eux; \
-    if [ "$CHINA" = "true" ]; then \
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
-    fi; \
     apk add --no-cache \
-    tzdata gettext gosu tini postgresql18-client procps iproute2 iputils \
-    jpegoptim \
-    pngquant \
-    optipng \
-    gifsicle \
-    libwebp-tools \
-    libavif-apps; \
+        ca-certificates curl tzdata gettext-envsubst gosu tini postgresql18-client procps iproute2 iputils \
+        jpegoptim \
+        pngquant \
+        optipng \
+        gifsicle \
+        libwebp-tools \
+        libavif-apps; \
     if [ "$WITH_FFMPEG" = "true" ]; then \
-    apk add --no-cache ffmpeg; \
+        apk add --no-cache ffmpeg; \
     fi; \
     if [ "$WITH_VIPS" = "true" ]; then \
-    apk add --no-cache vips vips-tools vips-heif; \
+        apk add --no-cache vips vips-tools vips-heif; \
     fi; \
-    ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime; \
-    echo "${TZ}" > /etc/timezone
+    ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime; \
+    echo "${TIMEZONE}" > /etc/timezone
 
 # ============================================================================
-# PHP 扩展编译与安装 (合并层以减小体积)
+# 安装 PHP ZTS CLI 与扩展 (pkg.henderkes.com)
 # ============================================================================
 
-# 4. 配置 & 安装核心扩展
-# 默认已安装扩展: Core, ctype, curl, date, dom, fileinfo, filter, hash, iconv, json
-# lexbor, libxml, mbstring, mysqlnd, openssl, pcre, PDO, pdo_sqlite, Phar, posix
-# random, readline, Reflection, session, SimpleXML, sodium, SPL, sqlite3, standard
-# tokenizer, uri, xml, xmlreader, xmlwriter, Zend OPcache, zlib
+WORKDIR /tmp
+
 RUN set -eux; \
-    install-php-extensions redis; \
-    install-php-extensions bcmath gmp exif pcntl sockets protobuf intl zip ffi gd; \
-    if [ "${WITH_MYSQL:-false}" = "true" ]; then install-php-extensions mysqli pdo_mysql; fi; \
-    if [ "${WITH_PG:-false}" = "true" ]; then install-php-extensions pgsql pdo_pgsql; fi; \
-    if [ "${WITH_MONGODB:-false}" = "true" ]; then install-php-extensions mongodb; fi; \
-    if [ "${WITH_LDAP:-false}" = "true" ]; then install-php-extensions ldap; fi; \
-    if [ "${WITH_AMQP:-false}" = "true" ]; then install-php-extensions amqp; fi; \
-    if [ "${WITH_SWOOLE:-false}" = "true" ]; then install-php-extensions swoole; fi; \
-    if [ "${WITH_UV:-false}" = "true" ]; then install-php-extensions uv; fi; \
-    if [ "${WITH_IMAGICK:-false}" = "true" ]; then install-php-extensions imagick; fi; \
-    if [ "${WITH_OPEN_TELEMETRY:-false}" = "true" ]; then install-php-extensions opentelemetry; fi; \
-    if [ "${WITH_XLSWRITER:-false}" = "true" ]; then install-php-extensions xlswriter; fi; \
-    if [ "${WITH_RDKAFKA:-false}" = "true" ]; then install-php-extensions rdkafka; fi; \
-    if [ "${WITH_SEASCLICK:-false}" = "true" ]; then install-php-extensions seasclick; fi; \
-    if [ "${WITH_MD4C:-false}" = "true" ]; then install-php-extensions md4c; fi; \
-    if [ "${WITH_VIPS:-false}" = "true" ]; then \
-    echo "ffi.enable=true" > /usr/local/etc/php/conf.d/docker-php-ext-vips.ini; \
-    echo "zend.max_allowed_stack_size=-1" >> /usr/local/etc/php/conf.d/docker-php-ext-vips.ini; \
+    echo "https://pkg.henderkes.com/api/packages/${PHP_ZTS_VERSION}/alpine/main/php-zts" >> /etc/apk/repositories; \
+    KEYFILE=$(curl -fsSJOw '%{filename_effective}' "https://pkg.henderkes.com/api/packages/${PHP_ZTS_VERSION}/alpine/key"); \
+    mv "${KEYFILE}" /etc/apk/keys/; \
+    apk add --no-cache \
+        php-zts-cli \
+        php-zts-curl \
+        php-zts-fileinfo \
+        php-zts-pdo_sqlite \
+        php-zts-redis \
+        php-zts-bcmath \
+        php-zts-gmp \
+        php-zts-protobuf \
+        php-zts-intl \
+        php-zts-zip \
+        php-zts-ffi \
+        php-zts-gd; \
+    if [ "${WITH_MYSQL}" = "true" ]; then apk add --no-cache php-zts-mysqli php-zts-pdo_mysql; fi; \
+    if [ "${WITH_PG}" = "true" ]; then apk add --no-cache php-zts-pgsql php-zts-pdo_pgsql; fi; \
+    if [ "${WITH_MONGODB}" = "true" ]; then apk add --no-cache php-zts-mongodb; fi; \
+    if [ "${WITH_LDAP}" = "true" ]; then apk add --no-cache php-zts-ldap; fi; \
+    if [ "${WITH_AMQP}" = "true" ]; then apk add --no-cache php-zts-amqp; fi; \
+    if [ "${WITH_UV}" = "true" ]; then apk add --no-cache php-zts-uv; fi; \
+    if [ "${WITH_IMAGICK}" = "true" ]; then apk add --no-cache php-zts-imagick; fi; \
+    if [ "${WITH_OPEN_TELEMETRY}" = "true" ]; then apk add --no-cache php-zts-opentelemetry; fi; \
+    if [ "${WITH_XLSWRITER}" = "true" ]; then apk add --no-cache php-zts-xlswriter; fi; \
+    if [ "${WITH_RDKAFKA}" = "true" ]; then apk add --no-cache php-zts-rdkafka; fi; \
+    if [ "${WITH_CLICKHOUSE}" = "true" ]; then apk add --no-cache php-zts-clickhouse; fi; \
+    if [ "${WITH_PIE}" = "true" ]; then apk add --no-cache pie-zts; fi; \
+    if [ "${WITH_VIPS}" = "true" ]; then \
+        mkdir -p /etc/php-zts/conf.d; \
+        { \
+            echo "ffi.enable=true"; \
+            echo "zend.max_allowed_stack_size=-1"; \
+        } > /etc/php-zts/conf.d/99-vips.ini; \
     fi; \
-    rm -rf /tmp/pear /var/cache/apk/*; \
-    find /usr/local/lib/php -name "*.a" -delete; \
-    find /usr/local/lib/php -name "*.la" -delete
+    rm -rf /var/cache/apk/*
 
 # ============================================================================
-# 应用工具与权限配置
+# 用户、目录与权限配置
 # ============================================================================
 
-
-# 6. 下载多架构二进制工具 (supercronic)
-ARG TARGETARCH
+# 运行目录与权限配置（直接沿用 Alpine 原生 www-data: 82:82）
 RUN set -eux; \
-    ARCH_SUFFIX=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64"); \
-    curl -fSL -o /usr/local/bin/supercronic "https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-${ARCH_SUFFIX}"; \
-    chmod +x /usr/local/bin/supercronic
-
-# 7. 运行目录与权限配置（直接沿用 Alpine 原生 www-data: 82:82）
-RUN set -eux; \
+    getent group www-data >/dev/null || addgroup -g 82 -S www-data; \
+    getent passwd www-data >/dev/null || adduser -u 82 -D -S -G www-data www-data; \
     mkdir -p /var/www /var/log/php; \
     chown -R www-data:www-data /var/www /var/log/php
 
-# 8. 生产环境 PHP / Laravel CLI 配置
-COPY laravel.ini /usr/local/etc/php/conf.d/
+# 生产环境 PHP / Laravel CLI 配置
+COPY laravel.ini /etc/php-zts/conf.d/
 
 WORKDIR /var/www
+
+CMD ["php", "-a"]

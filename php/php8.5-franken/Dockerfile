@@ -8,7 +8,6 @@ LABEL maintainer="seaside <531773730@qq.com>"
 # 构建参数配置
 # ============================================================================
 
-ARG CHINA=false
 ARG TZ=Asia/Shanghai
 
 # 可选功能开关
@@ -35,11 +34,8 @@ ARG WITH_SWOOLE=false
 
 # 1. 系统依赖、运行时库与环境配置 (合并层以减小体积)
 RUN set -eux; \
-    if [ "$CHINA" = "true" ]; then \
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
-    fi; \
     apk add --no-cache \
-    tzdata gettext gosu tini postgresql18-client procps iproute2 iputils \
+    tzdata gettext-envsubst gosu tini postgresql18-client procps iproute2 iputils \
     jpegoptim \
     pngquant \
     optipng \

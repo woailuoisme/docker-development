@@ -12,7 +12,6 @@ COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr
 # 构建参数配置
 # ============================================================================
 
-ARG CHINA=false
 ARG TZ=Asia/Shanghai
 
 # 可选功能开关
@@ -32,7 +31,6 @@ ARG WITH_XLSWRITER=false
 ARG WITH_FFMPEG=false
 ARG WITH_LDAP=false
 ARG WITH_SWOOLE=false
-ARG SUPERCRONIC_VERSION=0.2.51
 
 # ============================================================================
 # 系统依赖与环境配置
@@ -40,11 +38,8 @@ ARG SUPERCRONIC_VERSION=0.2.51
 
 # 1. 系统依赖、运行时库与环境配置 (合并层以减小体积)
 RUN set -eux; \
-    if [ "$CHINA" = "true" ]; then \
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
-    fi; \
     apk add --no-cache \
-    tzdata gettext gosu tini postgresql18-client procps iproute2 iputils \
+    tzdata gettext-envsubst gosu tini postgresql18-client procps iproute2 iputils \
     jpegoptim \
     pngquant \
     optipng \
@@ -94,18 +89,10 @@ RUN set -eux; \
     find /usr/local/lib/php -name "*.la" -delete
 
 # ============================================================================
-# 应用工具与权限配置
+# 用户、目录与权限配置
 # ============================================================================
 
-
-# 6. 下载多架构二进制工具 (supercronic)
-ARG TARGETARCH
-RUN set -eux; \
-    ARCH_SUFFIX=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64"); \
-    curl -fSL -o /usr/local/bin/supercronic "https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-${ARCH_SUFFIX}"; \
-    chmod +x /usr/local/bin/supercronic
-
-# 7. 运行目录与权限配置（直接沿用 Alpine 原生 www-data: 82:82）
+# 运行目录与权限配置（直接沿用 Alpine 原生 www-data: 82:82）
 RUN set -eux; \
     mkdir -p /var/www /var/log/php; \
     chown -R www-data:www-data /var/www /var/log/php

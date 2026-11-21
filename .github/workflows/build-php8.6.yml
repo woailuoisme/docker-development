@@ -100,8 +100,6 @@ jobs:
         with:
           context: ${{ matrix.context }}
           platforms: linux/amd64,linux/arm64
-          build-args: |
-            CHINA=false
           push: true
           tags: |
             ${{ env.REGISTRY_DOCKERHUB }}:${{ matrix.tag }}
