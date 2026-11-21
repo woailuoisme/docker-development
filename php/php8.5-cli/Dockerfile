@@ -15,10 +15,10 @@ ENV TZ=${TIMEZONE}
 
 # 可选功能开关 (对应 php-zts-* apk 包与系统工具)
 ARG WITH_PG=true
+ARG WITH_UV=true
 ARG WITH_VIPS=true
 ARG WITH_OPEN_TELEMETRY=false
 ARG WITH_IMAGICK=false
-ARG WITH_UV=false
 ARG WITH_MYSQL=false
 ARG WITH_MONGODB=false
 ARG WITH_AMQP=false
